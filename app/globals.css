@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 144 100% 97%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 142 71% 45%;
+    --radius: 0.75rem;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply min-h-dvh bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(ellipse 120% 80% at 50% -20%, hsl(142 71% 45% / 0.12), transparent 50%),
+      radial-gradient(ellipse 80% 50% at 100% 100%, hsl(240 40% 20% / 0.4), transparent 45%);
+    background-attachment: fixed;
+  }
+}
