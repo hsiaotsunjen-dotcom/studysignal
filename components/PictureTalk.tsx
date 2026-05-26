@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getLevelLabel, type SchoolLevel } from "@/lib/practice";
+import type { BrowserTimerId } from "@/lib/timer";
 
 type PictureTalkProps = {
   level: SchoolLevel;
@@ -35,7 +36,7 @@ export function PictureTalk({ level, modeTitle }: PictureTalkProps) {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listeningRef = useRef(false);
-  const micTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const micTimerRef = useRef<BrowserTimerId | null>(null);
 
   const revokePreview = useCallback((url: string | null) => {
     if (url) URL.revokeObjectURL(url);
@@ -98,7 +99,7 @@ export function PictureTalk({ level, modeTitle }: PictureTalkProps) {
       setIsListening(false);
       micTimerRef.current = null;
       sendMessage("I see people and colors in the picture.");
-    }, 1400);
+    }, 1400) as BrowserTimerId;
   };
 
   const speakLastAssistant = () => {

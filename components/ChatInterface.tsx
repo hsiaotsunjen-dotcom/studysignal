@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getLevelLabel, type ModeConfig, type SchoolLevel } from "@/lib/practice";
+import type { BrowserTimerId } from "@/lib/timer";
 
 type Message = {
   id: string;
@@ -35,7 +36,7 @@ export function ChatInterface({ level, mode, showScoreLink }: ChatInterfaceProps
   const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listeningRef = useRef(false);
-  const micTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const micTimerRef = useRef<BrowserTimerId | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -83,7 +84,7 @@ export function ChatInterface({ level, mode, showScoreLink }: ChatInterfaceProps
       setIsListening(false);
       micTimerRef.current = null;
       sendUserMessage("I practiced speaking my answer out loud.");
-    }, 1400);
+    }, 1400) as BrowserTimerId;
   };
 
   const speakLastAssistant = () => {

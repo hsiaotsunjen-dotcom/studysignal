@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getLevelLabel, READ_ALOUD_PASSAGE, type SchoolLevel } from "@/lib/practice";
+import type { BrowserTimerId } from "@/lib/timer";
 
 type ReadAloudProps = {
   level: SchoolLevel;
@@ -17,7 +18,7 @@ export function ReadAloud({ level, modeTitle }: ReadAloudProps) {
   const [hasStarted, setHasStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const recordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recordTimerRef = useRef<BrowserTimerId | null>(null);
 
   useEffect(() => {
     return () => {
@@ -47,7 +48,7 @@ export function ReadAloud({ level, modeTitle }: ReadAloudProps) {
       setFeedback(
         "Nice effort! Try slowing down on \"Sunday\" and stress the first syllable of \"friends.\" Keep your vowels clear on \"went\" and \"park.\""
       );
-    }, 1600);
+    }, 1600) as BrowserTimerId;
   };
 
   return (
