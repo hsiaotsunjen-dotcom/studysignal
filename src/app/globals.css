@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply min-h-dvh bg-surface text-zinc-100 antialiased;
+}
+
+/* Smooth scrolling for in-page focus */
+.scroll-stable {
+  scrollbar-gutter: stable;
+}
+
+/* Custom subtle scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-zinc-700/80;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
