@@ -18,7 +18,14 @@ Use exactly these keys and nesting (camelCase):
 
 - vocabulary: same shape as grammar but for word choice/range.
 
-- fluency: same shape but for how natural/connected the English reads (not accent).
+- fluency: same shape but for how natural/connected the English reads (writing—NOT accent).
+
+- pronunciationScores: REQUIRED object (infer from transcript text only; no audio). Use exactly these keys inside it:
+  - overallScore: integer 0–100 (holistic pronunciation quality implied by spelling/word choice/stress cues in the text)
+  - accuracy: integer 0–100 (likely sound–spelling alignment / word-level correctness as readable from text)
+  - fluency: integer 0–100 (rhythm / chunking / connected speech as inferable from punctuation and phrasing in the transcript—this is NOT the same as the writing "fluency" block above)
+  - clarity: integer 0–100 (how clearly the intended words come across from the written transcript)
+  - feedback: one paragraph in Traditional Chinese (繁體中文) with concrete tips to improve pronunciation based on the transcript; reference specific words or patterns when possible.
 
 - pronunciationFocus: array of exactly 3 objects, each:
   - word: English string from their transcript (or clear intended word)
@@ -86,7 +93,7 @@ export async function POST(request: Request) {
         },
       ],
       temperature: 0.4,
-      max_tokens: 2800,
+      max_tokens: 3000,
     }),
   });
 

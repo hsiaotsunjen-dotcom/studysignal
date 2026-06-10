@@ -19,7 +19,18 @@ export type TutorPersonalizedComment = {
   whatToTryNextTime: string;
 };
 
+/** Pronunciation rubric from GPT (nested to avoid clashing with writing `fluency`). */
+export type PronunciationScoresBlock = {
+  overallScore: number;
+  accuracy: number;
+  fluency: number;
+  clarity: number;
+  feedback: string;
+};
+
 export type AnalyzeFeedback = {
+  /** Present only when the model returns a complete pronunciationScores object. */
+  pronunciationScores?: PronunciationScoresBlock;
   grammar: ScoreCategoryFeedback;
   vocabulary: ScoreCategoryFeedback;
   fluency: ScoreCategoryFeedback;
@@ -127,6 +138,33 @@ function normalizeTutorComment(
   };
 }
 
+function normalizePronunciationScores(
+  raw: unknown
+): PronunciationScoresBlock | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const feedback =
+    typeof o.feedback === "string" ? o.feedback.trim() : "";
+  if (!feedback) return null;
+  const overallScore = clampScore(o.overallScore);
+  const accuracy = clampScore(o.accuracy);
+  const fluency = clampScore(o.fluency);
+  const clarity = clampScore(o.clarity);
+  if (
+    typeof o.overallScore !== "number" ||
+    typeof o.accuracy !== "number" ||
+    typeof o.fluency !== "number" ||
+    typeof o.clarity !== "number" ||
+    !Number.isFinite(o.overallScore) ||
+    !Number.isFinite(o.accuracy) ||
+    !Number.isFinite(o.fluency) ||
+    !Number.isFinite(o.clarity)
+  ) {
+    return null;
+  }
+  return { overallScore, accuracy, fluency, clarity, feedback };
+}
+
 /**
  * Parse successful `/api/analyze` JSON body into `AnalyzeFeedback`.
  * Returns `null` if required fields are missing or invalid.
@@ -158,7 +196,12 @@ export function parseAnalyzeApiData(data: unknown): AnalyzeFeedback | null {
   const tutorComment = normalizeTutorComment(o.tutorComment);
   if (!tutorComment) return null;
 
+  const pronunciationScores = normalizePronunciationScores(
+    o.pronunciationScores
+  );
+
   return {
+    ...(pronunciationScores ? { pronunciationScores } : {}),
     grammar,
     vocabulary,
     fluency,

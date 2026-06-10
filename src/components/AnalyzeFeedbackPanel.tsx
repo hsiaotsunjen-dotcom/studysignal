@@ -1,4 +1,8 @@
-import type { AnalyzeFeedback, ScoreCategoryFeedback } from "@/lib/analyzeFeedback";
+import type {
+  AnalyzeFeedback,
+  PronunciationScoresBlock,
+  ScoreCategoryFeedback,
+} from "@/lib/analyzeFeedback";
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
@@ -75,6 +79,42 @@ function ScoreCategoryBlock({
   );
 }
 
+function PronunciationScoresSection({ ps }: { ps: PronunciationScoresBlock }) {
+  return (
+    <div className="mb-4 space-y-3 rounded-xl border border-sky-500/20 bg-sky-500/[0.06] p-3 ring-1 ring-sky-500/10">
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-200/95">
+          發音評分 Pronunciation
+        </h4>
+        <p className="text-[11px] text-zinc-500">
+          依文字內容推估（無音檔時為參考指標）
+        </p>
+      </div>
+      <div className="flex items-end justify-between gap-3 border-b border-white/[0.06] pb-3">
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+          總分 Overall
+        </span>
+        <span className="text-3xl font-semibold tabular-nums tracking-tight text-white">
+          {ps.overallScore}
+        </span>
+      </div>
+      <div className="space-y-2.5">
+        <ScoreBar label="準確度 Accuracy" value={ps.accuracy} />
+        <ScoreBar label="流利度 Fluency（發音）" value={ps.fluency} />
+        <ScoreBar label="清晰度 Clarity" value={ps.clarity} />
+      </div>
+      <div className="rounded-lg border border-white/[0.06] bg-black/25 p-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+          發音回饋
+        </p>
+        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+          {ps.feedback}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function AnalyzeFeedbackPanel({
   result,
   className = "",
@@ -89,6 +129,10 @@ export function AnalyzeFeedbackPanel({
       <h3 className="mb-3 text-xs font-medium tracking-wide text-zinc-500">
         家教老師的分析
       </h3>
+
+      {result.pronunciationScores ? (
+        <PronunciationScoresSection ps={result.pronunciationScores} />
+      ) : null}
 
       <div className="mb-4 space-y-4">
         <ScoreCategoryBlock
