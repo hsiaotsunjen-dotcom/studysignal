@@ -8,7 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ChangeEvent } from "react";
+import type {
+  ChangeEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -22,8 +26,7 @@ import {
   X,
 } from "lucide-react";
 
-import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
-import type { AnalyzeFeedback } from "@/lib/analyzeFeedback";
+import { StudySignalChatThread, type ChatListItem } from "@/components/StudySignalChatThread";
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
 
 type SchoolLevel = "elementary" | "junior" | "senior";
@@ -103,7 +106,16 @@ const SUBJECTS = [
 
 const MAX_IMAGES = 5;
 
-/** Minimum visible lines for the message / transcript textarea. */
+function initialChatItems(): ChatListItem[] {
+  return [
+    {
+      id: "welcome",
+      role: "tutor",
+      body: "嗨！我是 StudySignal 的家教小助手。把你的英文打在下方，按「分析英文（發音／語法）」，詳細分析會出現在這段對話裡。",
+    },
+  ];
+}
+
 const MESSAGE_TEXTAREA_MIN_LINES = 5;
 
 type UploadedImage = {
@@ -181,6 +193,26 @@ function dictationLine(
 
 type DictationUiStatus = "idle" | "recording" | "transcribing" | "ready";
 
+/** Resizable split: chat vs composer (pointer + touch). */
+const CHAT_AREA_MIN_PX = 300;
+const INPUT_AREA_MIN_PX = 180;
+const SPLITTER_HEIGHT_PX = 12;
+
+function clampChatHeightPx(shellHeightPx: number, chatPx: number): number {
+  const maxChat =
+    shellHeightPx - SPLITTER_HEIGHT_PX - INPUT_AREA_MIN_PX;
+  if (!Number.isFinite(maxChat)) {
+    return CHAT_AREA_MIN_PX;
+  }
+  const cappedMax = Math.max(0, maxChat);
+  if (cappedMax < CHAT_AREA_MIN_PX) {
+    return Math.round(cappedMax);
+  }
+  return Math.round(
+    Math.max(CHAT_AREA_MIN_PX, Math.min(cappedMax, chatPx)),
+  );
+}
+
 export function StudySignalHome() {
   const fileInputId = useId();
   const previewRegionId = useId();
@@ -203,9 +235,15 @@ export function StudySignalHome() {
   const [dictationUiStatus, setDictationUiStatus] =
     useState<DictationUiStatus>("idle");
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
-  const [analyzeResult, setAnalyzeResult] = useState<AnalyzeFeedback | null>(
-    null
-  );
+  const [chatItems, setChatItems] = useState<ChatListItem[]>(initialChatItems);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const splitShellRef = useRef<HTMLDivElement>(null);
+  const [chatHeightPx, setChatHeightPx] = useState<number | null>(null);
+  const splitDragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    startChatPx: number;
+  } | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
@@ -436,6 +474,30 @@ export function StudySignalHome() {
   const hasImages = imageCount > 0;
   const atImageLimit = imageCount >= MAX_IMAGES;
 
+  useLayoutEffect(() => {
+    const shell = splitShellRef.current;
+    if (!shell) return;
+
+    const syncFromShell = () => {
+      const shellH = shell.getBoundingClientRect().height;
+      if (shellH <= SPLITTER_HEIGHT_PX) return;
+      setChatHeightPx((prev) => {
+        if (prev == null) {
+          return clampChatHeightPx(
+            shellH,
+            (shellH - SPLITTER_HEIGHT_PX) * 0.7,
+          );
+        }
+        return clampChatHeightPx(shellH, prev);
+      });
+    };
+
+    syncFromShell();
+    const ro = new ResizeObserver(syncFromShell);
+    ro.observe(shell);
+    return () => ro.disconnect();
+  }, []);
+
   const openFilePicker = () => {
     if (atImageLimit) return;
     const input = fileInputRef.current;
@@ -532,18 +594,30 @@ export function StudySignalHome() {
     messageRef.current = "";
     setSpeechListening(false);
     setDictationUiStatus("idle");
+    setChatItems(initialChatItems());
   }, [stopDictationMediaHard]);
 
   const runAnalyze = useCallback(async () => {
     setAnalyzeError(null);
-    setAnalyzeResult(null);
     setTranscribeError(null);
     const text = messageRef.current.trim();
     if (!text) {
       setAnalyzeError("還沒有可分析的英文，請先輸入或透過麥克風說幾句話。");
       return;
     }
+
+    const turnId = newAttachmentId();
+    setChatItems((prev) => [
+      ...prev,
+      {
+        id: turnId,
+        role: "student",
+        body: text,
+        analyzeLoading: true,
+      },
+    ]);
     setAnalyzeLoading(true);
+
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -559,18 +633,63 @@ export function StudySignalHome() {
           ? (data as { error: string }).error
           : null;
       if (!res.ok) {
-        setAnalyzeError(errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`);
+        const msg = errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`;
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === turnId && m.role === "student"
+              ? {
+                  ...m,
+                  analyzeLoading: false,
+                  analyzeError: msg,
+                  analysis: null,
+                }
+              : m
+          )
+        );
         return;
       }
       const parsed = parseAnalyzeApiData(data);
       if (!parsed) {
-        setAnalyzeError("分析結果不完整，請再試一次。");
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === turnId && m.role === "student"
+              ? {
+                  ...m,
+                  analyzeLoading: false,
+                  analyzeError: "分析結果不完整，請再試一次。",
+                  analysis: null,
+                }
+              : m
+          )
+        );
         return;
       }
-      setAnalyzeResult(parsed);
+
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === turnId && m.role === "student"
+            ? {
+                ...m,
+                analyzeLoading: false,
+                analyzeError: null,
+                analysis: parsed,
+              }
+            : m
+        )
+      );
     } catch (e) {
-      setAnalyzeError(
-        e instanceof Error ? e.message : "網路連線異常，請稍後再試。"
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === turnId && m.role === "student"
+            ? {
+                ...m,
+                analyzeLoading: false,
+                analyzeError:
+                  e instanceof Error ? e.message : "網路連線異常，請稍後再試。",
+                analysis: null,
+              }
+            : m
+        )
       );
     } finally {
       setAnalyzeLoading(false);
@@ -876,6 +995,67 @@ export function StudySignalHome() {
     startDictation();
   }, [startDictation, stopDictationRecording]);
 
+  const onSplitPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0 || chatHeightPx == null) return;
+      e.preventDefault();
+      (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+      splitDragRef.current = {
+        pointerId: e.pointerId,
+        startY: e.clientY,
+        startChatPx: chatHeightPx,
+      };
+    },
+    [chatHeightPx],
+  );
+
+  const onSplitPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const drag = splitDragRef.current;
+      const shell = splitShellRef.current;
+      if (!drag || drag.pointerId !== e.pointerId || !shell) return;
+      const shellH = shell.getBoundingClientRect().height;
+      const deltaY = e.clientY - drag.startY;
+      setChatHeightPx(
+        clampChatHeightPx(shellH, drag.startChatPx + deltaY),
+      );
+    },
+    [],
+  );
+
+  const onSplitPointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (splitDragRef.current?.pointerId !== e.pointerId) return;
+      splitDragRef.current = null;
+      try {
+        (e.currentTarget as HTMLDivElement).releasePointerCapture(
+          e.pointerId,
+        );
+      } catch {
+        /* already released */
+      }
+    },
+    [],
+  );
+
+  const onSplitLostPointerCapture = useCallback(() => {
+    splitDragRef.current = null;
+  }, []);
+
+  const onSplitKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      e.preventDefault();
+      const shell = splitShellRef.current;
+      if (!shell || chatHeightPx == null) return;
+      const shellH = shell.getBoundingClientRect().height;
+      const step = e.shiftKey ? 48 : 16;
+      const delta = e.key === "ArrowUp" ? -step : step;
+      setChatHeightPx(clampChatHeightPx(shellH, chatHeightPx + delta));
+    },
+    [chatHeightPx],
+  );
+
   return (
     <div className="relative flex min-h-dvh flex-col bg-surface">
       {/* Ambient gradient — subtle ChatGPT-adjacent depth */}
@@ -888,7 +1068,9 @@ export function StudySignalHome() {
         <div className="absolute bottom-0 left-1/3 h-[300px] w-[300px] rounded-full bg-emerald-500/10 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <div
+        className="relative z-10 mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-2"
+      >
         {/* Header */}
         <header className="shrink-0 pb-4">
           <div className="flex items-start justify-between gap-3">
@@ -947,9 +1129,7 @@ export function StudySignalHome() {
 
         {/* Subjects */}
         <section
-          className={`min-h-0 flex-1 overflow-y-auto scroll-stable ${
-            hasImages ? "pb-48 sm:pb-52" : "pb-36"
-          }`}
+          className="shrink-0 pb-4 pt-2"
           aria-label="Subjects"
         >
           <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -1018,6 +1198,309 @@ export function StudySignalHome() {
             })}
           </div>
         </section>
+
+        {/* Resizable: chat | splitter | composer */}
+        <div
+          ref={splitShellRef}
+          className="flex min-h-0 flex-1 flex-col overflow-x-hidden"
+        >
+          <section
+            className="flex min-h-0 shrink-0 flex-col overflow-hidden"
+            style={
+              chatHeightPx != null
+                ? {
+                    height: chatHeightPx,
+                    minHeight: CHAT_AREA_MIN_PX,
+                  }
+                : {
+                    height: "70%",
+                    minHeight: CHAT_AREA_MIN_PX,
+                  }
+            }
+            aria-label="Conversation with tutor"
+          >
+            <div className="mb-2 flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <Sparkles className="h-3.5 w-3.5 text-violet-400/90" aria-hidden />
+              Chat
+            </div>
+            <div
+              ref={chatScrollRef}
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border border-white/[0.08] bg-black/25 px-2 py-3 shadow-inner ring-1 ring-white/[0.04] sm:px-3 sm:py-4"
+            >
+              <StudySignalChatThread
+                items={chatItems}
+                scrollParentRef={chatScrollRef}
+              />
+            </div>
+          </section>
+
+          <div
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Drag to resize chat and message area"
+            tabIndex={0}
+            className="group relative z-10 flex shrink-0 cursor-row-resize touch-none items-center justify-center border-y border-white/[0.06] bg-zinc-900/50 outline-none hover:bg-zinc-800/60 active:bg-zinc-800/80"
+            style={{ height: SPLITTER_HEIGHT_PX, flexShrink: 0 }}
+            onPointerDown={onSplitPointerDown}
+            onPointerMove={onSplitPointerMove}
+            onPointerUp={onSplitPointerUp}
+            onPointerCancel={onSplitPointerUp}
+            onLostPointerCapture={onSplitLostPointerCapture}
+            onKeyDown={onSplitKeyDown}
+          >
+            <span
+              className="pointer-events-none h-1 w-14 rounded-full bg-zinc-600 transition-colors group-hover:bg-zinc-500"
+              aria-hidden
+            />
+          </div>
+
+          <div className="flex min-h-[180px] flex-1 flex-col overflow-y-auto border-t border-white/[0.08] bg-gradient-to-b from-transparent via-surface/30 to-surface pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+            <div className="pointer-events-auto mx-auto w-full max-w-lg px-0 sm:px-1 md:px-0">
+              {hasImages ? (
+                <div
+                  id={previewRegionId}
+                  role="region"
+                  aria-label={`Selected images, ${imageCount} of ${MAX_IMAGES}`}
+                  className="mb-2 rounded-2xl border border-white/10 bg-black/25 p-2.5 shadow-glow ring-1 ring-white/[0.04] backdrop-blur-xl"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+                    <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      Images
+                    </span>
+                    <span
+                      className="tabular-nums text-xs font-medium text-zinc-400"
+                      aria-live="polite"
+                    >
+                      {imageCount}/{MAX_IMAGES}
+                    </span>
+                  </div>
+                  <ul
+                    className="-mx-0.5 flex list-none snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-0.5 pb-1 pt-0.5 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600/80 [&::-webkit-scrollbar-track]:bg-transparent"
+                    role="list"
+                  >
+                    {attachments.map((item) => (
+                      <li
+                        key={item.id}
+                        className="relative h-[4.5rem] w-[4.5rem] shrink-0 snap-start sm:h-24 sm:w-24"
+                        role="listitem"
+                      >
+                        <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- blob: URLs for local preview */}
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                            decoding="async"
+                            loading="lazy"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeImageById(item.id)}
+                          className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-900/95 text-zinc-200 shadow-md backdrop-blur-md transition-colors hover:bg-zinc-800 hover:text-white active:scale-95 touch-manipulation"
+                          aria-label={`Remove ${item.name}`}
+                        >
+                          <X className="h-3.5 w-3.5" aria-hidden />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="overflow-hidden rounded-[26px] border border-white/10 bg-surface-overlay/90 shadow-dock backdrop-blur-2xl ring-1 ring-white/[0.04]">
+                <div
+                  className="flex flex-col gap-1.5 border-b border-white/[0.06] px-3 py-2.5 sm:px-4 sm:py-3"
+                  role="radiogroup"
+                  aria-label="Dictation language"
+                >
+                  <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                    Dictation language
+                  </span>
+                  <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                    {SPEECH_LANG_OPTIONS.map((opt) => {
+                      const selected = selectedSpeechLang === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          disabled={speechListening}
+                          onClick={() => setSelectedSpeechLang(opt.value)}
+                          className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium transition-all active:scale-[0.98] touch-manipulation disabled:cursor-not-allowed disabled:opacity-50 ${
+                            selected
+                              ? "border-white/15 bg-white text-zinc-950 shadow-lg shadow-black/20"
+                              : "border-white/10 bg-surface-raised/60 text-zinc-300 ring-1 ring-white/[0.04] hover:bg-surface-overlay/80 hover:text-white"
+                          }`}
+                        >
+                          <span aria-hidden>{opt.flag}</span>{" "}
+                          <span className="sm:hidden">{opt.short}</span>
+                          <span className="hidden sm:inline">{opt.label}</span>{" "}
+                          <span className="tabular-nums text-xs text-zinc-500 sm:text-zinc-600">
+                            ({opt.value})
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="w-full border-b border-white/[0.06] bg-black/20">
+                  <textarea
+                    ref={messageTextareaRef}
+                    rows={MESSAGE_TEXTAREA_MIN_LINES}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Message StudySignal…"
+                    className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
+                    aria-label="Message input"
+                  />
+                </div>
+
+                <div
+                  className="flex flex-nowrap items-center justify-start gap-1 overflow-x-auto overscroll-x-contain px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 sm:px-3 sm:py-2.5 [&::-webkit-scrollbar]:hidden"
+                  role="toolbar"
+                  aria-label="Message actions"
+                >
+                  <input
+                    ref={fileInputRef}
+                    id={fileInputId}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    tabIndex={-1}
+                    onChange={handleImageChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={openFilePicker}
+                    disabled={atImageLimit}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
+                      atImageLimit
+                        ? "cursor-not-allowed text-zinc-600"
+                        : "cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white active:scale-95"
+                    }`}
+                    title={
+                      atImageLimit
+                        ? `Maximum ${MAX_IMAGES} images`
+                        : "Add images"
+                    }
+                    aria-label={
+                      atImageLimit
+                        ? `Image limit reached (${MAX_IMAGES} of ${MAX_IMAGES})`
+                        : "Add images"
+                    }
+                  >
+                    <Upload className="h-5 w-5" aria-hidden />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={openCameraModal}
+                    disabled={atImageLimit}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
+                      atImageLimit
+                        ? "cursor-not-allowed text-zinc-600"
+                        : "cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white active:scale-95"
+                    }`}
+                    title={
+                      atImageLimit
+                        ? `Maximum ${MAX_IMAGES} images`
+                        : "Take photo with camera"
+                    }
+                    aria-label={
+                      atImageLimit
+                        ? `Image limit reached (${MAX_IMAGES} of ${MAX_IMAGES})`
+                        : "Open camera"
+                    }
+                  >
+                    <Camera className="h-5 w-5" aria-hidden />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={clearTranscript}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
+                    title="Clear text"
+                    aria-label="Clear text"
+                  >
+                    <Trash2 className="h-5 w-5" aria-hidden />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleMicrophoneDictation}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
+                    title={speechListening ? "Stop microphone" : "Microphone"}
+                    aria-label={
+                      speechListening ? "Stop microphone" : "Microphone"
+                    }
+                    aria-pressed={speechListening}
+                  >
+                    <Mic className="h-5 w-5" aria-hidden />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={playLastVoiceRecording}
+                    disabled={!lastVoiceRecording}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
+                      !lastVoiceRecording
+                        ? "cursor-not-allowed text-zinc-600 opacity-40"
+                        : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                    }`}
+                    title="Play last recording"
+                    aria-label="Play last recording"
+                  >
+                    <AudioWaveform className="h-5 w-5" aria-hidden />
+                  </button>
+                </div>
+                {dictationUiStatus !== "idle" ? (
+                  <p
+                    className="px-3 py-1.5 text-center text-sm text-zinc-400 sm:px-4"
+                    aria-live="polite"
+                  >
+                    {dictationUiStatus === "recording"
+                      ? "🔴 Recording..."
+                      : dictationUiStatus === "transcribing"
+                        ? "⏳ Transcribing..."
+                        : "✅ Ready"}
+                  </p>
+                ) : null}
+                <div className="space-y-2 border-t border-white/[0.05] px-3 py-2 sm:space-y-2.5 sm:px-4 sm:py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => void runAnalyze()}
+                    disabled={analyzeLoading}
+                    className="w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
+                  >
+                    {analyzeLoading ? "分析中…" : "分析英文（發音／語法）"}
+                  </button>
+                  {analyzeLoading ? (
+                    <p className="text-sm text-zinc-400" aria-live="polite">
+                      分析中…
+                    </p>
+                  ) : null}
+                  {analyzeError ? (
+                    <p className="text-sm text-amber-400/95" role="alert">
+                      {analyzeError}
+                    </p>
+                  ) : null}
+                  {transcribeError ? (
+                    <p className="text-sm text-amber-400/95" role="alert">
+                      {transcribeError}
+                    </p>
+                  ) : null}
+                  <p className="pt-0.5 text-center text-[11px] text-zinc-600 sm:pt-1">
+                    StudySignal can make mistakes. Check important facts.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {cameraModalOpen ? (
@@ -1110,254 +1593,6 @@ export function StudySignalHome() {
         </div>
       ) : null}
 
-      {/* Fixed composer */}
-      <div className="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-surface via-surface/95 to-transparent pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10">
-        <div className="pointer-events-auto mx-auto w-full max-w-lg px-2 sm:px-4 md:px-5">
-          {hasImages ? (
-            <div
-              id={previewRegionId}
-              role="region"
-              aria-label={`Selected images, ${imageCount} of ${MAX_IMAGES}`}
-              className="mb-2 rounded-2xl border border-white/10 bg-black/25 p-2.5 shadow-glow ring-1 ring-white/[0.04] backdrop-blur-xl"
-            >
-              <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-                <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Images
-                </span>
-                <span
-                  className="tabular-nums text-xs font-medium text-zinc-400"
-                  aria-live="polite"
-                >
-                  {imageCount}/{MAX_IMAGES}
-                </span>
-              </div>
-              <ul
-                className="-mx-0.5 flex list-none snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-0.5 pb-1 pt-0.5 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600/80 [&::-webkit-scrollbar-track]:bg-transparent"
-                role="list"
-              >
-                {attachments.map((item) => (
-                  <li
-                    key={item.id}
-                    className="relative h-[4.5rem] w-[4.5rem] shrink-0 snap-start sm:h-24 sm:w-24"
-                    role="listitem"
-                  >
-                    <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- blob: URLs for local preview */}
-                      <img
-                        src={item.url}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                        decoding="async"
-                        loading="lazy"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeImageById(item.id)}
-                      className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-900/95 text-zinc-200 shadow-md backdrop-blur-md transition-colors hover:bg-zinc-800 hover:text-white active:scale-95 touch-manipulation"
-                      aria-label={`Remove ${item.name}`}
-                    >
-                      <X className="h-3.5 w-3.5" aria-hidden />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <div className="overflow-hidden rounded-[26px] border border-white/10 bg-surface-overlay/90 shadow-dock backdrop-blur-2xl ring-1 ring-white/[0.04]">
-            <div
-              className="flex flex-col gap-1.5 border-b border-white/[0.06] px-3 py-2.5 sm:px-4 sm:py-3"
-              role="radiogroup"
-              aria-label="Dictation language"
-            >
-              <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                Dictation language
-              </span>
-              <div className="flex flex-wrap gap-2 sm:gap-2.5">
-                {SPEECH_LANG_OPTIONS.map((opt) => {
-                  const selected = selectedSpeechLang === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      disabled={speechListening}
-                      onClick={() => setSelectedSpeechLang(opt.value)}
-                      className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium transition-all active:scale-[0.98] touch-manipulation disabled:cursor-not-allowed disabled:opacity-50 ${
-                        selected
-                          ? "border-white/15 bg-white text-zinc-950 shadow-lg shadow-black/20"
-                          : "border-white/10 bg-surface-raised/60 text-zinc-300 ring-1 ring-white/[0.04] hover:bg-surface-overlay/80 hover:text-white"
-                      }`}
-                    >
-                      <span aria-hidden>{opt.flag}</span>{" "}
-                      <span className="sm:hidden">{opt.short}</span>
-                      <span className="hidden sm:inline">{opt.label}</span>{" "}
-                      <span className="tabular-nums text-xs text-zinc-500 sm:text-zinc-600">
-                        ({opt.value})
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="w-full border-b border-white/[0.06] bg-black/20">
-              <textarea
-                ref={messageTextareaRef}
-                rows={MESSAGE_TEXTAREA_MIN_LINES}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Message StudySignal…"
-                className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
-                aria-label="Message input"
-              />
-            </div>
-
-            <div
-              className="flex flex-nowrap items-center justify-start gap-1 overflow-x-auto overscroll-x-contain px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 sm:px-3 sm:py-2.5 [&::-webkit-scrollbar]:hidden"
-              role="toolbar"
-              aria-label="Message actions"
-            >
-              <input
-                ref={fileInputRef}
-                id={fileInputId}
-                type="file"
-                accept="image/*"
-                multiple
-                className="sr-only"
-                tabIndex={-1}
-                onChange={handleImageChange}
-              />
-              <button
-                type="button"
-                onClick={openFilePicker}
-                disabled={atImageLimit}
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
-                  atImageLimit
-                    ? "cursor-not-allowed text-zinc-600"
-                    : "cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white active:scale-95"
-                }`}
-                title={
-                  atImageLimit
-                    ? `Maximum ${MAX_IMAGES} images`
-                    : "Add images"
-                }
-                aria-label={
-                  atImageLimit
-                    ? `Image limit reached (${MAX_IMAGES} of ${MAX_IMAGES})`
-                    : "Add images"
-                }
-              >
-                <Upload className="h-5 w-5" aria-hidden />
-              </button>
-
-              <button
-                type="button"
-                onClick={openCameraModal}
-                disabled={atImageLimit}
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
-                  atImageLimit
-                    ? "cursor-not-allowed text-zinc-600"
-                    : "cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white active:scale-95"
-                }`}
-                title={
-                  atImageLimit
-                    ? `Maximum ${MAX_IMAGES} images`
-                    : "Take photo with camera"
-                }
-                aria-label={
-                  atImageLimit
-                    ? `Image limit reached (${MAX_IMAGES} of ${MAX_IMAGES})`
-                    : "Open camera"
-                }
-              >
-                <Camera className="h-5 w-5" aria-hidden />
-              </button>
-
-              <button
-                type="button"
-                onClick={clearTranscript}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
-                title="Clear text"
-                aria-label="Clear text"
-              >
-                <Trash2 className="h-5 w-5" aria-hidden />
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleMicrophoneDictation}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
-                title={speechListening ? "Stop microphone" : "Microphone"}
-                aria-label={speechListening ? "Stop microphone" : "Microphone"}
-                aria-pressed={speechListening}
-              >
-                <Mic className="h-5 w-5" aria-hidden />
-              </button>
-
-              <button
-                type="button"
-                onClick={playLastVoiceRecording}
-                disabled={!lastVoiceRecording}
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
-                  !lastVoiceRecording
-                    ? "cursor-not-allowed text-zinc-600 opacity-40"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                }`}
-                title="Play last recording"
-                aria-label="Play last recording"
-              >
-                <AudioWaveform className="h-5 w-5" aria-hidden />
-              </button>
-            </div>
-            {dictationUiStatus !== "idle" ? (
-              <p
-                className="px-3 py-1.5 text-center text-sm text-zinc-400 sm:px-4"
-                aria-live="polite"
-              >
-                {dictationUiStatus === "recording"
-                  ? "🔴 Recording..."
-                  : dictationUiStatus === "transcribing"
-                    ? "⏳ Transcribing..."
-                    : "✅ Ready"}
-              </p>
-            ) : null}
-            <div className="space-y-2 border-t border-white/[0.05] px-3 py-2 sm:space-y-2.5 sm:px-4 sm:py-2.5">
-            <button
-              type="button"
-              onClick={() => void runAnalyze()}
-              disabled={analyzeLoading}
-              className="w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
-            >
-              {analyzeLoading ? "分析中…" : "分析英文（發音／語法）"}
-            </button>
-            {analyzeLoading ? (
-              <p className="text-sm text-zinc-400" aria-live="polite">
-                分析中…
-              </p>
-            ) : null}
-            {analyzeError ? (
-              <p className="text-sm text-amber-400/95" role="alert">
-                {analyzeError}
-              </p>
-            ) : null}
-            {transcribeError ? (
-              <p className="text-sm text-amber-400/95" role="alert">
-                {transcribeError}
-              </p>
-            ) : null}
-            {analyzeResult !== null && !analyzeLoading ? (
-              <AnalyzeFeedbackPanel result={analyzeResult} />
-            ) : null}
-            <p className="pt-0.5 text-center text-[11px] text-zinc-600 sm:pt-1">
-              StudySignal can make mistakes. Check important facts.
-            </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
