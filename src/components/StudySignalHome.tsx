@@ -28,8 +28,35 @@ import {
 
 import { StudySignalChatThread, type ChatListItem } from "@/components/StudySignalChatThread";
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
+import { cancelBrowserTTS } from "@/lib/speechSynthesis";
 
 type SchoolLevel = "elementary" | "junior" | "senior";
+
+/** Minimal Web Speech API surface used for dictation (Chrome: `webkitSpeechRecognition`). */
+type BrowserSpeechRecognizer = EventTarget & {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onstart: ((this: BrowserSpeechRecognizer, ev: Event) => void) | null;
+  onresult: ((this: BrowserSpeechRecognizer, ev: Event) => void) | null;
+  onerror: ((this: BrowserSpeechRecognizer, ev: Event) => void) | null;
+  onend: ((this: BrowserSpeechRecognizer, ev: Event) => void) | null;
+};
+
+type BrowserSpeechRecognizerCtor = new () => BrowserSpeechRecognizer;
+
+/** Web Speech API ctor (Chrome: webkitSpeechRecognition). */
+function getBrowserSpeechRecognitionCtor(): BrowserSpeechRecognizerCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: BrowserSpeechRecognizerCtor;
+    webkitSpeechRecognition?: BrowserSpeechRecognizerCtor;
+  };
+  return w.webkitSpeechRecognition ?? w.SpeechRecognition ?? null;
+}
 
 const SCHOOL_LEVELS: { id: SchoolLevel; label: string; abbr: string }[] = [
   { id: "elementary", label: "Elementary School", abbr: "Elementary" },
@@ -106,12 +133,20 @@ const SUBJECTS = [
 
 const MAX_IMAGES = 5;
 
+/** English lines for welcome TTS while the bubble stays Chinese (`body`). */
+const WELCOME_SPEECH_EN = [
+  "Hi! I'm your StudySignal tutor assistant.",
+  'Type your English in the box below, then tap "Analyze English" for pronunciation and grammar feedback.',
+  "I'll show the detailed analysis here in this chat.",
+].join("\n");
+
 function initialChatItems(): ChatListItem[] {
   return [
     {
       id: "welcome",
       role: "tutor",
       body: "嗨！我是 StudySignal 的家教小助手。把你的英文打在下方，按「分析英文（發音／語法）」，詳細分析會出現在這段對話裡。",
+      speechText: WELCOME_SPEECH_EN,
     },
   ];
 }
@@ -260,6 +295,10 @@ export function StudySignalHome() {
   const dictationPlaybackAudioRef = useRef<HTMLAudioElement | null>(null);
   /** opId for this mic session; set at `mr.start()`, cleared on MR ctor/start failure. */
   const dictationTranscribeOpIdRef = useRef<string | null>(null);
+  /** Parallel browser SpeechRecognition (live caption); complements Whisper upload. */
+  const dictationSpeechRecoRef = useRef<BrowserSpeechRecognizer | null>(null);
+  /** Final transcript segments from SpeechRecognition (excluding trailing interim). */
+  const dictationSpeechFinalRef = useRef("");
 
   const recordDictationTranscribeError = useCallback(
     (
@@ -381,6 +420,19 @@ export function StudySignalHome() {
   useEffect(() => {
     return () => {
       dictationMediaSessionGenRef.current += 1;
+      const rec = dictationSpeechRecoRef.current;
+      dictationSpeechRecoRef.current = null;
+      if (rec) {
+        try {
+          rec.abort();
+        } catch {
+          try {
+            rec.stop();
+          } catch {
+            /* ignore */
+          }
+        }
+      }
       const mr = dictationMediaRecorderRef.current;
       dictationMediaRecorderRef.current = null;
       if (mr && mr.state !== "inactive") {
@@ -401,6 +453,19 @@ export function StudySignalHome() {
 
   const stopDictationMediaHard = useCallback(() => {
     dictationMediaSessionGenRef.current += 1;
+    const rec = dictationSpeechRecoRef.current;
+    dictationSpeechRecoRef.current = null;
+    if (rec) {
+      try {
+        rec.abort();
+      } catch {
+        try {
+          rec.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
     const mr = dictationMediaRecorderRef.current;
     dictationMediaRecorderRef.current = null;
     if (mr && mr.state !== "inactive") {
@@ -569,6 +634,15 @@ export function StudySignalHome() {
         recorderState: mr?.state,
       }
     );
+    const rec = dictationSpeechRecoRef.current;
+    if (rec) {
+      try {
+        console.info("[StudySignal dictation SpeechRecognition] stop() before MediaRecorder.stop()");
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+    }
     if (mr && mr.state !== "inactive") {
       const wasRecording = mr.state === "recording";
       try {
@@ -786,6 +860,85 @@ export function StudySignalHome() {
         return;
       }
 
+      dictationSpeechFinalRef.current = "";
+      let speechRec: BrowserSpeechRecognizer | null = null;
+      const RecCtor = getBrowserSpeechRecognitionCtor();
+      if (RecCtor && intent === dictationIntentRef.current) {
+        cancelBrowserTTS();
+        try {
+          const rec = new RecCtor();
+          rec.continuous = true;
+          rec.interimResults = true;
+          rec.lang = selectedSpeechLang;
+          rec.onstart = () => {
+            console.info(
+              "[StudySignal dictation SpeechRecognition] onstart",
+              {
+                lang: rec.lang,
+                intent,
+                selectedSpeechLang,
+              },
+            );
+          };
+          rec.onresult = (event: Event) => {
+            if (intent !== dictationIntentRef.current) return;
+            const ev = event as unknown as {
+              resultIndex: number;
+              results: {
+                length: number;
+                [i: number]: { isFinal: boolean; 0: { transcript: string } };
+              };
+            };
+            let interim = "";
+            for (let i = ev.resultIndex; i < ev.results.length; i += 1) {
+              const r = ev.results[i];
+              const t = r[0]?.transcript ?? "";
+              if (r.isFinal) {
+                dictationSpeechFinalRef.current += t;
+              } else {
+                interim += t;
+              }
+            }
+            console.info(
+              "[StudySignal dictation SpeechRecognition] onresult",
+              {
+                intent,
+                resultIndex: ev.resultIndex,
+                finalsLen: dictationSpeechFinalRef.current.length,
+                interimSnippet: interim.slice(0, 120),
+              },
+            );
+          };
+          rec.onerror = (event: Event) => {
+            const e = event as unknown as { error?: string; message?: string };
+            const code =
+              typeof e.error === "string" ? e.error : "unknown";
+            console.warn(
+              "[StudySignal dictation SpeechRecognition] onerror",
+              { code, intent, message: e.message },
+            );
+          };
+          rec.onend = () => {
+            console.info(
+              "[StudySignal dictation SpeechRecognition] onend",
+              { intent },
+            );
+            if (dictationSpeechRecoRef.current === rec) {
+              dictationSpeechRecoRef.current = null;
+            }
+          };
+          speechRec = rec;
+          dictationSpeechRecoRef.current = rec;
+        } catch (e) {
+          console.warn(
+            "[StudySignal dictation SpeechRecognition] setup failed",
+            e,
+          );
+          speechRec = null;
+          dictationSpeechRecoRef.current = null;
+        }
+      }
+
       mr.ondataavailable = (ev) => {
         if (ev.data && ev.data.size > 0) {
           dictationRecordedChunksRef.current.push(ev.data);
@@ -896,6 +1049,24 @@ export function StudySignalHome() {
                 : null;
 
             if (!res.ok) {
+              await new Promise((r) => setTimeout(r, 280));
+              const speechFallback = dictationSpeechFinalRef.current.trim();
+              if (
+                speechFallback.length > 0 &&
+                intent === dictationIntentRef.current &&
+                sessionGen === dictationMediaSessionGenRef.current
+              ) {
+                console.info(
+                  "[StudySignal dictation] Whisper HTTP not OK; using SpeechRecognition transcript",
+                  { speechFallback, httpStatus: res.status },
+                );
+                setTranscribeError(null);
+                const next = dictationBaseRef.current + speechFallback;
+                setMessage(next);
+                messageRef.current = next;
+                setDictationUiStatus("ready");
+                return;
+              }
               const resolved = errMsg ?? TRANSCRIBE_FAILURE_FALLBACK_MSG;
               recordDictationTranscribeError(
                 resolved,
@@ -923,22 +1094,49 @@ export function StudySignalHome() {
               return;
             }
 
-            const text =
+            const whisperText =
               typeof data === "object" &&
               data !== null &&
               "text" in data &&
               typeof (data as { text: unknown }).text === "string"
                 ? (data as { text: string }).text.trim()
                 : "";
+            await new Promise((r) => setTimeout(r, 280));
+            const speechText = dictationSpeechFinalRef.current.trim();
+            const merged =
+              whisperText.length > 0 ? whisperText : speechText;
+            if (merged.length > 0 && whisperText.length === 0) {
+              console.info(
+                "[StudySignal dictation] Whisper returned empty text; using SpeechRecognition transcript",
+                { speechText },
+              );
+            }
             const next =
-              text.length > 0
-                ? dictationBaseRef.current + text
+              merged.length > 0
+                ? dictationBaseRef.current + merged
                 : dictationBaseRef.current;
             setMessage(next);
             messageRef.current = next;
             setDictationUiStatus("ready");
           } catch (err) {
             if (sessionGen === dictationMediaSessionGenRef.current) {
+              await new Promise((r) => setTimeout(r, 280));
+              const speechFallback = dictationSpeechFinalRef.current.trim();
+              if (
+                speechFallback.length > 0 &&
+                intent === dictationIntentRef.current
+              ) {
+                console.info(
+                  "[StudySignal dictation] Transcribe pipeline threw; using SpeechRecognition transcript",
+                  { speechFallback, err },
+                );
+                setTranscribeError(null);
+                const next = dictationBaseRef.current + speechFallback;
+                setMessage(next);
+                messageRef.current = next;
+                setDictationUiStatus("ready");
+                return;
+              }
               recordDictationTranscribeError(
                 "網路連線異常，請稍後再試。",
                 "BRANCH_TRANSCRIBE_PIPELINE_THROW",
@@ -961,12 +1159,38 @@ export function StudySignalHome() {
             : `dictation-${Date.now()}`;
         dictationTranscribeOpIdRef.current = opId;
         dictationLine("START", { opId, sessionGen, intent });
-        mr.start();
+        mr.start(250);
+        if (speechRec) {
+          try {
+            console.info(
+              "[StudySignal dictation SpeechRecognition] calling start() after MediaRecorder.start(250)",
+              { lang: speechRec.lang },
+            );
+            speechRec.start();
+          } catch (e) {
+            console.warn(
+              "[StudySignal dictation SpeechRecognition] start() threw",
+              e,
+            );
+          }
+        }
         if (intent === dictationIntentRef.current) {
           setSpeechListening(true);
           setDictationUiStatus("recording");
         }
       } catch (e) {
+        if (speechRec) {
+          try {
+            speechRec.abort();
+          } catch {
+            try {
+              speechRec.stop();
+            } catch {
+              /* ignore */
+            }
+          }
+          dictationSpeechRecoRef.current = null;
+        }
         const failedOpId = dictationTranscribeOpIdRef.current;
         dictationTranscribeOpIdRef.current = null;
         dictationMediaSessionGenRef.current += 1;
@@ -1230,6 +1454,7 @@ export function StudySignalHome() {
               <StudySignalChatThread
                 items={chatItems}
                 scrollParentRef={chatScrollRef}
+                dictationVoiceLang={selectedSpeechLang}
               />
             </div>
           </section>

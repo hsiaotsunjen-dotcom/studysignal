@@ -9,6 +9,10 @@ export type ScoreCategoryFeedback = {
 
 export type PronunciationFocusItem = {
   word: string;
+  /** General American–style IPA with slashes, e.g. "/ɪˈrɑːn/". Omit when unknown. */
+  ipaUs?: string;
+  /** British (RP-style) IPA with slashes, e.g. "/ɪˈræn/". Omit when unknown. */
+  ipaUk?: string;
   reasonToPractice: string;
   pronunciationTip: string;
 };
@@ -99,11 +103,19 @@ function normalizePronunciationItem(raw: unknown): PronunciationFocusItem {
     typeof o.reasonToPractice === "string" ? o.reasonToPractice.trim() : "";
   const pronunciationTip =
     typeof o.pronunciationTip === "string" ? o.pronunciationTip.trim() : "";
-  return {
+  const ipaUsRaw = typeof o.ipaUs === "string" ? o.ipaUs.trim() : "";
+  const ipaUkRaw = typeof o.ipaUk === "string" ? o.ipaUk.trim() : "";
+  /** Older API shape: single `ipa` — treat as US-only so one row still shows. */
+  const ipaLegacy = typeof o.ipa === "string" ? o.ipa.trim() : "";
+  const out: PronunciationFocusItem = {
     word: word || PRON_FALLBACK.word,
     reasonToPractice: reasonToPractice || PRON_FALLBACK.reasonToPractice,
     pronunciationTip: pronunciationTip || PRON_FALLBACK.pronunciationTip,
   };
+  if (ipaUsRaw) out.ipaUs = ipaUsRaw;
+  if (ipaUkRaw) out.ipaUk = ipaUkRaw;
+  if (!out.ipaUs && !out.ipaUk && ipaLegacy) out.ipaUs = ipaLegacy;
+  return out;
 }
 
 function normalizePronunciationFocus(

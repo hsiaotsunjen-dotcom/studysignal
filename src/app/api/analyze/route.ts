@@ -29,6 +29,9 @@ Use exactly these keys and nesting (camelCase):
 
 - pronunciationFocus: array of exactly 3 objects, each:
   - word: English string from their transcript (or clear intended word)
+  - ipaUs: optional string — General American IPA for "word" with slashes (e.g. "/ɪˈrɑːn/"). Omit if unsure.
+  - ipaUk: optional string — British (RP-style) IPA for "word" with slashes (e.g. "/ɪˈræn/"). Omit if unsure.
+  - (Deprecated but still accepted: optional "ipa" — if present and ipaUs/ipaUk are absent, it is treated as ipaUs only.)
   - reasonToPractice: short string (English OK) e.g. which sound or stress pattern
   - pronunciationTip: actionable tip (English OK), e.g. tongue/teeth placement, like: "Place your tongue lightly between your teeth."
 

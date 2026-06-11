@@ -1,8 +1,20 @@
+"use client";
+
 import type {
   AnalyzeFeedback,
   PronunciationScoresBlock,
   ScoreCategoryFeedback,
 } from "@/lib/analyzeFeedback";
+import { Volume2 } from "@/components/LucideVolume2";
+import { speakWithBrowserTTS } from "@/lib/speechSynthesis";
+
+/** Show IPA with slashes; accepts "ɪˈrɑːn" or "/ɪˈrɑːn/". */
+function formatIpaForDisplay(raw: string): string {
+  const t = raw.trim();
+  if (!t) return "";
+  if (t.startsWith("/") && t.endsWith("/")) return t;
+  return `/${t}/`;
+}
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
@@ -118,9 +130,12 @@ function PronunciationScoresSection({ ps }: { ps: PronunciationScoresBlock }) {
 export function AnalyzeFeedbackPanel({
   result,
   className = "",
+  dictationVoiceLang = "en-US",
 }: {
   result: AnalyzeFeedback;
   className?: string;
+  /** Matches StudySignal dictation language for SpeechSynthesis (en-US / en-GB). */
+  dictationVoiceLang?: "en-US" | "en-GB";
 }) {
   return (
     <div
@@ -162,7 +177,35 @@ export function AnalyzeFeedbackPanel({
               key={i}
               className="rounded-xl border border-white/10 bg-zinc-900/50 p-3 text-sm"
             >
-              <p className="text-base font-semibold text-white">{item.word}</p>
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold text-white">{item.word}</p>
+                  {item.ipaUs || item.ipaUk ? (
+                    <div className="mt-0.5 space-y-0.5 font-mono text-[11px] leading-snug text-zinc-500">
+                      {item.ipaUs ? (
+                        <p>
+                          US: {formatIpaForDisplay(item.ipaUs)}
+                        </p>
+                      ) : null}
+                      {item.ipaUk ? (
+                        <p>
+                          UK: {formatIpaForDisplay(item.ipaUk)}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900/80 text-zinc-200 hover:bg-zinc-800/90"
+                  aria-label={`Speak practice word: ${item.word}`}
+                  onClick={() => {
+                    speakWithBrowserTTS(item.word, dictationVoiceLang);
+                  }}
+                >
+                  <Volume2 className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
               <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
                 Reason
               </p>

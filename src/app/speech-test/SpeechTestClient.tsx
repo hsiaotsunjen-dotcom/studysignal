@@ -683,7 +683,11 @@ export function SpeechTestClient() {
           </p>
         ) : null}
         {analyzeResult !== null && !analyzeLoading ? (
-          <AnalyzeFeedbackPanel result={analyzeResult} className="mt-3" />
+          <AnalyzeFeedbackPanel
+            result={analyzeResult}
+            className="mt-3"
+            dictationVoiceLang={selectedLanguage}
+          />
         ) : null}
       </section>
     </div>
