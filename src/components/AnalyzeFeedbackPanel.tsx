@@ -2,6 +2,7 @@
 
 import type {
   AnalyzeFeedback,
+  ImageInsights,
   PronunciationScoresBlock,
   ScoreCategoryFeedback,
 } from "@/lib/analyzeFeedback";
@@ -91,6 +92,35 @@ function ScoreCategoryBlock({
   );
 }
 
+function ImageInsightsSection({ insights }: { insights: ImageInsights }) {
+  return (
+    <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-200/95">
+          圖片分析 Image
+        </h4>
+        <p className="text-[11px] text-zinc-500">OCR 與畫面重點（繁體中文）</p>
+      </div>
+      <div className="rounded-lg border border-white/[0.06] bg-black/25 p-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+          圖中文字／OCR
+        </p>
+        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+          {insights.ocrText}
+        </p>
+      </div>
+      <div className="rounded-lg border border-white/[0.06] bg-black/25 p-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+          畫面說明
+        </p>
+        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+          {insights.visualSummaryZh}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function PronunciationScoresSection({ ps }: { ps: PronunciationScoresBlock }) {
   return (
     <div className="mb-4 space-y-3 rounded-xl border border-sky-500/20 bg-sky-500/[0.06] p-3 ring-1 ring-sky-500/10">
@@ -99,7 +129,7 @@ function PronunciationScoresSection({ ps }: { ps: PronunciationScoresBlock }) {
           發音評分 Pronunciation
         </h4>
         <p className="text-[11px] text-zinc-500">
-          依文字內容推估（無音檔時為參考指標）
+          依本次錄音與轉寫內容評估（非純文字推測）
         </p>
       </div>
       <div className="flex items-end justify-between gap-3 border-b border-white/[0.06] pb-3">
@@ -145,6 +175,10 @@ export function AnalyzeFeedbackPanel({
         家教老師的分析
       </h3>
 
+      {result.imageInsights ? (
+        <ImageInsightsSection insights={result.imageInsights} />
+      ) : null}
+
       {result.pronunciationScores ? (
         <PronunciationScoresSection ps={result.pronunciationScores} />
       ) : null}
@@ -168,55 +202,68 @@ export function AnalyzeFeedbackPanel({
       </div>
 
       <div className="mb-4">
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-200/90">
-          發音練習重點（3 個字詞）
-        </h4>
-        <ul className="space-y-3">
-          {result.pronunciationFocus.map((item, i) => (
-            <li
-              key={i}
-              className="rounded-xl border border-white/10 bg-zinc-900/50 p-3 text-sm"
-            >
-              <div className="flex items-start gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-base font-semibold text-white">{item.word}</p>
-                  {item.ipaUs || item.ipaUk ? (
-                    <div className="mt-0.5 space-y-0.5 font-mono text-[11px] leading-snug text-zinc-500">
-                      {item.ipaUs ? (
-                        <p>
-                          US: {formatIpaForDisplay(item.ipaUs)}
-                        </p>
-                      ) : null}
-                      {item.ipaUk ? (
-                        <p>
-                          UK: {formatIpaForDisplay(item.ipaUk)}
-                        </p>
+        {result.pronunciationScores || result.pronunciationFocus.length > 0 ? (
+          <>
+            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-200/90">
+              發音練習重點
+              {result.pronunciationFocus.length > 0
+                ? `（${result.pronunciationFocus.length} 個字詞）`
+                : null}
+            </h4>
+            <ul className="space-y-3">
+              {result.pronunciationFocus.map((item, i) => (
+                <li
+                  key={i}
+                  className="rounded-xl border border-white/10 bg-zinc-900/50 p-3 text-sm"
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-semibold text-white">
+                        {item.word}
+                      </p>
+                      {item.ipaUs || item.ipaUk ? (
+                        <div className="mt-0.5 space-y-0.5 font-mono text-[11px] leading-snug text-zinc-500">
+                          {item.ipaUs ? (
+                            <p>US: {formatIpaForDisplay(item.ipaUs)}</p>
+                          ) : null}
+                          {item.ipaUk ? (
+                            <p>UK: {formatIpaForDisplay(item.ipaUk)}</p>
+                          ) : null}
+                        </div>
                       ) : null}
                     </div>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900/80 text-zinc-200 hover:bg-zinc-800/90"
-                  aria-label={`Speak practice word: ${item.word}`}
-                  onClick={() => {
-                    speakWithBrowserTTS(item.word, dictationVoiceLang);
-                  }}
-                >
-                  <Volume2 className="h-4 w-4" aria-hidden />
-                </button>
-              </div>
-              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                Reason
-              </p>
-              <p className="mt-0.5 text-zinc-200/95">{item.reasonToPractice}</p>
-              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                Tip
-              </p>
-              <p className="mt-0.5 text-zinc-200/95">{item.pronunciationTip}</p>
-            </li>
-          ))}
-        </ul>
+                    <button
+                      type="button"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900/80 text-zinc-200 hover:bg-zinc-800/90"
+                      aria-label={`Speak practice word: ${item.word}`}
+                      onClick={() => {
+                        speakWithBrowserTTS(item.word, dictationVoiceLang);
+                      }}
+                    >
+                      <Volume2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    Reason
+                  </p>
+                  <p className="mt-0.5 text-zinc-200/95">
+                    {item.reasonToPractice}
+                  </p>
+                  <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    Tip
+                  </p>
+                  <p className="mt-0.5 text-zinc-200/95">
+                    {item.pronunciationTip}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div className="rounded-xl border border-white/[0.06] bg-zinc-900/35 px-3 py-4 text-center text-sm text-zinc-400">
+            No speech recorded
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-100/95">

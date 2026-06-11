@@ -30,6 +30,9 @@ import { StudySignalChatThread, type ChatListItem } from "@/components/StudySign
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
 import { cancelBrowserTTS } from "@/lib/speechSynthesis";
 
+/** TEMPORARY: logs analyze request/response in the browser console. Set false to silence. */
+const ANALYZE_CLIENT_DEBUG = true;
+
 type SchoolLevel = "elementary" | "junior" | "senior";
 
 /** Minimal Web Speech API surface used for dictation (Chrome: `webkitSpeechRecognition`). */
@@ -170,6 +173,28 @@ function newAttachmentId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+/** Read object-URL image for `/api/analyze` vision payload. */
+async function blobUrlToImagePayload(url: string): Promise<{
+  mimeType: string;
+  dataBase64: string;
+} | null> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const mimeType =
+      blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+    const ab = await blob.arrayBuffer();
+    const bytes = new Uint8Array(ab);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]!);
+    }
+    return { mimeType, dataBase64: btoa(binary) };
+  } catch {
+    return null;
+  }
+}
+
 const SPEECH_LANG_OPTIONS = [
   { value: "en-US" as const, label: "American English", short: "US", flag: "🇺🇸" },
   { value: "en-GB" as const, label: "British English", short: "UK", flag: "🇬🇧" },
@@ -287,6 +312,11 @@ export function StudySignalHome() {
 
   /** Most recent completed parallel mic recording (MediaRecorder), for waveform playback. */
   const [lastVoiceRecording, setLastVoiceRecording] = useState<Blob | null>(null);
+  /**
+   * True only after a dictation session successfully merged text into the composer,
+   * until the user edits the textarea or starts a new dictation / clear.
+   */
+  const pronunciationFromSpeechRef = useRef(false);
   const dictationMediaSessionGenRef = useRef(0);
   const dictationIntentRef = useRef(0);
   const dictationMicStreamRef = useRef<MediaStream | null>(null);
@@ -321,6 +351,9 @@ export function StudySignalHome() {
 
   useEffect(() => {
     attachmentsRef.current = attachments;
+    if (attachments.length > 0) {
+      pronunciationFromSpeechRef.current = false;
+    }
   }, [attachments]);
 
   useEffect(() => {
@@ -666,6 +699,7 @@ export function StudySignalHome() {
     dictationBaseRef.current = "";
     setMessage("");
     messageRef.current = "";
+    pronunciationFromSpeechRef.current = false;
     setSpeechListening(false);
     setDictationUiStatus("idle");
     setChatItems(initialChatItems());
@@ -675,28 +709,92 @@ export function StudySignalHome() {
     setAnalyzeError(null);
     setTranscribeError(null);
     const text = messageRef.current.trim();
-    if (!text) {
-      setAnalyzeError("還沒有可分析的英文，請先輸入或透過麥克風說幾句話。");
+    const currentAttachments = attachmentsRef.current;
+    const hasImages = currentAttachments.length > 0;
+    if (!text && !hasImages) {
+      setAnalyzeError(
+        "還沒有可分析的內容：請輸入英文、上傳圖片，或透過麥克風說幾句話。"
+      );
       return;
     }
 
     const turnId = newAttachmentId();
+    const displayBody =
+      text || (hasImages ? "（已附加圖片，請分析）" : "");
     setChatItems((prev) => [
       ...prev,
       {
         id: turnId,
         role: "student",
-        body: text,
+        body: displayBody,
         analyzeLoading: true,
       },
     ]);
     setAnalyzeLoading(true);
 
     try {
+      const images: { mimeType: string; dataBase64: string }[] = [];
+      if (hasImages) {
+        for (const att of currentAttachments) {
+          const part = await blobUrlToImagePayload(att.url);
+          if (part) images.push(part);
+        }
+        if (images.length === 0) {
+          const msg =
+            "無法讀取已附加的圖片，請移除後重新上傳再試。";
+          setAnalyzeError(msg);
+          setAnalyzeLoading(false);
+          setChatItems((prev) =>
+            prev.map((m) =>
+              m.id === turnId && m.role === "student"
+                ? {
+                    ...m,
+                    analyzeLoading: false,
+                    analyzeError: msg,
+                    analysis: null,
+                  }
+                : m
+            )
+          );
+          return;
+        }
+      }
+
+      /** Pronunciation only when current box text came from dictation (not hand-edited) and not image-first. */
+      const includePronunciation =
+        pronunciationFromSpeechRef.current && !hasImages;
+
+      const requestPayload = {
+        text,
+        includePronunciation,
+        ...(images.length > 0 ? { images } : {}),
+      };
+
+      if (ANALYZE_CLIENT_DEBUG) {
+        const serialized = JSON.stringify(requestPayload);
+        console.log("[analyze client] 1_request_body_sent_summary", {
+          textLength: text.length,
+          text,
+          includePronunciation,
+          imageCount: images.length,
+          perImage: images.map((im, i) => ({
+            index: i,
+            mimeType: im.mimeType,
+            base64Length: im.dataBase64.length,
+            base64Prefix48: im.dataBase64.slice(0, 48),
+          })),
+          serializedCharacterCount: serialized.length,
+        });
+        console.log(
+          "[analyze client] 1_request_body_sent_FULL_JSON",
+          serialized
+        );
+      }
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(requestPayload),
       });
       const data: unknown = await res.json().catch(() => ({}));
       const errMsg =
@@ -707,6 +805,13 @@ export function StudySignalHome() {
           ? (data as { error: string }).error
           : null;
       if (!res.ok) {
+        if (ANALYZE_CLIENT_DEBUG) {
+          console.log("[analyze client] response_not_ok", {
+            status: res.status,
+            errMsg,
+            responseBodyFull: JSON.stringify(data, null, 2),
+          });
+        }
         const msg = errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`;
         setChatItems((prev) =>
           prev.map((m) =>
@@ -722,8 +827,45 @@ export function StudySignalHome() {
         );
         return;
       }
-      const parsed = parseAnalyzeApiData(data);
+
+      if (ANALYZE_CLIENT_DEBUG) {
+        console.log("[analyze client] 2_openai_response_via_api_json_OK", {
+          status: res.status,
+        });
+        console.log(
+          "[analyze client] 2_response_body_full_JSON",
+          JSON.stringify(data, null, 2)
+        );
+      }
+
+      const parseDbg = ANALYZE_CLIENT_DEBUG
+        ? (label: string, payload?: unknown) =>
+            console.log(`[analyze client] 3_parse_step:${label}`, payload)
+        : undefined;
+
+      const parsed = parseAnalyzeApiData(
+        data,
+        includePronunciation,
+        parseDbg
+      );
+
+      if (ANALYZE_CLIENT_DEBUG) {
+        console.log("[analyze client] 4_after_parseAnalyzeApiData", {
+          isNull: parsed === null,
+          imageInsights: parsed?.imageInsights ?? null,
+          ocrText: parsed?.imageInsights?.ocrText ?? null,
+          visualSummaryZh: parsed?.imageInsights?.visualSummaryZh ?? null,
+          fullFeedbackJSON:
+            parsed === null ? null : JSON.stringify(parsed, null, 2),
+        });
+      }
+
       if (!parsed) {
+        if (ANALYZE_CLIENT_DEBUG) {
+          console.log(
+            "[analyze client] 4_UI_shows_分析結果不完整 — parseAnalyzeApiData returned null (see 3_parse_step:* above)"
+          );
+        }
         setChatItems((prev) =>
           prev.map((m) =>
             m.id === turnId && m.role === "student"
@@ -778,6 +920,7 @@ export function StudySignalHome() {
     dictationTranscribeOpIdRef.current = null;
     stopDictationMediaHard();
     setLastVoiceRecording(null);
+    pronunciationFromSpeechRef.current = false;
     setTranscribeError(null);
     setDictationUiStatus("idle");
 
@@ -1062,6 +1205,7 @@ export function StudySignalHome() {
                 );
                 setTranscribeError(null);
                 const next = dictationBaseRef.current + speechFallback;
+                pronunciationFromSpeechRef.current = true;
                 setMessage(next);
                 messageRef.current = next;
                 setDictationUiStatus("ready");
@@ -1115,6 +1259,7 @@ export function StudySignalHome() {
               merged.length > 0
                 ? dictationBaseRef.current + merged
                 : dictationBaseRef.current;
+            pronunciationFromSpeechRef.current = true;
             setMessage(next);
             messageRef.current = next;
             setDictationUiStatus("ready");
@@ -1132,13 +1277,14 @@ export function StudySignalHome() {
                 );
                 setTranscribeError(null);
                 const next = dictationBaseRef.current + speechFallback;
+                pronunciationFromSpeechRef.current = true;
                 setMessage(next);
                 messageRef.current = next;
                 setDictationUiStatus("ready");
                 return;
               }
               recordDictationTranscribeError(
-                "網路連線異常，請稍後再試。",
+                "\u7db2\u8def\u9023\u7dda\u7570\u5e38\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002",
                 "BRANCH_TRANSCRIBE_PIPELINE_THROW",
                 ctx,
                 {
@@ -1576,7 +1722,10 @@ export function StudySignalHome() {
                     ref={messageTextareaRef}
                     rows={MESSAGE_TEXTAREA_MIN_LINES}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      pronunciationFromSpeechRef.current = false;
+                      setMessage(e.target.value);
+                    }}
                     placeholder="Message StudySignal…"
                     className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
                     aria-label="Message input"

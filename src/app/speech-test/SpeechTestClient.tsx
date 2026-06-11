@@ -463,7 +463,7 @@ export function SpeechTestClient() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: finalText }),
+        body: JSON.stringify({ text: finalText, includePronunciation: true }),
       });
       const data: unknown = await res.json().catch(() => ({}));
       const errMsg =
@@ -477,7 +477,7 @@ export function SpeechTestClient() {
         setAnalyzeError(errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`);
         return;
       }
-      const parsed = parseAnalyzeApiData(data);
+      const parsed = parseAnalyzeApiData(data, true);
       if (!parsed) {
         setAnalyzeError("分析結果不完整，請再試一次。");
         return;

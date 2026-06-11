@@ -23,7 +23,7 @@ export type TutorPersonalizedComment = {
   whatToTryNextTime: string;
 };
 
-/** Pronunciation rubric from GPT (nested to avoid clashing with writing `fluency`). */
+/** Pronunciation rubric from GPT (only when speech audio was analyzed). */
 export type PronunciationScoresBlock = {
   overallScore: number;
   accuracy: number;
@@ -32,18 +32,23 @@ export type PronunciationScoresBlock = {
   feedback: string;
 };
 
+/** OCR + visual explanation (Traditional Chinese) when analysis used attached images. */
+export type ImageInsights = {
+  ocrText: string;
+  visualSummaryZh: string;
+};
+
 export type AnalyzeFeedback = {
-  /** Present only when the model returns a complete pronunciationScores object. */
+  /** Present only when speech audio was used for pronunciation analysis. */
   pronunciationScores?: PronunciationScoresBlock;
   grammar: ScoreCategoryFeedback;
   vocabulary: ScoreCategoryFeedback;
   fluency: ScoreCategoryFeedback;
-  pronunciationFocus: [
-    PronunciationFocusItem,
-    PronunciationFocusItem,
-    PronunciationFocusItem,
-  ];
+  /** Empty when no speech-based pronunciation analysis was performed. */
+  pronunciationFocus: PronunciationFocusItem[];
   tutorComment: TutorPersonalizedComment;
+  /** Present when request included images; prioritize this over pronunciation. */
+  imageInsights?: ImageInsights;
 };
 
 function clampScore(value: unknown): number {
@@ -118,35 +123,69 @@ function normalizePronunciationItem(raw: unknown): PronunciationFocusItem {
   return out;
 }
 
-function normalizePronunciationFocus(
+/** Exactly three practice items (speech mode). */
+function normalizePronunciationFocusStrict(
   value: unknown
-): AnalyzeFeedback["pronunciationFocus"] | null {
-  if (!Array.isArray(value)) return null;
+): PronunciationFocusItem[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
   const items = value.slice(0, 3).map(normalizePronunciationItem);
   while (items.length < 3) items.push({ ...PRON_FALLBACK });
-  return [items[0]!, items[1]!, items[2]!];
+  return items;
 }
 
-function normalizeTutorComment(
-  raw: unknown
-): TutorPersonalizedComment | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
-  const whatWentWell =
-    typeof o.whatWentWell === "string" ? o.whatWentWell.trim() : "";
-  const biggestImprovementOpportunity =
-    typeof o.biggestImprovementOpportunity === "string"
-      ? o.biggestImprovementOpportunity.trim()
-      : "";
-  const whatToTryNextTime =
-    typeof o.whatToTryNextTime === "string" ? o.whatToTryNextTime.trim() : "";
-  if (!whatWentWell || !biggestImprovementOpportunity || !whatToTryNextTime) {
-    return null;
+const TUTOR_COMMENT_FALLBACK_ZH = "（此欄位模型未回傳內容。）";
+
+function pickTutorStringField(
+  o: Record<string, unknown>,
+  keys: string[]
+): string {
+  for (const k of keys) {
+    const v = o[k];
+    if (typeof v === "string" && v.trim().length > 0) return v.trim();
   }
+  return "";
+}
+
+/**
+ * Normalize `tutorComment` from various model shapes into `TutorPersonalizedComment`.
+ * Never returns null — missing or alien shapes use zh fallbacks so a valid image
+ * analysis is not discarded.
+ */
+function normalizeTutorComment(raw: unknown): TutorPersonalizedComment {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return {
+      whatWentWell: TUTOR_COMMENT_FALLBACK_ZH,
+      biggestImprovementOpportunity: TUTOR_COMMENT_FALLBACK_ZH,
+      whatToTryNextTime: TUTOR_COMMENT_FALLBACK_ZH,
+    };
+  }
+  const o = raw as Record<string, unknown>;
+  const whatWentWell = pickTutorStringField(o, [
+    "whatWentWell",
+    "what_went_well",
+    "positive",
+    "wentWell",
+  ]);
+  const biggestImprovementOpportunity = pickTutorStringField(o, [
+    "biggestImprovementOpportunity",
+    "biggest_improvement_opportunity",
+    "improvement",
+    "improvementOpportunity",
+    "biggestImprovement",
+  ]);
+  const whatToTryNextTime = pickTutorStringField(o, [
+    "whatToTryNextTime",
+    "what_to_try_next_time",
+    "nextSteps",
+    "next_steps",
+    "tryNext",
+    "nextStep",
+  ]);
   return {
-    whatWentWell,
-    biggestImprovementOpportunity,
-    whatToTryNextTime,
+    whatWentWell: whatWentWell || TUTOR_COMMENT_FALLBACK_ZH,
+    biggestImprovementOpportunity:
+      biggestImprovementOpportunity || TUTOR_COMMENT_FALLBACK_ZH,
+    whatToTryNextTime: whatToTryNextTime || TUTOR_COMMENT_FALLBACK_ZH,
   };
 }
 
@@ -177,12 +216,85 @@ function normalizePronunciationScores(
   return { overallScore, accuracy, fluency, clarity, feedback };
 }
 
+function firstNonEmptyString(
+  obj: Record<string, unknown>,
+  keys: string[]
+): string {
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === "string" && v.trim().length > 0) return v.trim();
+  }
+  return "";
+}
+
+/** Accept camelCase / snake_case from model JSON. */
+function extractImageInsightsContainer(
+  root: Record<string, unknown>
+): unknown {
+  const nested = root.imageInsights ?? root.image_insights;
+  if (nested !== undefined && nested !== null) return nested;
+  if (
+    typeof root.ocrText === "string" ||
+    typeof root.ocr_text === "string" ||
+    typeof root.visualSummaryZh === "string" ||
+    typeof root.visual_summary_zh === "string"
+  ) {
+    return {
+      ocrText: root.ocrText ?? root.ocr_text,
+      visualSummaryZh: root.visualSummaryZh ?? root.visual_summary_zh,
+    };
+  }
+  return undefined;
+}
+
+function normalizeImageInsights(raw: unknown): ImageInsights | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const ocrText = firstNonEmptyString(o, [
+    "ocrText",
+    "ocr_text",
+    "ocr",
+    "textInImage",
+    "text_in_image",
+  ]);
+  const visualSummaryZh = firstNonEmptyString(o, [
+    "visualSummaryZh",
+    "visual_summary_zh",
+    "visualSummary",
+    "visual_summary",
+    "summaryZh",
+    "summary_zh",
+    "descriptionZh",
+    "description_zh",
+  ]);
+  if (!ocrText && !visualSummaryZh) return null;
+  return {
+    ocrText: ocrText || "（未偵測到可讀文字）",
+    visualSummaryZh: visualSummaryZh || "—",
+  };
+}
+
+/** Optional logger for temporary analyze debugging (server or browser console). */
+export type AnalyzeParseLog = (label: string, payload?: unknown) => void;
+
 /**
  * Parse successful `/api/analyze` JSON body into `AnalyzeFeedback`.
  * Returns `null` if required fields are missing or invalid.
+ *
+ * @param requireSpeechPronunciation — when true, `pronunciationScores` and three
+ *   `pronunciationFocus` items are required (speech-test path). When false, any
+ *   pronunciation keys in the payload are ignored (typed text / images only).
+ * @param log — when set, each parse failure logs a concrete reason (temporary diagnostics).
  */
-export function parseAnalyzeApiData(data: unknown): AnalyzeFeedback | null {
-  if (!data || typeof data !== "object") return null;
+export function parseAnalyzeApiData(
+  data: unknown,
+  requireSpeechPronunciation: boolean,
+  log?: AnalyzeParseLog
+): AnalyzeFeedback | null {
+  if (!data || typeof data !== "object") {
+    log?.("parse_fail_root_not_object", { typeofData: typeof data });
+    return null;
+  }
   const o = data as Record<string, unknown>;
 
   const grammar = normalizeScoreCategory(
@@ -200,24 +312,82 @@ export function parseAnalyzeApiData(data: unknown): AnalyzeFeedback | null {
     "（可請老師再針對你的句子補充）",
     "（此處暫無範例，建議多閱讀例句）"
   );
-  if (!grammar || !vocabulary || !fluency) return null;
-
-  const pronunciationFocus = normalizePronunciationFocus(o.pronunciationFocus);
-  if (!pronunciationFocus) return null;
+  if (!grammar || !vocabulary || !fluency) {
+    log?.("parse_fail_score_category", {
+      grammarOk: Boolean(grammar),
+      vocabularyOk: Boolean(vocabulary),
+      fluencyOk: Boolean(fluency),
+      rawGrammar: o.grammar,
+      rawVocabulary: o.vocabulary,
+      rawFluency: o.fluency,
+    });
+    return null;
+  }
 
   const tutorComment = normalizeTutorComment(o.tutorComment);
-  if (!tutorComment) return null;
+  log?.("parse_tutor_comment_normalized", {
+    rawTutorComment: o.tutorComment,
+    mapped: tutorComment,
+  });
 
-  const pronunciationScores = normalizePronunciationScores(
-    o.pronunciationScores
-  );
+  const imageInsightsRaw = extractImageInsightsContainer(o);
+  const imageInsights = normalizeImageInsights(imageInsightsRaw);
+  log?.("parse_image_insights_step", {
+    extractedContainer: imageInsightsRaw,
+    normalized: imageInsights,
+    ocrText: imageInsights?.ocrText,
+    visualSummaryZh: imageInsights?.visualSummaryZh,
+    topLevelKeys: Object.keys(o),
+  });
 
+  if (requireSpeechPronunciation) {
+    const pronunciationScores = normalizePronunciationScores(
+      o.pronunciationScores
+    );
+    const pronunciationFocusStrict = normalizePronunciationFocusStrict(
+      o.pronunciationFocus
+    );
+    if (!pronunciationScores || !pronunciationFocusStrict) {
+      log?.("parse_fail_speech_pronunciation", {
+        pronunciationScoresRaw: o.pronunciationScores,
+        pronunciationFocusRaw: o.pronunciationFocus,
+        normalizedScoresOk: Boolean(pronunciationScores),
+        normalizedFocusOk: Boolean(pronunciationFocusStrict),
+      });
+      return null;
+    }
+    log?.("parse_ok_speech_mode", {
+      hasImageInsights: Boolean(imageInsights),
+      imageInsights,
+    });
+    return {
+      pronunciationScores,
+      grammar,
+      vocabulary,
+      fluency,
+      pronunciationFocus: pronunciationFocusStrict,
+      tutorComment,
+      ...(imageInsights ? { imageInsights } : {}),
+    };
+  }
+
+  /**
+   * Typed text and/or images: never trust model-supplied pronunciation (it
+   * hallucinates scores from text). Ignore stray keys / empty arrays so vision
+   * JSON still parses.
+   */
+  log?.("parse_ok_non_speech_mode", {
+    hasImageInsights: Boolean(imageInsights),
+    imageInsights,
+    ocrText: imageInsights?.ocrText,
+    visualSummaryZh: imageInsights?.visualSummaryZh,
+  });
   return {
-    ...(pronunciationScores ? { pronunciationScores } : {}),
     grammar,
     vocabulary,
     fluency,
-    pronunciationFocus,
+    pronunciationFocus: [],
     tutorComment,
+    ...(imageInsights ? { imageInsights } : {}),
   };
 }

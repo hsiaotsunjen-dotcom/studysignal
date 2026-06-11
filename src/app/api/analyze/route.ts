@@ -2,47 +2,107 @@ import { NextResponse } from "next/server";
 
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
 
-const TUTOR_JSON_PROMPT = `You are an expert, warm English tutor for Taiwanese junior-high / elementary learners. Student text may come from Whisper dictation—infer intended English when ASR is imperfect.
+/** TEMPORARY: set false to silence verbose analyze logs. Remove after debugging. */
+const ANALYZE_ROUTE_DEBUG = true;
+
+function analyzeLog(label: string, payload?: unknown) {
+  if (!ANALYZE_ROUTE_DEBUG) return;
+  if (payload !== undefined) {
+    console.log(`[analyze api] ${label}`, payload);
+  } else {
+    console.log(`[analyze api] ${label}`);
+  }
+}
+
+const TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT = `You are an expert, warm English tutor for Taiwanese junior-high / elementary learners. The student submitted text that came from **actual speech audio** (dictation). Infer intended English when ASR is imperfect.
 
 Return ONLY one JSON object (no markdown fences, no prose outside JSON). All student-facing explanation strings MUST be Traditional Chinese (繁體中文), except:
 - "pronunciationFocus[].word" = English word/short phrase from their text
-- "pronunciationFocus[].reasonToPractice" and "pronunciationTip" = concise English is OK (clear for pronunciation teaching, like the weather/TH example), or short bilingual if helpful.
+- "pronunciationFocus[].reasonToPractice" and "pronunciationTip" = concise English is OK, or short bilingual if helpful.
 
 Use exactly these keys and nesting (camelCase):
 
-- grammar: object with
-  - score: integer 0–100
-  - strengths: array of 2–3 strings (繁體中文 bullet ideas—what they did well for GRAMMAR)
-  - whyNot100: array of 2–3 strings (繁體中文—specific reasons the grammar score is not 100, tied to their actual text)
-  - improvementExamples: array of 1–3 strings (繁體中文—each shows a clearer/corrected way, e.g. wrong → right or mini pattern)
+- grammar: object with score 0–100, strengths (2–3 繁體中文), whyNot100 (2–3 繁體中文), improvementExamples (1–3 繁體中文)
+- vocabulary: same shape as grammar
+- fluency: same shape but for writing naturalness (NOT accent)
 
-- vocabulary: same shape as grammar but for word choice/range.
+- pronunciationScores: REQUIRED object (based on the spoken transcript and speech context). Keys:
+  - overallScore, accuracy, fluency, clarity: integers 0–100
+  - feedback: one paragraph 繁體中文 with concrete pronunciation tips tied to their wording
 
-- fluency: same shape but for how natural/connected the English reads (writing—NOT accent).
+- pronunciationFocus: array of exactly 3 objects, each with word, optional ipaUs, optional ipaUk, reasonToPractice, pronunciationTip (same rules as before).
 
-- pronunciationScores: REQUIRED object (infer from transcript text only; no audio). Use exactly these keys inside it:
-  - overallScore: integer 0–100 (holistic pronunciation quality implied by spelling/word choice/stress cues in the text)
-  - accuracy: integer 0–100 (likely sound–spelling alignment / word-level correctness as readable from text)
-  - fluency: integer 0–100 (rhythm / chunking / connected speech as inferable from punctuation and phrasing in the transcript—this is NOT the same as the writing "fluency" block above)
-  - clarity: integer 0–100 (how clearly the intended words come across from the written transcript)
-  - feedback: one paragraph in Traditional Chinese (繁體中文) with concrete tips to improve pronunciation based on the transcript; reference specific words or patterns when possible.
+- tutorComment: object (繁體中文 for all three): whatWentWell, biggestImprovementOpportunity, whatToTryNextTime — cite observable details from their transcript.
 
-- pronunciationFocus: array of exactly 3 objects, each:
-  - word: English string from their transcript (or clear intended word)
-  - ipaUs: optional string — General American IPA for "word" with slashes (e.g. "/ɪˈrɑːn/"). Omit if unsure.
-  - ipaUk: optional string — British (RP-style) IPA for "word" with slashes (e.g. "/ɪˈræn/"). Omit if unsure.
-  - (Deprecated but still accepted: optional "ipa" — if present and ipaUs/ipaUk are absent, it is treated as ipaUs only.)
-  - reasonToPractice: short string (English OK) e.g. which sound or stress pattern
-  - pronunciationTip: actionable tip (English OK), e.g. tongue/teeth placement, like: "Place your tongue lightly between your teeth."
+STRICTLY FORBIDDEN in tutorComment: empty platitudes without specifics.
 
-- tutorComment: object (繁體中文 for all three values—reference concrete phrases from their transcript, no generic praise):
-  - whatWentWell: 2–4 sentences on what they did well with examples from THEIR text
-  - biggestImprovementOpportunity: 2–4 sentences naming the single biggest gap and why, with reference to their wording
-  - whatToTryNextTime: 2–4 sentences with one concrete practice habit or exercise for next time
+If the transcript is very short, still fill arrays to required lengths; be fair and specific.`;
 
-STRICTLY FORBIDDEN in tutorComment: empty platitudes like "Good job, keep going" / "繼續加油" without specifics / "表現不錯" alone. Every sentence must cite something observable from the transcript or scores.
+const TUTOR_TEXT_OR_IMAGE_NO_PRONUNCIATION_PROMPT = `You are an expert, warm English tutor for Taiwanese junior-high / elementary learners.
 
-If the transcript is very short, still fill all arrays to required lengths; be fair and encouraging but specific.`;
+**There is NO speech audio for this submission.** Do NOT invent pronunciation scores, pronunciation rubrics, or "how they said" feedback. Do NOT infer accent or speech sounds from typed text alone.
+
+Return ONLY one JSON object (no markdown fences). All student-facing explanation strings MUST be Traditional Chinese (繁體中文), except English examples inside grammar/vocabulary where helpful.
+
+Use exactly these keys (camelCase). **Omit** pronunciationScores and pronunciationFocus entirely (do not include these keys at all).
+
+- grammar: object with score 0–100, strengths (2–3 繁體中文), whyNot100 (2–3 繁體中文), improvementExamples (1–3 繁體中文)
+- vocabulary: same shape as grammar
+- fluency: same shape for writing naturalness
+- tutorComment: object (繁體中文): whatWentWell, biggestImprovementOpportunity, whatToTryNextTime — cite their written text; no pronunciation claims.
+
+STRICTLY FORBIDDEN: fabricated pronunciation feedback or scores.`;
+
+const TUTOR_VISION_IMAGES_PROMPT = `You are an expert tutor for Taiwanese junior-high / elementary learners. The student attached **one or more images** to analyze.
+
+**Prioritize the images.** Perform OCR mentally, read all visible English/Chinese text, describe important visual content, and connect insights to any typed message the student provided.
+
+**Do NOT** output pronunciationScores or pronunciationFocus. Do not invent how the student "spoke" a word.
+
+Return ONLY one JSON object (no markdown fences). Use Traditional Chinese (繁體中文) for tutor-facing strings where specified.
+
+Required keys:
+- imageInsights: object with
+  - ocrText: 繁體中文 — transcribe or summarize text you see in the images (if none, say so clearly)
+  - visualSummaryZh: 繁體中文 — explain what the images show and what is relevant for learning
+- grammar, vocabulary, fluency: same shapes as text-only analysis (scores + 繁體中文 bullets), grounded in image content and any typed text
+- tutorComment: same three-string object 繁體中文, referencing what is visible in the images and/or their text
+
+Omit pronunciationScores and pronunciationFocus entirely.`;
+
+type ImagePart = {
+  type: "image_url";
+  image_url: { url: string };
+};
+
+function parseRequestBody(body: unknown): {
+  text: string;
+  includePronunciation: boolean;
+  images: { mimeType: string; dataBase64: string }[];
+} | null {
+  if (!body || typeof body !== "object") return null;
+  const o = body as Record<string, unknown>;
+  const text = typeof o.text === "string" ? o.text.trim() : "";
+  const includePronunciation = o.includePronunciation === true;
+  const rawImages = o.images;
+  const images: { mimeType: string; dataBase64: string }[] = [];
+  if (Array.isArray(rawImages)) {
+    for (const item of rawImages) {
+      if (!item || typeof item !== "object") continue;
+      const im = item as Record<string, unknown>;
+      const mimeType =
+        typeof im.mimeType === "string" && im.mimeType.startsWith("image/")
+          ? im.mimeType
+          : "image/jpeg";
+      const dataBase64 =
+        typeof im.dataBase64 === "string" ? im.dataBase64.trim() : "";
+      if (dataBase64.length > 0) {
+        images.push({ mimeType, dataBase64 });
+      }
+    }
+  }
+  return { text, includePronunciation, images };
+}
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -60,23 +120,81 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "請傳送有效的 JSON。" }, { status: 400 });
   }
 
-  if (
-    !body ||
-    typeof body !== "object" ||
-    typeof (body as { text?: unknown }).text !== "string"
-  ) {
+  const parsedBody = parseRequestBody(body);
+  if (!parsedBody) {
     return NextResponse.json(
-      { error: "請使用格式：{ \"text\": \"學生英文句子\" }" },
+      { error: "請使用有效的 JSON 物件。" },
       { status: 400 }
     );
   }
 
-  const text = (body as { text: string }).text.trim();
-  if (!text) {
+  const { text, includePronunciation, images } = parsedBody;
+  const hasImages = images.length > 0;
+
+  analyzeLog("1_request_body_summary", {
+    textLength: text.length,
+    textPreview: text.slice(0, 500),
+    includePronunciation,
+    imageCount: images.length,
+    perImage: images.map((im, i) => ({
+      index: i,
+      mimeType: im.mimeType,
+      base64Length: im.dataBase64.length,
+      base64Prefix: im.dataBase64.slice(0, 48),
+    })),
+  });
+
+  if (!text && !hasImages) {
     return NextResponse.json(
-      { error: "text 不能是空白。" },
+      { error: "請提供文字或至少一張圖片。" },
       { status: 400 }
     );
+  }
+
+  /** Speech-based pronunciation only when client requests it and there are no images. */
+  const requireSpeechPronunciation =
+    includePronunciation === true && !hasImages;
+
+  analyzeLog("1b_route_mode", {
+    hasImages,
+    requireSpeechPronunciation,
+    branch: hasImages
+      ? "vision"
+      : requireSpeechPronunciation
+        ? "speech_pronunciation"
+        : "text_no_pronunciation",
+  });
+
+  let systemPrompt: string;
+  let userContent:
+    | string
+    | ({ type: "text"; text: string } | ImagePart)[];
+
+  if (hasImages) {
+    systemPrompt = TUTOR_VISION_IMAGES_PROMPT;
+    const parts: ({ type: "text"; text: string } | ImagePart)[] = [
+      {
+        type: "text",
+        text:
+          `Student typed message (may be empty):\n${text || "（無）"}\n\n` +
+          "Analyze the attached image(s). Return JSON exactly as specified.",
+      },
+    ];
+    for (const img of images) {
+      parts.push({
+        type: "image_url",
+        image_url: {
+          url: `data:${img.mimeType};base64,${img.dataBase64}`,
+        },
+      });
+    }
+    userContent = parts;
+  } else if (requireSpeechPronunciation) {
+    systemPrompt = TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT;
+    userContent = `Student transcript from speech audio:\n\n${text}\n\nReturn the JSON object exactly as specified.`;
+  } else {
+    systemPrompt = TUTOR_TEXT_OR_IMAGE_NO_PRONUNCIATION_PROMPT;
+    userContent = `Student typed text (no speech audio):\n\n${text}\n\nReturn the JSON object exactly as specified — **without** pronunciationScores or pronunciationFocus keys.`;
   }
 
   const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -89,14 +207,11 @@ export async function POST(request: Request) {
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: TUTOR_JSON_PROMPT },
-        {
-          role: "user",
-          content: `Student transcript (possibly from dictation):\n\n${text}\n\nReturn the JSON object exactly as specified.`,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
       ],
       temperature: 0.4,
-      max_tokens: 3000,
+      max_tokens: hasImages ? 8192 : 4096,
     }),
   });
 
@@ -111,25 +226,86 @@ export async function POST(request: Request) {
   const data = (await openaiRes.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
   };
-  const rawContent = data.choices?.[0]?.message?.content?.trim() ?? "";
+  const choice0 = data.choices?.[0] as
+    | { message?: { content?: string }; finish_reason?: string }
+    | undefined;
+  const rawContent = choice0?.message?.content?.trim() ?? "";
+
+  analyzeLog("2_openai_message_meta", {
+    choiceCount: data.choices?.length ?? 0,
+    finishReason: choice0?.finish_reason,
+    rawContentLength: rawContent.length,
+    rawContentIsEmpty: rawContent.length === 0,
+  });
+  analyzeLog("2_openai_raw_content_length", rawContent.length);
+  analyzeLog("2_openai_raw_content_full", rawContent);
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawContent) as unknown;
-  } catch {
+  } catch (e) {
+    analyzeLog("2_json_parse_failed", {
+      error: e instanceof Error ? e.message : String(e),
+      rawContentPrefix: rawContent.slice(0, 2000),
+      rawContentSuffix: rawContent.slice(-2000),
+    });
     return NextResponse.json(
       { error: "分析結果格式異常，請再試一次。" },
       { status: 502 }
     );
   }
 
-  const feedback = parseAnalyzeApiData(parsed);
+  analyzeLog("3_parsed_json_keys", {
+    keys:
+      parsed && typeof parsed === "object"
+        ? Object.keys(parsed as object)
+        : [],
+  });
+  analyzeLog("3_parsed_json_full", JSON.stringify(parsed, null, 2));
+
+  const parseLog = (label: string, payload?: unknown) =>
+    analyzeLog(`parse_step:${label}`, payload);
+
+  const feedback = parseAnalyzeApiData(
+    parsed,
+    requireSpeechPronunciation,
+    parseLog
+  );
+
+  analyzeLog("4_parseAnalyzeApiData_result", {
+    isNull: feedback === null,
+    hasImageInsights: Boolean(feedback?.imageInsights),
+    imageInsights: feedback?.imageInsights ?? null,
+    ocrText: feedback?.imageInsights?.ocrText ?? null,
+    visualSummaryZh: feedback?.imageInsights?.visualSummaryZh ?? null,
+    hasPronunciationScores: Boolean(feedback?.pronunciationScores),
+    pronunciationFocusLength: feedback?.pronunciationFocus?.length ?? null,
+  });
+
   if (!feedback) {
+    analyzeLog("4_UI_MESSAGE", {
+      userSees: "分析結果不完整，請再試一次。",
+      reason: "parseAnalyzeApiData returned null — see parse_step:* logs above",
+    });
     return NextResponse.json(
       { error: "分析結果不完整，請再試一次。" },
       { status: 502 }
     );
   }
+
+  if (hasImages && !feedback.imageInsights) {
+    analyzeLog("5_fail_missing_image_insights_after_parse", {
+      userSees: "分析結果缺少圖片辨識內容，請再試一次。",
+      hasImages,
+      feedbackKeys: Object.keys(feedback),
+    });
+    return NextResponse.json(
+      { error: "分析結果缺少圖片辨識內容，請再試一次。" },
+      { status: 502 }
+    );
+  }
+
+  analyzeLog("6_response_to_client_full", JSON.stringify(feedback, null, 2));
 
   return NextResponse.json(feedback);
 }
