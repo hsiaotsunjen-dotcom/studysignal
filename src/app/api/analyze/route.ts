@@ -30,7 +30,7 @@ Use exactly these keys and nesting (camelCase):
   - overallScore, accuracy, fluency, clarity: integers 0–100
   - feedback: one paragraph 繁體中文 with concrete pronunciation tips tied to their wording
 
-- pronunciationFocus: array of exactly 3 objects, each with word, optional ipaUs, optional ipaUk, reasonToPractice, pronunciationTip (same rules as before).
+- pronunciationFocus: array of exactly 3 objects. Each object MUST include keys "word", "ipaUs", "ipaUk", "reasonToPractice", "pronunciationTip". "ipaUs" and "ipaUk" are REQUIRED (not optional): use slash-wrapped General American IPA in "ipaUs" and British RP IPA in "ipaUk" (e.g. "/həˈloʊ/" and "/həˈləʊ/"). If pronunciation is unknown for a field, use an empty string "" for that field—never omit "ipaUs" or "ipaUk".
 
 - tutorComment: object (繁體中文 for all three): whatWentWell, biggestImprovementOpportunity, whatToTryNextTime — cite observable details from their transcript.
 

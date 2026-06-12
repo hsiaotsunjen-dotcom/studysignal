@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 
+import ChineseIntentComposerCard from "@/components/ChineseIntentComposerCard";
 import { StudySignalChatThread, type ChatListItem } from "@/components/StudySignalChatThread";
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
 import { cancelBrowserTTS } from "@/lib/speechSynthesis";
@@ -1730,6 +1731,10 @@ export function StudySignalHome() {
                     className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
                     aria-label="Message input"
                   />
+                </div>
+
+                <div className="border-b border-white/[0.06] bg-black/20 px-3 py-2 sm:px-4 sm:py-2.5">
+                  <ChineseIntentComposerCard />
                 </div>
 
                 <div
