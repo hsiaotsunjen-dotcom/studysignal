@@ -32,10 +32,14 @@ import { StudySignalChatThread } from "@/components/StudySignalChatThread";
 import type { ChatListItem } from "@/types/chatListItem";
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
 import {
+  buildLearningReviewAnalyzeText,
+  LEARNING_REVIEW_ANALYZE_PREAMBLE,
+} from "@/lib/learningReviewAnalyzeText";
+import {
   buildTutorChatOpenAIMessages,
   TUTOR_CHAT_PENDING_BODY,
 } from "@/lib/tutorChatOpenAiMessages";
-import { cancelBrowserTTS } from "@/lib/speechSynthesis";
+import { cancelBrowserTTS, speakWithBrowserTTS } from "@/lib/speechSynthesis";
 
 /** TEMPORARY: logs analyze request/response in the browser console. Set false to silence. */
 const ANALYZE_CLIENT_DEBUG = true;
@@ -1033,6 +1037,7 @@ export function StudySignalHome() {
           m.id === tutorId && m.role === "tutor" ? { ...m, body: reply } : m,
         ),
       );
+      speakWithBrowserTTS(reply, selectedSpeechLang);
       if (images.length > 0) {
         setAttachments((prev) => {
           for (const a of prev) {
@@ -1058,28 +1063,42 @@ export function StudySignalHome() {
     } finally {
       chatSendInFlightRef.current = false;
     }
-  }, [chatItems, syncMessageTextareaHeight]);
+  }, [chatItems, selectedSpeechLang, syncMessageTextareaHeight]);
 
   const runAnalyze = useCallback(async (): Promise<boolean> => {
     setAnalyzeError(null);
     setTranscribeError(null);
     setChatSendError(null);
-    const text = (
+    const composerText = (
       messageTextareaRef.current?.value ?? messageRef.current
     ).trim();
     const currentAttachments = attachmentsRef.current;
     const hasImages = currentAttachments.length > 0;
-    if (!text && !hasImages) {
-      setAnalyzeError(
-        "還沒有可分析的內容：請輸入英文、上傳圖片，或透過麥克風說幾句話。"
-      );
-      return false;
+
+    let learningReviewMode = false;
+    let text: string;
+    if (composerText) {
+      text = composerText;
+    } else if (hasImages) {
+      text = "";
+    } else {
+      const aggregated = buildLearningReviewAnalyzeText(chatItems);
+      if (!aggregated.trim()) {
+        setAnalyzeError(
+          "還沒有可分析的內容：請輸入英文、上傳圖片，或透過麥克風說幾句話。"
+        );
+        return false;
+      }
+      text = LEARNING_REVIEW_ANALYZE_PREAMBLE + aggregated;
+      learningReviewMode = true;
     }
 
     const turnId = newAttachmentId();
-    const displayBody =
-      text || (hasImages ? "（已附加圖片，請分析）" : "");
+    const displayBody = learningReviewMode
+      ? "（學習回顧：分析最近對話中的學生回答）"
+      : composerText || (hasImages ? "（已附加圖片，請分析）" : "");
     const voiceBlob =
+      !learningReviewMode &&
       pronunciationFromSpeechRef.current &&
       lastVoiceRecordingRef.current != null
         ? lastVoiceRecordingRef.current
@@ -1128,9 +1147,11 @@ export function StudySignalHome() {
         }
       }
 
-      /** Pronunciation only when current box text came from dictation (not hand-edited) and not image-first. */
+      /** Pronunciation only when current box text came from dictation (not hand-edited), not image-first, not learning review. */
       const includePronunciation =
-        pronunciationFromSpeechRef.current && !hasImages;
+        pronunciationFromSpeechRef.current &&
+        !hasImages &&
+        !learningReviewMode;
 
       const requestPayload = {
         text,
@@ -1280,7 +1301,7 @@ export function StudySignalHome() {
     } finally {
       setAnalyzeLoading(false);
     }
-  }, []);
+  }, [chatItems]);
 
   const confirmClearChatAnalyzeAndSave = useCallback(async () => {
     const ok = await runAnalyze();
@@ -2251,6 +2272,10 @@ export function StudySignalHome() {
                   >
                     {analyzeLoading ? "分析中…" : "分析英文（發音／語法）"}
                   </button>
+                  <p className="px-1 text-center text-[11px] leading-relaxed text-zinc-500 sm:text-xs">
+                    學習回顧會分析本次對話中最近 15 則學生回答，
+                    並提供字彙、文法、流暢度與表達能力建議。
+                  </p>
                   {analyzeLoading ? (
                     <p className="text-sm text-zinc-400" aria-live="polite">
                       分析中…
