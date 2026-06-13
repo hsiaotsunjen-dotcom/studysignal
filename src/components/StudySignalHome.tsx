@@ -7,6 +7,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type {
   ChangeEvent,
@@ -27,8 +28,13 @@ import {
 } from "lucide-react";
 
 import ChineseIntentComposerCard from "@/components/ChineseIntentComposerCard";
-import { StudySignalChatThread, type ChatListItem } from "@/components/StudySignalChatThread";
+import { StudySignalChatThread } from "@/components/StudySignalChatThread";
+import type { ChatListItem } from "@/types/chatListItem";
 import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
+import {
+  buildTutorChatOpenAIMessages,
+  TUTOR_CHAT_PENDING_BODY,
+} from "@/lib/tutorChatOpenAiMessages";
 import { cancelBrowserTTS } from "@/lib/speechSynthesis";
 
 /** TEMPORARY: logs analyze request/response in the browser console. Set false to silence. */
@@ -138,18 +144,16 @@ const SUBJECTS = [
 const MAX_IMAGES = 5;
 
 /** English lines for welcome TTS while the bubble stays Chinese (`body`). */
-const WELCOME_SPEECH_EN = [
-  "Hi! I'm your StudySignal tutor assistant.",
-  'Type your English in the box below, then tap "Analyze English" for pronunciation and grammar feedback.',
-  "I'll show the detailed analysis here in this chat.",
-].join("\n");
+const WELCOME_SPEECH_EN =
+  "I'm your StudySignal AI tutor. For English conversation practice, use the microphone. For academic tutoring or written English feedback, type in the box or add a picture, then tap Analyze.";
 
 function initialChatItems(): ChatListItem[] {
   return [
     {
       id: "welcome",
       role: "tutor",
-      body: "嗨！我是 StudySignal 的家教小助手。把你的英文打在下方，按「分析英文（發音／語法）」，詳細分析會出現在這段對話裡。",
+      body:
+        "嗨，我是 StudySignal 的 AI 家教。\n\n【英文對話】直接用麥克風說英文，跟我練習口說。\n【課業輔導】直接打字或上傳題目圖片，我會一步一步陪你解題。",
       speechText: WELCOME_SPEECH_EN,
     },
   ];
@@ -191,6 +195,121 @@ async function blobUrlToImagePayload(url: string): Promise<{
       binary += String.fromCharCode(bytes[i]!);
     }
     return { mimeType, dataBase64: btoa(binary) };
+  } catch {
+    return null;
+  }
+}
+
+const TUTOR_VISION_MAX_WIDTH_PX = 1200;
+/** JPEG quality for tutor vision (0.7–0.8 range); balances size vs homework text legibility. */
+const TUTOR_VISION_JPEG_QUALITY = 0.75;
+
+async function loadImageElementFromObjectUrl(url: string): Promise<HTMLImageElement> {
+  const img = new Image();
+  img.decoding = "async";
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("image load"));
+    img.src = url;
+  });
+  if (typeof img.decode === "function") {
+    try {
+      await img.decode();
+    } catch {
+      /* decode optional */
+    }
+  }
+  return img;
+}
+
+/**
+ * Downscale + JPEG-compress before base64 for `/api/tutor-chat` only (payload guard unchanged).
+ * Analyze still uses `blobUrlToImagePayload` (full resolution).
+ */
+async function blobUrlToTutorChatImagePayload(url: string): Promise<{
+  mimeType: string;
+  dataBase64: string;
+} | null> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    if (!blob.type.startsWith("image/")) return null;
+
+    let source: CanvasImageSource;
+    let releaseBitmap: (() => void) | undefined;
+
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(blob);
+        source = bitmap;
+        releaseBitmap = () => bitmap.close();
+      } catch {
+        source = await loadImageElementFromObjectUrl(url);
+      }
+    } else {
+      source = await loadImageElementFromObjectUrl(url);
+    }
+
+    const sw =
+      source instanceof HTMLImageElement
+        ? source.naturalWidth || source.width
+        : source.width;
+    const sh =
+      source instanceof HTMLImageElement
+        ? source.naturalHeight || source.height
+        : source.height;
+    if (!sw || !sh) {
+      releaseBitmap?.();
+      return null;
+    }
+
+    const scale =
+      sw > TUTOR_VISION_MAX_WIDTH_PX
+        ? TUTOR_VISION_MAX_WIDTH_PX / sw
+        : 1;
+    const dw = Math.max(1, Math.round(sw * scale));
+    const dh = Math.max(1, Math.round(sh * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = dw;
+    canvas.height = dh;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      releaseBitmap?.();
+      return null;
+    }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(source, 0, 0, dw, dh);
+    releaseBitmap?.();
+
+    const jpegBlob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(
+        (b) => resolve(b),
+        "image/jpeg",
+        TUTOR_VISION_JPEG_QUALITY,
+      );
+    });
+
+    if (!jpegBlob) {
+      let dataUrl: string;
+      try {
+        dataUrl = canvas.toDataURL("image/jpeg", TUTOR_VISION_JPEG_QUALITY);
+      } catch {
+        return null;
+      }
+      const comma = dataUrl.indexOf(",");
+      if (comma < 0) return null;
+      return { mimeType: "image/jpeg", dataBase64: dataUrl.slice(comma + 1) };
+    }
+
+    const ab = await jpegBlob.arrayBuffer();
+    const bytes = new Uint8Array(ab);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]!);
+    }
+    return { mimeType: "image/jpeg", dataBase64: btoa(binary) };
   } catch {
     return null;
   }
@@ -255,22 +374,46 @@ function dictationLine(
 type DictationUiStatus = "idle" | "recording" | "transcribing" | "ready";
 
 /** Resizable split: chat vs composer (pointer + touch). */
-const CHAT_AREA_MIN_PX = 300;
+const CHAT_AREA_MIN_PX_DESKTOP = 300;
+/** Narrow viewports only (see `SPLIT_SPLIT_VIEWPORT_NARROW_MQ`). */
+const CHAT_AREA_MIN_PX_MOBILE = 240;
 const INPUT_AREA_MIN_PX = 180;
 const SPLITTER_HEIGHT_PX = 12;
 
-function clampChatHeightPx(shellHeightPx: number, chatPx: number): number {
+/** Match Tailwind `sm` — mobile-only split tuning below this width. */
+const SPLIT_SPLIT_VIEWPORT_NARROW_MQ = "(max-width: 640px)";
+
+function subscribeSplitViewportNarrow(onStoreChange: () => void) {
+  const mq = window.matchMedia(SPLIT_SPLIT_VIEWPORT_NARROW_MQ);
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getSplitViewportNarrowSnapshot() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(SPLIT_SPLIT_VIEWPORT_NARROW_MQ).matches;
+}
+
+function getSplitViewportNarrowServerSnapshot() {
+  return false;
+}
+
+function clampChatHeightPx(
+  shellHeightPx: number,
+  chatPx: number,
+  chatAreaMinPx: number,
+): number {
   const maxChat =
     shellHeightPx - SPLITTER_HEIGHT_PX - INPUT_AREA_MIN_PX;
   if (!Number.isFinite(maxChat)) {
-    return CHAT_AREA_MIN_PX;
+    return chatAreaMinPx;
   }
   const cappedMax = Math.max(0, maxChat);
-  if (cappedMax < CHAT_AREA_MIN_PX) {
+  if (cappedMax < chatAreaMinPx) {
     return Math.round(cappedMax);
   }
   return Math.round(
-    Math.max(CHAT_AREA_MIN_PX, Math.min(cappedMax, chatPx)),
+    Math.max(chatAreaMinPx, Math.min(cappedMax, chatPx)),
   );
 }
 
@@ -278,6 +421,7 @@ export function StudySignalHome() {
   const fileInputId = useId();
   const previewRegionId = useId();
   const cameraDialogTitleId = useId();
+  const clearSaveDialogTitleId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -300,19 +444,34 @@ export function StudySignalHome() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const splitShellRef = useRef<HTMLDivElement>(null);
   const [chatHeightPx, setChatHeightPx] = useState<number | null>(null);
+  const isSplitViewportNarrow = useSyncExternalStore(
+    subscribeSplitViewportNarrow,
+    getSplitViewportNarrowSnapshot,
+    getSplitViewportNarrowServerSnapshot,
+  );
+  const chatAreaMinPx = isSplitViewportNarrow
+    ? CHAT_AREA_MIN_PX_MOBILE
+    : CHAT_AREA_MIN_PX_DESKTOP;
   const splitDragRef = useRef<{
     pointerId: number;
     startY: number;
     startChatPx: number;
   } | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [chatSendError, setChatSendError] = useState<string | null>(null);
+  const chatSendInFlightRef = useRef(false);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [clearSaveDialogOpen, setClearSaveDialogOpen] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
   /** Most recent completed parallel mic recording (MediaRecorder), for waveform playback. */
   const [lastVoiceRecording, setLastVoiceRecording] = useState<Blob | null>(null);
+  const lastVoiceRecordingRef = useRef<Blob | null>(null);
+  useEffect(() => {
+    lastVoiceRecordingRef.current = lastVoiceRecording;
+  }, [lastVoiceRecording]);
   /**
    * True only after a dictation session successfully merged text into the composer,
    * until the user edits the textarea or starts a new dictation / clear.
@@ -452,6 +611,15 @@ export function StudySignalHome() {
   }, [cameraModalOpen]);
 
   useEffect(() => {
+    if (!clearSaveDialogOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setClearSaveDialogOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearSaveDialogOpen]);
+
+  useEffect(() => {
     return () => {
       dictationMediaSessionGenRef.current += 1;
       const rec = dictationSpeechRecoRef.current;
@@ -577,6 +745,8 @@ export function StudySignalHome() {
     const shell = splitShellRef.current;
     if (!shell) return;
 
+    const initialRatio = isSplitViewportNarrow ? 0.5 : 0.7;
+
     const syncFromShell = () => {
       const shellH = shell.getBoundingClientRect().height;
       if (shellH <= SPLITTER_HEIGHT_PX) return;
@@ -584,10 +754,11 @@ export function StudySignalHome() {
         if (prev == null) {
           return clampChatHeightPx(
             shellH,
-            (shellH - SPLITTER_HEIGHT_PX) * 0.7,
+            (shellH - SPLITTER_HEIGHT_PX) * initialRatio,
+            chatAreaMinPx,
           );
         }
-        return clampChatHeightPx(shellH, prev);
+        return clampChatHeightPx(shellH, prev, chatAreaMinPx);
       });
     };
 
@@ -595,7 +766,7 @@ export function StudySignalHome() {
     const ro = new ResizeObserver(syncFromShell);
     ro.observe(shell);
     return () => ro.disconnect();
-  }, []);
+  }, [isSplitViewportNarrow, chatAreaMinPx]);
 
   const openFilePicker = () => {
     if (atImageLimit) return;
@@ -703,25 +874,218 @@ export function StudySignalHome() {
     pronunciationFromSpeechRef.current = false;
     setSpeechListening(false);
     setDictationUiStatus("idle");
-    setChatItems(initialChatItems());
+    setChatItems((prev) => {
+      for (const m of prev) {
+        if (m.role === "student" && m.voiceRecordingObjectUrl) {
+          URL.revokeObjectURL(m.voiceRecordingObjectUrl);
+        }
+      }
+      return initialChatItems();
+    });
+    setChatSendError(null);
   }, [stopDictationMediaHard]);
 
-  const runAnalyze = useCallback(async () => {
+  const confirmClearChatAnyway = useCallback(() => {
+    setClearSaveDialogOpen(false);
+    clearTranscript();
+  }, [clearTranscript]);
+
+  const sendTutorMessage = useCallback(async () => {
+    const raw =
+      messageTextareaRef.current?.value ?? messageRef.current;
+    const text = raw.trim();
+    const currentAttachments = attachmentsRef.current;
+    const hasImages = currentAttachments.length > 0;
+    setChatSendError(null);
+    if (!text && !hasImages) {
+      setChatSendError("請輸入文字或附加圖片後再按 Enter 送出對話。");
+      return;
+    }
+    if (chatSendInFlightRef.current) return;
+    chatSendInFlightRef.current = true;
+
+    const images: { mimeType: string; dataBase64: string }[] = [];
+    if (hasImages) {
+      for (const att of currentAttachments) {
+        const part = await blobUrlToTutorChatImagePayload(att.url);
+        if (part) images.push(part);
+      }
+      if (images.length === 0) {
+        setChatSendError(
+          "無法讀取已附加的圖片，請移除後重新上傳再試。",
+        );
+        chatSendInFlightRef.current = false;
+        return;
+      }
+    }
+
+    const nImg = images.length;
+    const displayBody =
+      text && hasImages
+        ? `${text}\n\n(${nImg} image${nImg === 1 ? "" : "s"} attached.)`
+        : text
+          ? text
+          : `(Sent ${nImg} image${nImg === 1 ? "" : "s"} — please read and help with my homework.)`;
+
+    const modelUserText =
+      text && hasImages
+        ? `${text}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
+        : text
+          ? text
+          : `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`;
+
+    const studentId = newAttachmentId();
+    const tutorId = newAttachmentId();
+    const baseMessages = buildTutorChatOpenAIMessages(chatItems, modelUserText);
+
+    const requestMessages: unknown[] =
+      images.length > 0
+        ? [
+            ...baseMessages.slice(0, -1),
+            {
+              role: "user" as const,
+              content: [
+                { type: "text" as const, text: modelUserText },
+                ...images.map((im) => ({
+                  type: "image_url" as const,
+                  image_url: {
+                    url: `data:${im.mimeType};base64,${im.dataBase64}`,
+                  },
+                })),
+              ],
+            },
+          ]
+        : baseMessages;
+
+    const voiceBlob =
+      pronunciationFromSpeechRef.current &&
+      lastVoiceRecordingRef.current != null
+        ? lastVoiceRecordingRef.current
+        : null;
+    const voiceRecordingObjectUrl =
+      voiceBlob != null ? URL.createObjectURL(voiceBlob) : undefined;
+
+    setMessage("");
+    messageRef.current = "";
+    queueMicrotask(() => {
+      syncMessageTextareaHeight();
+    });
+
+    setChatItems((prev) => [
+      ...prev,
+      {
+        id: studentId,
+        role: "student",
+        body: displayBody,
+        ...(voiceRecordingObjectUrl != null
+          ? { voiceRecordingObjectUrl }
+          : {}),
+      },
+      {
+        id: tutorId,
+        role: "tutor",
+        body: TUTOR_CHAT_PENDING_BODY,
+      },
+    ]);
+
+    try {
+      const res = await fetch("/api/tutor-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: requestMessages }),
+      });
+      const data: unknown = await res.json().catch(() => ({}));
+      const errMsg =
+        typeof data === "object" &&
+        data !== null &&
+        "error" in data &&
+        typeof (data as { error: unknown }).error === "string"
+          ? (data as { error: string }).error
+          : null;
+      if (!res.ok) {
+        const msg = errMsg ?? `對話服務暫時不可用（${res.status}）。`;
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === tutorId && m.role === "tutor" ? { ...m, body: msg } : m,
+          ),
+        );
+        return;
+      }
+      const reply =
+        typeof data === "object" &&
+        data !== null &&
+        "reply" in data &&
+        typeof (data as { reply: unknown }).reply === "string"
+          ? (data as { reply: string }).reply.trim()
+          : "";
+      if (!reply) {
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === tutorId && m.role === "tutor"
+              ? { ...m, body: "（沒有收到回覆，請再試一次。）" }
+              : m,
+          ),
+        );
+        return;
+      }
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === tutorId && m.role === "tutor" ? { ...m, body: reply } : m,
+        ),
+      );
+      if (images.length > 0) {
+        setAttachments((prev) => {
+          for (const a of prev) {
+            URL.revokeObjectURL(a.url);
+          }
+          return [];
+        });
+      }
+    } catch (e) {
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === tutorId && m.role === "tutor"
+            ? {
+                ...m,
+                body:
+                  e instanceof Error
+                    ? e.message
+                    : "網路連線異常，請稍後再試。",
+              }
+            : m,
+        ),
+      );
+    } finally {
+      chatSendInFlightRef.current = false;
+    }
+  }, [chatItems, syncMessageTextareaHeight]);
+
+  const runAnalyze = useCallback(async (): Promise<boolean> => {
     setAnalyzeError(null);
     setTranscribeError(null);
-    const text = messageRef.current.trim();
+    setChatSendError(null);
+    const text = (
+      messageTextareaRef.current?.value ?? messageRef.current
+    ).trim();
     const currentAttachments = attachmentsRef.current;
     const hasImages = currentAttachments.length > 0;
     if (!text && !hasImages) {
       setAnalyzeError(
         "還沒有可分析的內容：請輸入英文、上傳圖片，或透過麥克風說幾句話。"
       );
-      return;
+      return false;
     }
 
     const turnId = newAttachmentId();
     const displayBody =
       text || (hasImages ? "（已附加圖片，請分析）" : "");
+    const voiceBlob =
+      pronunciationFromSpeechRef.current &&
+      lastVoiceRecordingRef.current != null
+        ? lastVoiceRecordingRef.current
+        : null;
+    const voiceRecordingObjectUrl =
+      voiceBlob != null ? URL.createObjectURL(voiceBlob) : undefined;
     setChatItems((prev) => [
       ...prev,
       {
@@ -729,6 +1093,9 @@ export function StudySignalHome() {
         role: "student",
         body: displayBody,
         analyzeLoading: true,
+        ...(voiceRecordingObjectUrl != null
+          ? { voiceRecordingObjectUrl }
+          : {}),
       },
     ]);
     setAnalyzeLoading(true);
@@ -757,7 +1124,7 @@ export function StudySignalHome() {
                 : m
             )
           );
-          return;
+          return false;
         }
       }
 
@@ -826,7 +1193,7 @@ export function StudySignalHome() {
               : m
           )
         );
-        return;
+        return false;
       }
 
       if (ANALYZE_CLIENT_DEBUG) {
@@ -879,7 +1246,7 @@ export function StudySignalHome() {
               : m
           )
         );
-        return;
+        return false;
       }
 
       setChatItems((prev) =>
@@ -894,6 +1261,7 @@ export function StudySignalHome() {
             : m
         )
       );
+      return true;
     } catch (e) {
       setChatItems((prev) =>
         prev.map((m) =>
@@ -908,10 +1276,18 @@ export function StudySignalHome() {
             : m
         )
       );
+      return false;
     } finally {
       setAnalyzeLoading(false);
     }
   }, []);
+
+  const confirmClearChatAnalyzeAndSave = useCallback(async () => {
+    const ok = await runAnalyze();
+    if (ok) {
+      setClearSaveDialogOpen(false);
+    }
+  }, [runAnalyze]);
 
   const startDictation = useCallback(() => {
     if (dictationMediaRecorderRef.current?.state === "recording") {
@@ -1388,10 +1764,14 @@ export function StudySignalHome() {
       const shellH = shell.getBoundingClientRect().height;
       const deltaY = e.clientY - drag.startY;
       setChatHeightPx(
-        clampChatHeightPx(shellH, drag.startChatPx + deltaY),
+        clampChatHeightPx(
+          shellH,
+          drag.startChatPx + deltaY,
+          chatAreaMinPx,
+        ),
       );
     },
-    [],
+    [chatAreaMinPx],
   );
 
   const onSplitPointerUp = useCallback(
@@ -1422,9 +1802,11 @@ export function StudySignalHome() {
       const shellH = shell.getBoundingClientRect().height;
       const step = e.shiftKey ? 48 : 16;
       const delta = e.key === "ArrowUp" ? -step : step;
-      setChatHeightPx(clampChatHeightPx(shellH, chatHeightPx + delta));
+      setChatHeightPx(
+        clampChatHeightPx(shellH, chatHeightPx + delta, chatAreaMinPx),
+      );
     },
-    [chatHeightPx],
+    [chatHeightPx, chatAreaMinPx],
   );
 
   return (
@@ -1581,11 +1963,11 @@ export function StudySignalHome() {
               chatHeightPx != null
                 ? {
                     height: chatHeightPx,
-                    minHeight: CHAT_AREA_MIN_PX,
+                    minHeight: chatAreaMinPx,
                   }
                 : {
-                    height: "70%",
-                    minHeight: CHAT_AREA_MIN_PX,
+                    height: isSplitViewportNarrow ? "50%" : "70%",
+                    minHeight: chatAreaMinPx,
                   }
             }
             aria-label="Conversation with tutor"
@@ -1718,23 +2100,35 @@ export function StudySignalHome() {
                   </div>
                 </div>
 
-                <div className="w-full border-b border-white/[0.06] bg-black/20">
+                <div className="w-full border-b border-white/[0.06] bg-black/20 px-3 pb-2 pt-2 sm:px-4 sm:pb-2 sm:pt-2.5">
+                  <div className="mb-2 flex flex-col gap-0.5">
+                    <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      Your message
+                    </span>
+                    <span className="text-[11px] leading-snug text-zinc-600">
+                      Enter — send to tutor · Shift+Enter — new line
+                    </span>
+                  </div>
                   <textarea
                     ref={messageTextareaRef}
                     rows={MESSAGE_TEXTAREA_MIN_LINES}
                     value={message}
                     onChange={(e) => {
                       pronunciationFromSpeechRef.current = false;
+                      setChatSendError(null);
                       setMessage(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || e.shiftKey) return;
+                      if (e.nativeEvent.isComposing) return;
+                      e.preventDefault();
+                      messageRef.current = e.currentTarget.value;
+                      void sendTutorMessage();
                     }}
                     placeholder="Message StudySignal…"
                     className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
-                    aria-label="Message input"
+                    aria-label="Message input — press Enter to send to tutor"
                   />
-                </div>
-
-                <div className="border-b border-white/[0.06] bg-black/20 px-3 py-2 sm:px-4 sm:py-2.5">
-                  <ChineseIntentComposerCard />
                 </div>
 
                 <div
@@ -1800,10 +2194,10 @@ export function StudySignalHome() {
 
                   <button
                     type="button"
-                    onClick={clearTranscript}
+                    onClick={() => setClearSaveDialogOpen(true)}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
-                    title="Clear text"
-                    aria-label="Clear text"
+                    title="Clear chat"
+                    aria-label="Clear chat"
                   >
                     <Trash2 className="h-5 w-5" aria-hidden />
                   </button>
@@ -1867,6 +2261,11 @@ export function StudySignalHome() {
                       {analyzeError}
                     </p>
                   ) : null}
+                  {chatSendError ? (
+                    <p className="text-sm text-amber-400/95" role="alert">
+                      {chatSendError}
+                    </p>
+                  ) : null}
                   {transcribeError ? (
                     <p className="text-sm text-amber-400/95" role="alert">
                       {transcribeError}
@@ -1876,11 +2275,67 @@ export function StudySignalHome() {
                     StudySignal can make mistakes. Check important facts.
                   </p>
                 </div>
+                <div className="border-t border-white/[0.06] bg-black/20 px-3 py-2 sm:px-4 sm:py-2.5">
+                  <ChineseIntentComposerCard />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {clearSaveDialogOpen ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/75 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={clearSaveDialogTitleId}
+        >
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default touch-manipulation"
+            aria-label="Dismiss"
+            onClick={() => setClearSaveDialogOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-surface-overlay p-5 shadow-2xl ring-1 ring-white/[0.06] sm:p-6">
+            <h2
+              id={clearSaveDialogTitleId}
+              className="text-lg font-semibold tracking-tight text-white"
+            >
+              Save learning progress?
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+              Would you like to analyze and save this conversation before
+              clearing it?
+            </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+              <button
+                type="button"
+                onClick={() => void confirmClearChatAnalyzeAndSave()}
+                disabled={analyzeLoading}
+                className="order-1 w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:order-none sm:w-auto sm:min-w-[10rem]"
+              >
+                {analyzeLoading ? "Analyzing…" : "Analyze & Save"}
+              </button>
+              <button
+                type="button"
+                onClick={confirmClearChatAnyway}
+                disabled={analyzeLoading}
+                className="w-full rounded-2xl border border-white/10 bg-zinc-800/80 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-700/90 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:w-auto"
+              >
+                Clear Anyway
+              </button>
+              <button
+                type="button"
+                onClick={() => setClearSaveDialogOpen(false)}
+                className="w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/5 touch-manipulation sm:w-auto"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {cameraModalOpen ? (
         <div
