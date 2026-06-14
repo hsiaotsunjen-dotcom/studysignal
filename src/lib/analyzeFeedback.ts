@@ -3,8 +3,23 @@
 export type ScoreCategoryFeedback = {
   score: number;
   strengths: string[];
+  /** Concrete score-gap notes (should quote learner wording + fix); UI label avoids generic “why not 100”. */
   whyNot100: string[];
   improvementExamples: string[];
+};
+
+/** Model rewrite ladder for the same communicative intent (English + brief 繁中 optional). */
+export type TutorModelAnswerBlock = {
+  studentVersion: string;
+  betterVersion: string;
+  nativeLikeVersion: string;
+};
+
+/** High-level recap for learning review style reports. */
+export type LearningSummaryBlock = {
+  strengths: string[];
+  weaknesses: string[];
+  whatToPracticeNext: string[];
 };
 
 export type PronunciationFocusItem = {
@@ -44,11 +59,17 @@ export type AnalyzeFeedback = {
   grammar: ScoreCategoryFeedback;
   vocabulary: ScoreCategoryFeedback;
   fluency: ScoreCategoryFeedback;
-  /** Empty when no speech-based pronunciation analysis was performed. */
+  /** Communication / tone / dialogue naturalness (optional; learning review & richer analyses). */
+  expression?: ScoreCategoryFeedback;
+  /** Speech rubric items, or text-derived read-aloud targets (words from student writing). */
   pronunciationFocus: PronunciationFocusItem[];
   tutorComment: TutorPersonalizedComment;
   /** Present when request included images; prioritize this over pronunciation. */
   imageInsights?: ImageInsights;
+  /** Optional: same idea expressed as student / improved / native-like English. */
+  tutorModelAnswer?: TutorModelAnswerBlock;
+  /** Optional: strengths / gaps / next practice. */
+  learningSummary?: LearningSummaryBlock;
 };
 
 function clampScore(value: unknown): number {
@@ -100,18 +121,26 @@ const PRON_FALLBACK: PronunciationFocusItem = {
   pronunciationTip: "—",
 };
 
+/** Coerce model JSON (string | number | boolean) to trimmed display string. */
+function toTrimmedDisplayString(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value).trim();
+  }
+  return "";
+}
+
 function normalizePronunciationItem(raw: unknown): PronunciationFocusItem {
   if (!raw || typeof raw !== "object") return { ...PRON_FALLBACK };
   const o = raw as Record<string, unknown>;
-  const word = typeof o.word === "string" ? o.word.trim() : "";
-  const reasonToPractice =
-    typeof o.reasonToPractice === "string" ? o.reasonToPractice.trim() : "";
-  const pronunciationTip =
-    typeof o.pronunciationTip === "string" ? o.pronunciationTip.trim() : "";
-  const ipaUsRaw = typeof o.ipaUs === "string" ? o.ipaUs.trim() : "";
-  const ipaUkRaw = typeof o.ipaUk === "string" ? o.ipaUk.trim() : "";
+  const word = toTrimmedDisplayString(o.word);
+  const reasonToPractice = toTrimmedDisplayString(o.reasonToPractice);
+  const pronunciationTip = toTrimmedDisplayString(o.pronunciationTip);
+  const ipaUsRaw = toTrimmedDisplayString(o.ipaUs);
+  const ipaUkRaw = toTrimmedDisplayString(o.ipaUk);
   /** Older API shape: single `ipa` — treat as US-only so one row still shows. */
-  const ipaLegacy = typeof o.ipa === "string" ? o.ipa.trim() : "";
+  const ipaLegacy = toTrimmedDisplayString(o.ipa);
   const out: PronunciationFocusItem = {
     word: word || PRON_FALLBACK.word,
     reasonToPractice: reasonToPractice || PRON_FALLBACK.reasonToPractice,
@@ -187,6 +216,66 @@ function normalizeTutorComment(raw: unknown): TutorPersonalizedComment {
       biggestImprovementOpportunity || TUTOR_COMMENT_FALLBACK_ZH,
     whatToTryNextTime: whatToTryNextTime || TUTOR_COMMENT_FALLBACK_ZH,
   };
+}
+
+function normalizeTutorModelAnswer(raw: unknown): TutorModelAnswerBlock | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const studentVersion = pickTutorStringField(o, [
+    "studentVersion",
+    "student_version",
+  ]);
+  const betterVersion = pickTutorStringField(o, [
+    "betterVersion",
+    "better_version",
+  ]);
+  const nativeLikeVersion = pickTutorStringField(o, [
+    "nativeLikeVersion",
+    "native_like_version",
+  ]);
+  if (!studentVersion && !betterVersion && !nativeLikeVersion) return null;
+  return {
+    studentVersion: studentVersion || "—",
+    betterVersion: betterVersion || "—",
+    nativeLikeVersion: nativeLikeVersion || "—",
+  };
+}
+
+function normalizeLearningSummary(raw: unknown): LearningSummaryBlock | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const pull = (v: unknown): string[] =>
+    Array.isArray(v)
+      ? v
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0)
+          .slice(0, 5)
+      : [];
+  const strengths = pull(o.strengths);
+  const weaknesses = pull(o.weaknesses ?? o.gaps);
+  const whatToPracticeNext = pull(
+    o.whatToPracticeNext ?? o.what_to_practice_next
+  );
+  if (
+    strengths.length === 0 &&
+    weaknesses.length === 0 &&
+    whatToPracticeNext.length === 0
+  ) {
+    return null;
+  }
+  return { strengths, weaknesses, whatToPracticeNext };
+}
+
+/** Up to three pronunciation rows from model JSON (text or speech path). */
+function normalizePronunciationFocusFromModel(
+  value: unknown
+): PronunciationFocusItem[] {
+  if (!Array.isArray(value) || value.length === 0) return [];
+  const items = value.slice(0, 3).map(normalizePronunciationItem);
+  while (items.length < 3) items.push({ ...PRON_FALLBACK });
+  const hasReal = items.some((i) => i.word && i.word !== PRON_FALLBACK.word);
+  return hasReal ? items : [];
 }
 
 function normalizePronunciationScores(
@@ -282,8 +371,9 @@ export type AnalyzeParseLog = (label: string, payload?: unknown) => void;
  * Returns `null` if required fields are missing or invalid.
  *
  * @param requireSpeechPronunciation — when true, `pronunciationScores` and three
- *   `pronunciationFocus` items are required (speech-test path). When false, any
- *   pronunciation keys in the payload are ignored (typed text / images only).
+ *   `pronunciationFocus` items are required (speech-test path). When false,
+ *   optional `pronunciationFocus` is accepted only for **text-only** responses
+ *   (no `imageInsights`); vision responses ignore it.
  * @param log — when set, each parse failure logs a concrete reason (temporary diagnostics).
  */
 export function parseAnalyzeApiData(
@@ -297,19 +387,25 @@ export function parseAnalyzeApiData(
   }
   const o = data as Record<string, unknown>;
 
+  const gapFallback = "（此處應有對照例：請重試分析或請老師補充具體寫法。）";
   const grammar = normalizeScoreCategory(
     o.grammar,
-    "（可請老師再針對你的句子補充）",
+    gapFallback,
     "（此處暫無範例，建議多閱讀例句）"
   );
   const vocabulary = normalizeScoreCategory(
     o.vocabulary,
-    "（可請老師再針對你的句子補充）",
+    gapFallback,
     "（此處暫無範例，建議多閱讀例句）"
   );
   const fluency = normalizeScoreCategory(
     o.fluency,
-    "（可請老師再針對你的句子補充）",
+    gapFallback,
+    "（此處暫無範例，建議多閱讀例句）"
+  );
+  const expression = normalizeScoreCategory(
+    o.expression,
+    gapFallback,
     "（此處暫無範例，建議多閱讀例句）"
   );
   if (!grammar || !vocabulary || !fluency) {
@@ -332,6 +428,9 @@ export function parseAnalyzeApiData(
 
   const imageInsightsRaw = extractImageInsightsContainer(o);
   const imageInsights = normalizeImageInsights(imageInsightsRaw);
+  const tutorModelAnswer = normalizeTutorModelAnswer(o.tutorModelAnswer);
+  const learningSummary = normalizeLearningSummary(o.learningSummary);
+  const visionMode = Boolean(imageInsights);
   log?.("parse_image_insights_step", {
     extractedContainer: imageInsightsRaw,
     normalized: imageInsights,
@@ -365,16 +464,19 @@ export function parseAnalyzeApiData(
       grammar,
       vocabulary,
       fluency,
+      ...(expression ? { expression } : {}),
       pronunciationFocus: pronunciationFocusStrict,
       tutorComment,
+      ...(tutorModelAnswer ? { tutorModelAnswer } : {}),
+      ...(learningSummary ? { learningSummary } : {}),
       ...(imageInsights ? { imageInsights } : {}),
     };
   }
 
   /**
-   * Typed text and/or images: never trust model-supplied pronunciation (it
-   * hallucinates scores from text). Ignore stray keys / empty arrays so vision
-   * JSON still parses.
+   * Typed text and/or images: optional dictionary-style pronunciation rows when
+   * the model returns `pronunciationFocus` (text-only path). Vision responses
+   * include `imageInsights` and must not surface text-derived pronunciation.
    */
   log?.("parse_ok_non_speech_mode", {
     hasImageInsights: Boolean(imageInsights),
@@ -382,12 +484,18 @@ export function parseAnalyzeApiData(
     ocrText: imageInsights?.ocrText,
     visualSummaryZh: imageInsights?.visualSummaryZh,
   });
+  const pronunciationFocusNonSpeech = visionMode
+    ? []
+    : normalizePronunciationFocusFromModel(o.pronunciationFocus);
   return {
     grammar,
     vocabulary,
     fluency,
-    pronunciationFocus: [],
+    ...(expression ? { expression } : {}),
+    pronunciationFocus: pronunciationFocusNonSpeech,
     tutorComment,
+    ...(tutorModelAnswer ? { tutorModelAnswer } : {}),
+    ...(learningSummary ? { learningSummary } : {}),
     ...(imageInsights ? { imageInsights } : {}),
   };
 }

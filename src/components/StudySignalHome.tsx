@@ -1147,11 +1147,13 @@ export function StudySignalHome() {
         }
       }
 
-      /** Pronunciation only when current box text came from dictation (not hand-edited), not image-first, not learning review. */
+      /**
+       * Pronunciation when the composer was last filled from dictation (ref true),
+       * not image-first. Learning-review aggregate text may still be analyzed with
+       * pronunciation when the ref indicates recent speech transcript context.
+       */
       const includePronunciation =
-        pronunciationFromSpeechRef.current &&
-        !hasImages &&
-        !learningReviewMode;
+        pronunciationFromSpeechRef.current && !hasImages;
 
       const requestPayload = {
         text,
