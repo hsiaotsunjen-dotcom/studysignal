@@ -1,5 +1,5 @@
 import { StudySignalHome } from "@/components/StudySignalHome";
 
 export default function Home() {
-  return <StudySignalHome />;
+  return <StudySignalHome layout="talk" />;
 }

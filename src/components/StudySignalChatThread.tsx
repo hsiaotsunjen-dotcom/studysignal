@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 
-import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
 import { Volume2 } from "@/components/LucideVolume2";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
@@ -165,15 +164,6 @@ export function StudySignalChatThread({
               >
                 {item.analyzeError}
               </p>
-            ) : null}
-            {item.analysis ? (
-              <div className="w-full min-w-0">
-                <AnalyzeFeedbackPanel
-                  result={item.analysis}
-                  className="max-h-[min(55vh,480px)]"
-                  dictationVoiceLang={dictationVoiceLang}
-                />
-              </div>
             ) : null}
           </div>
         )

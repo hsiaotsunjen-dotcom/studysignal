@@ -27,10 +27,17 @@ import {
   X,
 } from "lucide-react";
 
-import ChineseIntentComposerCard from "@/components/ChineseIntentComposerCard";
+import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
+import {
+  StudySignalAppShell,
+  type MainTab,
+} from "@/components/StudySignalAppShell";
 import { StudySignalChatThread } from "@/components/StudySignalChatThread";
 import type { ChatListItem } from "@/types/chatListItem";
-import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
+import {
+  parseAnalyzeApiData,
+  type AnalyzeFeedback,
+} from "@/lib/analyzeFeedback";
 import {
   buildLearningReviewAnalyzeText,
   LEARNING_REVIEW_ANALYZE_PREAMBLE,
@@ -163,7 +170,7 @@ function initialChatItems(): ChatListItem[] {
   ];
 }
 
-const MESSAGE_TEXTAREA_MIN_LINES = 5;
+const MESSAGE_TEXTAREA_MIN_LINES = 8;
 
 type UploadedImage = {
   id: string;
@@ -421,7 +428,12 @@ function clampChatHeightPx(
   );
 }
 
-export function StudySignalHome() {
+export function StudySignalHome({
+  layout = "talk",
+}: {
+  /** `talk` — conversation-first shell (hides school/subjects). `full` — legacy full home. */
+  layout?: "talk" | "full";
+}) {
   const fileInputId = useId();
   const previewRegionId = useId();
   const cameraDialogTitleId = useId();
@@ -462,6 +474,9 @@ export function StudySignalHome() {
     startChatPx: number;
   } | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [mainTab, setMainTab] = useState<MainTab>("talk");
+  const [latestAnalyzeFeedback, setLatestAnalyzeFeedback] =
+    useState<AnalyzeFeedback | null>(null);
   const [chatSendError, setChatSendError] = useState<string | null>(null);
   const chatSendInFlightRef = useRef(false);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -887,6 +902,7 @@ export function StudySignalHome() {
       return initialChatItems();
     });
     setChatSendError(null);
+    setLatestAnalyzeFeedback(null);
   }, [stopDictationMediaHard]);
 
   const confirmClearChatAnyway = useCallback(() => {
@@ -902,7 +918,7 @@ export function StudySignalHome() {
     const hasImages = currentAttachments.length > 0;
     setChatSendError(null);
     if (!text && !hasImages) {
-      setChatSendError("請輸入文字或附加圖片後再按 Enter 送出對話。");
+      setChatSendError("請輸入文字或附加圖片後再按 CHAT 送出。");
       return;
     }
     if (chatSendInFlightRef.current) return;
@@ -1046,6 +1062,126 @@ export function StudySignalHome() {
           return [];
         });
       }
+    } catch (e) {
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === tutorId && m.role === "tutor"
+            ? {
+                ...m,
+                body:
+                  e instanceof Error
+                    ? e.message
+                    : "網路連線異常，請稍後再試。",
+              }
+            : m,
+        ),
+      );
+    } finally {
+      chatSendInFlightRef.current = false;
+    }
+  }, [chatItems, selectedSpeechLang, syncMessageTextareaHeight]);
+
+  const sendChineseEnglishHelp = useCallback(async () => {
+    const raw =
+      messageTextareaRef.current?.value ?? messageRef.current;
+    const text = raw.trim();
+    setChatSendError(null);
+    if (!text) {
+      setChatSendError(
+        "請在輸入框輸入中文語意後，再按「幫我找英文」。",
+      );
+      return;
+    }
+    if (attachmentsRef.current.length > 0) {
+      setChatSendError(
+        "「幫我找英文」僅使用文字，請先移除附加圖片。",
+      );
+      return;
+    }
+    if (chatSendInFlightRef.current) return;
+    chatSendInFlightRef.current = true;
+
+    const studentId = newAttachmentId();
+    const tutorId = newAttachmentId();
+    const displayBody = `（中文語意）\n${text}`;
+    const modelUserText =
+      "The student wrote the following in Chinese—it describes what they want to express in English. " +
+      "Reply in English **only**. Give 1–3 natural, conversational English options (short phrases or sentences) they could say. " +
+      "Label the options clearly (e.g. Option 1 / Option 2). Do not use Chinese in your reply except optional brief glosses in parentheses if helpful. " +
+      "Do not ask them to re-type the Chinese.\n\nChinese:\n" +
+      text;
+
+    const requestMessages = buildTutorChatOpenAIMessages(
+      chatItems,
+      modelUserText,
+    );
+
+    setMessage("");
+    messageRef.current = "";
+    queueMicrotask(() => {
+      syncMessageTextareaHeight();
+    });
+
+    setChatItems((prev) => [
+      ...prev,
+      {
+        id: studentId,
+        role: "student",
+        body: displayBody,
+      },
+      {
+        id: tutorId,
+        role: "tutor",
+        body: TUTOR_CHAT_PENDING_BODY,
+      },
+    ]);
+
+    try {
+      const res = await fetch("/api/tutor-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: requestMessages }),
+      });
+      const data: unknown = await res.json().catch(() => ({}));
+      const errMsg =
+        typeof data === "object" &&
+        data !== null &&
+        "error" in data &&
+        typeof (data as { error: unknown }).error === "string"
+          ? (data as { error: string }).error
+          : null;
+      if (!res.ok) {
+        const msg = errMsg ?? `對話服務暫時不可用（${res.status}）。`;
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === tutorId && m.role === "tutor" ? { ...m, body: msg } : m,
+          ),
+        );
+        return;
+      }
+      const reply =
+        typeof data === "object" &&
+        data !== null &&
+        "reply" in data &&
+        typeof (data as { reply: unknown }).reply === "string"
+          ? (data as { reply: string }).reply.trim()
+          : "";
+      if (!reply) {
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === tutorId && m.role === "tutor"
+              ? { ...m, body: "（沒有收到回覆，請再試一次。）" }
+              : m,
+          ),
+        );
+        return;
+      }
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === tutorId && m.role === "tutor" ? { ...m, body: reply } : m,
+        ),
+      );
+      speakWithBrowserTTS(reply, selectedSpeechLang);
     } catch (e) {
       setChatItems((prev) =>
         prev.map((m) =>
@@ -1284,6 +1420,7 @@ export function StudySignalHome() {
             : m
         )
       );
+      setLatestAnalyzeFeedback(parsed);
       return true;
     } catch (e) {
       setChatItems((prev) =>
@@ -1833,6 +1970,21 @@ export function StudySignalHome() {
   );
 
   return (
+    <>
+      <input
+        ref={fileInputRef}
+        id={fileInputId}
+        type="file"
+        accept="image/*"
+        multiple
+        className="sr-only"
+        tabIndex={-1}
+        onChange={handleImageChange}
+      />
+      <StudySignalAppShell
+        activeTab={mainTab}
+        onTabChange={setMainTab}
+        talk={
     <div className="relative flex min-h-dvh flex-col bg-surface">
       {/* Ambient gradient — subtle ChatGPT-adjacent depth */}
       <div
@@ -1868,112 +2020,6 @@ export function StudySignalHome() {
             </div>
           </div>
         </header>
-
-        {/* School level */}
-        <section className="shrink-0 pb-5" aria-label="School level">
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-            <GraduationCap className="h-3.5 w-3.5" aria-hidden />
-            School level
-          </div>
-          <div
-            role="radiogroup"
-            aria-label="Choose school level"
-            className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {SCHOOL_LEVELS.map((lvl) => {
-              const selected = schoolLevel === lvl.id;
-              return (
-                <button
-                  key={lvl.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setSchoolLevel(lvl.id)}
-                  className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.98] touch-manipulation ${
-                    selected
-                      ? "border-white/15 bg-white text-zinc-950 shadow-lg shadow-black/20"
-                      : "border-white/10 bg-surface-raised/60 text-zinc-300 ring-1 ring-white/[0.04] hover:bg-surface-overlay/80 hover:text-white"
-                  }`}
-                >
-                  <span className="sm:hidden">{lvl.abbr}</span>
-                  <span className="hidden sm:inline">{lvl.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Subjects */}
-        <section
-          className="shrink-0 pb-4 pt-2"
-          aria-label="Subjects"
-        >
-          <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-            <BookOpen className="h-3.5 w-3.5" aria-hidden />
-            Subjects
-          </div>
-          <div className="flex flex-col gap-2">
-            {SUBJECTS.map((subject) => {
-              const open = openSubject === subject.id;
-              const copy =
-                SUBJECT_COPY[schoolLevel][subject.id] ?? {
-                  blurb: "",
-                  topics: [],
-                };
-              const panelId = `subject-panel-${subject.id}`;
-              const buttonId = `subject-trigger-${subject.id}`;
-
-              return (
-                <div
-                  key={subject.id}
-                  className="overflow-hidden rounded-2xl border border-white/[0.08] bg-surface-raised/40 shadow-glow backdrop-blur-sm transition-colors hover:border-white/[0.12]"
-                >
-                  <button
-                    id={buttonId}
-                    type="button"
-                    aria-expanded={open}
-                    aria-controls={panelId}
-                    onClick={() => toggleSubject(subject.id)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03] touch-manipulation"
-                  >
-                    <span className="text-[15px] font-medium text-zinc-100">
-                      {subject.label}
-                    </span>
-                    <ChevronDown
-                      className={`h-5 w-5 shrink-0 text-zinc-500 transition-transform duration-200 ${
-                        open ? "rotate-180" : ""
-                      }`}
-                      aria-hidden
-                    />
-                  </button>
-                  <div
-                    id={panelId}
-                    role="region"
-                    aria-labelledby={buttonId}
-                    hidden={!open}
-                  >
-                    <div className="border-t border-white/[0.06] px-4 pb-4 pt-1">
-                      <p className="pt-2 text-sm leading-relaxed text-zinc-400">
-                        {copy.blurb}
-                      </p>
-                      <ul className="mt-3 space-y-2">
-                        {copy.topics.map((topic) => (
-                          <li
-                            key={topic}
-                            className="flex items-center gap-2 text-sm text-zinc-300"
-                          >
-                            <span className="h-1 w-1 shrink-0 rounded-full bg-violet-400/80" />
-                            {topic}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
         {/* Resizable: chat | splitter | composer */}
         <div
@@ -2033,67 +2079,12 @@ export function StudySignalHome() {
 
           <div className="flex min-h-[180px] flex-1 flex-col overflow-y-auto border-t border-white/[0.08] bg-gradient-to-b from-transparent via-surface/30 to-surface pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
             <div className="pointer-events-auto mx-auto w-full max-w-lg px-0 sm:px-1 md:px-0">
-              {hasImages ? (
-                <div
-                  id={previewRegionId}
-                  role="region"
-                  aria-label={`Selected images, ${imageCount} of ${MAX_IMAGES}`}
-                  className="mb-2 rounded-2xl border border-white/10 bg-black/25 p-2.5 shadow-glow ring-1 ring-white/[0.04] backdrop-blur-xl"
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-                    <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Images
-                    </span>
-                    <span
-                      className="tabular-nums text-xs font-medium text-zinc-400"
-                      aria-live="polite"
-                    >
-                      {imageCount}/{MAX_IMAGES}
-                    </span>
-                  </div>
-                  <ul
-                    className="-mx-0.5 flex list-none snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-0.5 pb-1 pt-0.5 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600/80 [&::-webkit-scrollbar-track]:bg-transparent"
-                    role="list"
-                  >
-                    {attachments.map((item) => (
-                      <li
-                        key={item.id}
-                        className="relative h-[4.5rem] w-[4.5rem] shrink-0 snap-start sm:h-24 sm:w-24"
-                        role="listitem"
-                      >
-                        <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40">
-                          {/* eslint-disable-next-line @next/next/no-img-element -- blob: URLs for local preview */}
-                          <img
-                            src={item.url}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                            decoding="async"
-                            loading="lazy"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeImageById(item.id)}
-                          className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-900/95 text-zinc-200 shadow-md backdrop-blur-md transition-colors hover:bg-zinc-800 hover:text-white active:scale-95 touch-manipulation"
-                          aria-label={`Remove ${item.name}`}
-                        >
-                          <X className="h-3.5 w-3.5" aria-hidden />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
               <div className="overflow-hidden rounded-[26px] border border-white/10 bg-surface-overlay/90 shadow-dock backdrop-blur-2xl ring-1 ring-white/[0.04]">
                 <div
-                  className="flex flex-col gap-1.5 border-b border-white/[0.06] px-3 py-2.5 sm:px-4 sm:py-3"
+                  className="flex flex-col gap-1 border-b border-white/[0.06] px-3 py-2 sm:px-4 sm:py-2"
                   role="radiogroup"
                   aria-label="Dictation language"
                 >
-                  <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                    Dictation language
-                  </span>
                   <div className="flex flex-wrap gap-2 sm:gap-2.5">
                     {SPEECH_LANG_OPTIONS.map((opt) => {
                       const selected = selectedSpeechLang === opt.value;
@@ -2123,52 +2114,87 @@ export function StudySignalHome() {
                   </div>
                 </div>
 
-                <div className="w-full border-b border-white/[0.06] bg-black/20 px-3 pb-2 pt-2 sm:px-4 sm:pb-2 sm:pt-2.5">
-                  <div className="mb-2 flex flex-col gap-0.5">
-                    <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Your message
-                    </span>
-                    <span className="text-[11px] leading-snug text-zinc-600">
-                      Enter — send to tutor · Shift+Enter — new line
-                    </span>
+                <div className="w-full border-b border-white/[0.06] bg-black/20 px-3 pb-2 pt-1.5 sm:px-4 sm:pb-2 sm:pt-2">
+                  <div className="relative">
+                    <textarea
+                      ref={messageTextareaRef}
+                      rows={MESSAGE_TEXTAREA_MIN_LINES}
+                      value={message}
+                      onChange={(e) => {
+                        pronunciationFromSpeechRef.current = false;
+                        setChatSendError(null);
+                        setMessage(e.target.value);
+                      }}
+                      placeholder="英文與家教對話，或輸入中文語意再按「幫我找英文」…"
+                      className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 pb-8 pt-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
+                      aria-label="Message input — English for Chat or Chinese for 幫我找英文"
+                    />
+                    <p
+                      className="pointer-events-none absolute bottom-2 right-3 text-[10px] leading-tight text-zinc-500"
+                      aria-hidden
+                    >
+                      Enter 換行 • CHAT 送出
+                    </p>
                   </div>
-                  <textarea
-                    ref={messageTextareaRef}
-                    rows={MESSAGE_TEXTAREA_MIN_LINES}
-                    value={message}
-                    onChange={(e) => {
-                      pronunciationFromSpeechRef.current = false;
-                      setChatSendError(null);
-                      setMessage(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key !== "Enter" || e.shiftKey) return;
-                      if (e.nativeEvent.isComposing) return;
-                      e.preventDefault();
-                      messageRef.current = e.currentTarget.value;
-                      void sendTutorMessage();
-                    }}
-                    placeholder="Message StudySignal…"
-                    className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 py-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
-                    aria-label="Message input — press Enter to send to tutor"
-                  />
                 </div>
 
+                {hasImages ? (
+                  <div
+                    id={previewRegionId}
+                    role="region"
+                    aria-label={`Selected images, ${imageCount} of ${MAX_IMAGES}`}
+                    className="border-t border-white/[0.06] bg-black/15 px-3 py-2.5 sm:px-4 sm:py-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+                      <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                        Photos & worksheets
+                      </span>
+                      <span
+                        className="tabular-nums text-xs font-medium text-zinc-400"
+                        aria-live="polite"
+                      >
+                        {imageCount}/{MAX_IMAGES}
+                      </span>
+                    </div>
+                    <ul
+                      className="-mx-0.5 flex list-none snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-0.5 pb-1 pt-0.5 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600/80 [&::-webkit-scrollbar-track]:bg-transparent"
+                      role="list"
+                    >
+                      {attachments.map((item) => (
+                        <li
+                          key={item.id}
+                          className="relative h-[4.5rem] w-[4.5rem] shrink-0 snap-start sm:h-24 sm:w-24"
+                          role="listitem"
+                        >
+                          <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- blob: URLs for local preview */}
+                            <img
+                              src={item.url}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                              decoding="async"
+                              loading="lazy"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeImageById(item.id)}
+                            className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-900/95 text-zinc-200 shadow-md backdrop-blur-md transition-colors hover:bg-zinc-800 hover:text-white active:scale-95 touch-manipulation"
+                            aria-label={`Remove ${item.name}`}
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 <div
-                  className="flex flex-nowrap items-center justify-start gap-1 overflow-x-auto overscroll-x-contain px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 sm:px-3 sm:py-2.5 [&::-webkit-scrollbar]:hidden"
+                  className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] bg-black/20 px-3 py-2.5 sm:gap-2.5 sm:px-4 sm:py-3"
                   role="toolbar"
-                  aria-label="Message actions"
+                  aria-label="Upload, camera, microphone, playback, and clear"
                 >
-                  <input
-                    ref={fileInputRef}
-                    id={fileInputId}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="sr-only"
-                    tabIndex={-1}
-                    onChange={handleImageChange}
-                  />
                   <button
                     type="button"
                     onClick={openFilePicker}
@@ -2217,16 +2243,6 @@ export function StudySignalHome() {
 
                   <button
                     type="button"
-                    onClick={() => setClearSaveDialogOpen(true)}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
-                    title="Clear chat"
-                    aria-label="Clear chat"
-                  >
-                    <Trash2 className="h-5 w-5" aria-hidden />
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={toggleMicrophoneDictation}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
                     title={speechListening ? "Stop microphone" : "Microphone"}
@@ -2252,6 +2268,58 @@ export function StudySignalHome() {
                   >
                     <AudioWaveform className="h-5 w-5" aria-hidden />
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setClearSaveDialogOpen(true)}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
+                    title="Clear chat"
+                    aria-label="Clear chat"
+                  >
+                    <Trash2 className="h-5 w-5" aria-hidden />
+                  </button>
+                </div>
+
+                <div className="border-t border-white/[0.06] bg-black/20 px-3 py-2 sm:px-4 sm:py-2">
+                  <div
+                    className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2"
+                    role="group"
+                    aria-label="Send and analyze actions"
+                  >
+                    <button
+                      type="button"
+                      disabled={!message.trim() || attachments.length > 0}
+                      onClick={() => {
+                        messageRef.current =
+                          messageTextareaRef.current?.value ?? message;
+                        void sendChineseEnglishHelp();
+                      }}
+                      className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl border border-teal-500/40 bg-teal-500/15 px-3 text-sm font-semibold text-teal-100 transition-colors hover:bg-teal-500/25 disabled:cursor-not-allowed disabled:opacity-40 touch-manipulation active:scale-[0.99] sm:px-4"
+                    >
+                      幫我找英文
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!message.trim() && attachments.length === 0}
+                      onClick={() => {
+                        messageRef.current =
+                          messageTextareaRef.current?.value ?? message;
+                        void sendTutorMessage();
+                      }}
+                      className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl bg-white px-3 text-sm font-semibold text-zinc-950 shadow-lg ring-1 ring-white/25 transition-opacity disabled:cursor-not-allowed disabled:opacity-40 touch-manipulation active:scale-[0.99] sm:px-4 sm:shadow-xl"
+                    >
+                      CHAT
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void runAnalyze()}
+                      disabled={analyzeLoading}
+                      className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl border border-violet-500/35 bg-violet-500/10 px-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:px-4"
+                      aria-label="分析英文（發音／語法）"
+                    >
+                      {analyzeLoading ? "分析中…" : "分析"}
+                    </button>
+                  </div>
                 </div>
                 {dictationUiStatus !== "idle" ? (
                   <p
@@ -2265,22 +2333,11 @@ export function StudySignalHome() {
                         : "✅ Ready"}
                   </p>
                 ) : null}
-                <div className="space-y-2 border-t border-white/[0.05] px-3 py-2 sm:space-y-2.5 sm:px-4 sm:py-2.5">
-                  <button
-                    type="button"
-                    onClick={() => void runAnalyze()}
-                    disabled={analyzeLoading}
-                    className="w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
-                  >
-                    {analyzeLoading ? "分析中…" : "分析英文（發音／語法）"}
-                  </button>
-                  <p className="px-1 text-center text-[11px] leading-relaxed text-zinc-500 sm:text-xs">
-                    學習回顧會分析本次對話中最近 15 則學生回答，
-                    並提供字彙、文法、流暢度與表達能力建議。
-                  </p>
-                  {analyzeLoading ? (
-                    <p className="text-sm text-zinc-400" aria-live="polite">
-                      分析中…
+                <div className="space-y-2 border-t border-white/[0.05] px-3 py-2 sm:space-y-2 sm:px-4 sm:py-2">
+                  {layout === "full" ? (
+                    <p className="px-1 text-center text-[11px] leading-relaxed text-zinc-500 sm:text-xs">
+                      學習回顧會分析本次對話中最近 15 則學生回答，
+                      並提供字彙、文法、流暢度與表達能力建議。
                     </p>
                   ) : null}
                   {analyzeError ? (
@@ -2302,15 +2359,154 @@ export function StudySignalHome() {
                     StudySignal can make mistakes. Check important facts.
                   </p>
                 </div>
-                <div className="border-t border-white/[0.06] bg-black/20 px-3 py-2 sm:px-4 sm:py-2.5">
-                  <ChineseIntentComposerCard />
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+        }
+        signals={
+          <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col overflow-y-auto px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-8">
+            <div className="mb-3 shrink-0">
+              <p className="text-xs font-medium uppercase tracking-wider text-violet-400/90">
+                Signals
+              </p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
+                分析結果
+              </h2>
+            </div>
+            {analyzeLoading ? (
+              <p className="mb-2 text-sm text-zinc-400" aria-live="polite">
+                分析中…
+              </p>
+            ) : null}
+            {analyzeError ? (
+              <p className="mb-2 text-sm text-amber-400/95" role="alert">
+                {analyzeError}
+              </p>
+            ) : null}
+            {latestAnalyzeFeedback ? (
+              <AnalyzeFeedbackPanel
+                result={latestAnalyzeFeedback}
+                className="max-h-[min(70vh,560px)] min-h-0 flex-1"
+                dictationVoiceLang={selectedSpeechLang}
+              />
+            ) : (
+              <p className="mt-6 rounded-2xl border border-white/[0.08] bg-black/20 px-4 py-6 text-center text-sm leading-relaxed text-zinc-500 ring-1 ring-white/[0.04]">
+                尚無分析結果。請到 Talk 分頁按下「分析英文（發音／語法）」後，再回到此處查看。
+              </p>
+            )}
+          </div>
+        }
+        tools={
+          <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col overflow-y-auto px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-8">
+            <section className="shrink-0 pb-5" aria-label="School level">
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <GraduationCap className="h-3.5 w-3.5" aria-hidden />
+                School level
+              </div>
+              <div
+                role="radiogroup"
+                aria-label="Choose school level"
+                className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {SCHOOL_LEVELS.map((lvl) => {
+                  const selected = schoolLevel === lvl.id;
+                  return (
+                    <button
+                      key={lvl.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setSchoolLevel(lvl.id)}
+                      className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.98] touch-manipulation ${
+                        selected
+                          ? "border-white/15 bg-white text-zinc-950 shadow-lg shadow-black/20"
+                          : "border-white/10 bg-surface-raised/60 text-zinc-300 ring-1 ring-white/[0.04] hover:bg-surface-overlay/80 hover:text-white"
+                      }`}
+                    >
+                      <span className="sm:hidden">{lvl.abbr}</span>
+                      <span className="hidden sm:inline">{lvl.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
 
+            <section
+              className="shrink-0 pb-4 pt-2"
+              aria-label="Subjects"
+            >
+              <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <BookOpen className="h-3.5 w-3.5" aria-hidden />
+                Subjects
+              </div>
+              <div className="flex flex-col gap-2">
+                {SUBJECTS.map((subject) => {
+                  const open = openSubject === subject.id;
+                  const copy =
+                    SUBJECT_COPY[schoolLevel][subject.id] ?? {
+                      blurb: "",
+                      topics: [],
+                    };
+                  const panelId = `subject-panel-${subject.id}`;
+                  const buttonId = `subject-trigger-${subject.id}`;
+
+                  return (
+                    <div
+                      key={subject.id}
+                      className="overflow-hidden rounded-2xl border border-white/[0.08] bg-surface-raised/40 shadow-glow backdrop-blur-sm transition-colors hover:border-white/[0.12]"
+                    >
+                      <button
+                        id={buttonId}
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={panelId}
+                        onClick={() => toggleSubject(subject.id)}
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03] touch-manipulation"
+                      >
+                        <span className="text-[15px] font-medium text-zinc-100">
+                          {subject.label}
+                        </span>
+                        <ChevronDown
+                          className={`h-5 w-5 shrink-0 text-zinc-500 transition-transform duration-200 ${
+                            open ? "rotate-180" : ""
+                          }`}
+                          aria-hidden
+                        />
+                      </button>
+                      <div
+                        id={panelId}
+                        role="region"
+                        aria-labelledby={buttonId}
+                        hidden={!open}
+                      >
+                        <div className="border-t border-white/[0.06] px-4 pb-4 pt-1">
+                          <p className="pt-2 text-sm leading-relaxed text-zinc-400">
+                            {copy.blurb}
+                          </p>
+                          <ul className="mt-3 space-y-2">
+                            {copy.topics.map((topic) => (
+                              <li
+                                key={topic}
+                                className="flex items-center gap-2 text-sm text-zinc-300"
+                              >
+                                <span className="h-1 w-1 shrink-0 rounded-full bg-violet-400/80" />
+                                {topic}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+        }
+      />
       {clearSaveDialogOpen ? (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/75 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm sm:items-center sm:p-6"
@@ -2454,6 +2650,6 @@ export function StudySignalHome() {
         </div>
       ) : null}
 
-    </div>
+    </>
   );
 }
