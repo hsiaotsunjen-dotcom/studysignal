@@ -28,11 +28,13 @@ import {
 } from "lucide-react";
 
 import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
+import { AnalyzeHistoryList } from "@/components/AnalyzeHistoryList";
 import {
   StudySignalAppShell,
   type MainTab,
 } from "@/components/StudySignalAppShell";
 import { StudySignalChatThread } from "@/components/StudySignalChatThread";
+import type { AnalyzeHistoryEntry } from "@/types/analyzeHistory";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
   parseAnalyzeApiData,
@@ -457,6 +459,8 @@ export function StudySignalHome({
     useState<DictationUiStatus>("idle");
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [chatItems, setChatItems] = useState<ChatListItem[]>(initialChatItems);
+  /** Welcome TTS once per session; cleared only via trash / clear chat. */
+  const welcomeAutoSpokenRef = useRef(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const splitShellRef = useRef<HTMLDivElement>(null);
   const [chatHeightPx, setChatHeightPx] = useState<number | null>(null);
@@ -475,8 +479,12 @@ export function StudySignalHome({
   } | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("talk");
-  const [latestAnalyzeFeedback, setLatestAnalyzeFeedback] =
-    useState<AnalyzeFeedback | null>(null);
+  const [analyzeHistory, setAnalyzeHistory] = useState<AnalyzeHistoryEntry[]>(
+    [],
+  );
+  const [selectedAnalyzeHistoryId, setSelectedAnalyzeHistoryId] = useState<
+    string | null
+  >(null);
   const [chatSendError, setChatSendError] = useState<string | null>(null);
   const chatSendInFlightRef = useRef(false);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -893,6 +901,7 @@ export function StudySignalHome({
     pronunciationFromSpeechRef.current = false;
     setSpeechListening(false);
     setDictationUiStatus("idle");
+    welcomeAutoSpokenRef.current = false;
     setChatItems((prev) => {
       for (const m of prev) {
         if (m.role === "student" && m.voiceRecordingObjectUrl) {
@@ -902,7 +911,8 @@ export function StudySignalHome({
       return initialChatItems();
     });
     setChatSendError(null);
-    setLatestAnalyzeFeedback(null);
+    setAnalyzeHistory([]);
+    setSelectedAnalyzeHistoryId(null);
   }, [stopDictationMediaHard]);
 
   const confirmClearChatAnyway = useCallback(() => {
@@ -1420,7 +1430,14 @@ export function StudySignalHome({
             : m
         )
       );
-      setLatestAnalyzeFeedback(parsed);
+      const historyEntry: AnalyzeHistoryEntry = {
+        id: turnId,
+        createdAt: Date.now(),
+        label: displayBody,
+        result: parsed,
+      };
+      setAnalyzeHistory((prev) => [historyEntry, ...prev]);
+      setSelectedAnalyzeHistoryId(turnId);
       return true;
     } catch (e) {
       setChatItems((prev) =>
@@ -1448,6 +1465,26 @@ export function StudySignalHome({
       setClearSaveDialogOpen(false);
     }
   }, [runAnalyze]);
+
+  const viewFullAnalysis = useCallback(
+    (payload: { id: string; result: AnalyzeFeedback }) => {
+      setSelectedAnalyzeHistoryId(payload.id);
+      setAnalyzeHistory((prev) => {
+        if (prev.some((e) => e.id === payload.id)) return prev;
+        return [
+          {
+            id: payload.id,
+            createdAt: Date.now(),
+            label: "",
+            result: payload.result,
+          },
+          ...prev,
+        ];
+      });
+      setMainTab("signals");
+    },
+    [],
+  );
 
   const startDictation = useCallback(() => {
     if (dictationMediaRecorderRef.current?.state === "recording") {
@@ -1510,7 +1547,7 @@ export function StudySignalHome({
 
       const sessionGen = dictationMediaSessionGenRef.current;
       dictationMicStreamRef.current = stream;
-      dictationRecordedChunksRef.current = [];
+      const sessionChunks: Blob[] = [];
 
       const mime = pickRecorderMimeType();
       let mr: MediaRecorder;
@@ -1621,7 +1658,7 @@ export function StudySignalHome({
 
       mr.ondataavailable = (ev) => {
         if (ev.data && ev.data.size > 0) {
-          dictationRecordedChunksRef.current.push(ev.data);
+          sessionChunks.push(ev.data);
         }
       };
 
@@ -1629,8 +1666,8 @@ export function StudySignalHome({
         if (sessionGen !== dictationMediaSessionGenRef.current) {
           return;
         }
-        const chunks = dictationRecordedChunksRef.current.slice();
-        dictationRecordedChunksRef.current = [];
+        const chunks = sessionChunks.slice();
+        sessionChunks.length = 0;
         const s = dictationMicStreamRef.current;
         dictationMicStreamRef.current = null;
         s?.getTracks().forEach((t) => t.stop());
@@ -1656,6 +1693,39 @@ export function StudySignalHome({
               chunkCount: chunks.length,
             });
             setLastVoiceRecording(blob);
+
+            if (blob.size < 64) {
+              dictationLine("BLOB_SIZE", ctx, {
+                blobBytes: blob.size,
+                skippedWhisper: true,
+              });
+              const speechFallback = dictationSpeechFinalRef.current.trim();
+              if (
+                speechFallback.length > 0 &&
+                intent === dictationIntentRef.current &&
+                sessionGen === dictationMediaSessionGenRef.current
+              ) {
+                console.info(
+                  "[StudySignal dictation] Recording too short for Whisper; using SpeechRecognition transcript",
+                  { speechFallback, blobBytes: blob.size },
+                );
+                setTranscribeError(null);
+                const next = dictationBaseRef.current + speechFallback;
+                pronunciationFromSpeechRef.current = true;
+                setMessage(next);
+                messageRef.current = next;
+                setDictationUiStatus("ready");
+                return;
+              }
+              recordDictationTranscribeError(
+                "錄音太短或無效，請再試一次。",
+                "BRANCH_BLOB_TOO_SMALL",
+                ctx,
+                { blobBytes: blob.size },
+              );
+              setDictationUiStatus("idle");
+              return;
+            }
 
             const ext = blobType.includes("webm")
               ? "webm"
@@ -1969,6 +2039,13 @@ export function StudySignalHome({
     [chatHeightPx, chatAreaMinPx],
   );
 
+  const activeAnalyzeHistoryId =
+    selectedAnalyzeHistoryId ?? analyzeHistory[0]?.id ?? null;
+  const selectedAnalyzeEntry =
+    activeAnalyzeHistoryId != null
+      ? analyzeHistory.find((e) => e.id === activeAnalyzeHistoryId)
+      : undefined;
+
   return (
     <>
       <input
@@ -2053,6 +2130,8 @@ export function StudySignalHome({
                 items={chatItems}
                 scrollParentRef={chatScrollRef}
                 dictationVoiceLang={selectedSpeechLang}
+                welcomeAutoSpokenRef={welcomeAutoSpokenRef}
+                onViewFullAnalysis={viewFullAnalysis}
               />
             </div>
           </section>
@@ -2373,7 +2452,7 @@ export function StudySignalHome({
                 Signals
               </p>
               <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
-                分析結果
+                看進步與分析歷史
               </h2>
             </div>
             {analyzeLoading ? (
@@ -2386,9 +2465,14 @@ export function StudySignalHome({
                 {analyzeError}
               </p>
             ) : null}
-            {latestAnalyzeFeedback ? (
+            <AnalyzeHistoryList
+              entries={analyzeHistory}
+              selectedId={activeAnalyzeHistoryId}
+              onSelect={setSelectedAnalyzeHistoryId}
+            />
+            {selectedAnalyzeEntry ? (
               <AnalyzeFeedbackPanel
-                result={latestAnalyzeFeedback}
+                result={selectedAnalyzeEntry.result}
                 className="max-h-[min(70vh,560px)] min-h-0 flex-1"
                 dictationVoiceLang={selectedSpeechLang}
               />
@@ -2401,6 +2485,14 @@ export function StudySignalHome({
         }
         tools={
           <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col overflow-y-auto px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-8">
+            <div className="mb-3 shrink-0">
+              <p className="text-xs font-medium uppercase tracking-wider text-violet-400/90">
+                我的
+              </p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
+                工具、設定、資源
+              </h2>
+            </div>
             <section className="shrink-0 pb-5" aria-label="School level">
               <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
                 <GraduationCap className="h-3.5 w-3.5" aria-hidden />

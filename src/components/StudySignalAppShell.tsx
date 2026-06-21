@@ -16,19 +16,19 @@ const NAV_ITEMS: {
   {
     id: "talk",
     label: "Talk",
-    description: "AI conversation and voice practice",
+    description: "陪孩子練習",
     icon: MicIcon,
   },
   {
     id: "signals",
     label: "Signals",
-    description: "Learning signals and progress",
+    description: "看進步與分析歷史",
     icon: TrendingUpIcon,
   },
   {
     id: "tools",
-    label: "Tools",
-    description: "OCR and analyzers",
+    label: "我的",
+    description: "工具、設定、資源",
     icon: WrenchIcon,
   },
 ];
@@ -51,13 +51,28 @@ export function StudySignalAppShell({
       <div
         className={
           activeTab === "talk"
-            ? "pb-[calc(5.25rem+env(safe-area-inset-bottom))]"
-            : "pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
+            ? "pb-[calc(6rem+env(safe-area-inset-bottom))]"
+            : "pb-[calc(5.25rem+env(safe-area-inset-bottom))]"
         }
       >
-        {activeTab === "talk" ? talk : null}
-        {activeTab === "signals" ? signals : null}
-        {activeTab === "tools" ? tools : null}
+        <div
+          className={activeTab === "talk" ? undefined : "hidden"}
+          aria-hidden={activeTab !== "talk"}
+        >
+          {talk}
+        </div>
+        <div
+          className={activeTab === "signals" ? undefined : "hidden"}
+          aria-hidden={activeTab !== "signals"}
+        >
+          {signals}
+        </div>
+        <div
+          className={activeTab === "tools" ? undefined : "hidden"}
+          aria-hidden={activeTab !== "tools"}
+        >
+          {tools}
+        </div>
       </div>
 
       <nav
@@ -74,14 +89,15 @@ export function StudySignalAppShell({
                 type="button"
                 onClick={() => onTabChange(item.id)}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-2xl px-1 py-2 transition-colors touch-manipulation active:scale-[0.98] ${
+                aria-label={`${item.label}，${item.description}`}
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-2xl px-0.5 py-1.5 transition-colors touch-manipulation active:scale-[0.98] ${
                   isActive
                     ? "bg-violet-500/15 text-violet-100 ring-1 ring-violet-500/25"
                     : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300"
                 }`}
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                     isActive
                       ? "bg-violet-500/20 text-violet-200"
                       : "bg-transparent text-zinc-500"
@@ -90,13 +106,19 @@ export function StudySignalAppShell({
                   <Icon className="h-5 w-5 shrink-0" aria-hidden />
                 </span>
                 <span
-                  className={`max-w-[5.5rem] truncate text-[11px] font-semibold leading-tight ${
-                    isActive ? "text-violet-100" : "text-zinc-500"
+                  className={`max-w-[6.5rem] truncate text-[11px] font-semibold leading-tight ${
+                    isActive ? "text-violet-100" : "text-zinc-400"
                   }`}
                 >
                   {item.label}
                 </span>
-                <span className="sr-only">{item.description}</span>
+                <span
+                  className={`max-w-[6.5rem] line-clamp-2 text-center text-[9px] font-normal leading-snug ${
+                    isActive ? "text-violet-200/80" : "text-zinc-600"
+                  }`}
+                >
+                  {item.description}
+                </span>
               </button>
             );
           })}

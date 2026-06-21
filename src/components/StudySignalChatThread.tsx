@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, type MutableRefObject, type RefObject } from "react";
 
+import { AnalyzeFeedbackSummaryCard } from "@/components/AnalyzeFeedbackSummaryCard";
 import { Volume2 } from "@/components/LucideVolume2";
+import type { AnalyzeFeedback } from "@/lib/analyzeFeedback";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
   cancelBrowserTTS,
@@ -22,20 +24,46 @@ function studentReplayableTextForTts(body: string): string | null {
   return t;
 }
 
+const TALK_RECENT_ANALYSIS_LIMIT = 3;
+
+/** Most recent N student turns that have analysis (chat order). */
+function recentAnalysisItemIds(
+  items: ChatListItem[],
+  limit = TALK_RECENT_ANALYSIS_LIMIT,
+): Set<string> {
+  const ids: string[] = [];
+  for (let i = items.length - 1; i >= 0 && ids.length < limit; i -= 1) {
+    const item = items[i];
+    if (item.role === "student" && item.analysis) {
+      ids.push(item.id);
+    }
+  }
+  return new Set(ids);
+}
+
 export function StudySignalChatThread({
   items,
   scrollParentRef,
   className = "",
   dictationVoiceLang = "en-US",
+  welcomeAutoSpokenRef,
+  onViewFullAnalysis,
 }: {
   items: ChatListItem[];
   scrollParentRef: RefObject<HTMLDivElement | null>;
   className?: string;
   /** Matches StudySignal dictation language for SpeechSynthesis (en-US / en-GB). */
   dictationVoiceLang?: "en-US" | "en-GB";
+  /** Persists across tab switches; reset only when chat is cleared. */
+  welcomeAutoSpokenRef: MutableRefObject<boolean>;
+  /** Opens Signals tab with the full analysis for this result. */
+  onViewFullAnalysis?: (payload: {
+    id: string;
+    result: AnalyzeFeedback;
+  }) => void;
 }) {
-  const welcomeAutoSpokenRef = useRef(false);
   const inlineReplayAudioRef = useRef<HTMLAudioElement | null>(null);
+  const showSummaryForItem = recentAnalysisItemIds(items);
 
   useEffect(() => {
     const el = scrollParentRef.current;
@@ -55,11 +83,7 @@ export function StudySignalChatThread({
     const hasWelcome = items.some(
       (i) => i.role === "tutor" && i.id === "welcome",
     );
-    if (!hasWelcome) {
-      welcomeAutoSpokenRef.current = false;
-      return;
-    }
-    if (welcomeAutoSpokenRef.current) return;
+    if (!hasWelcome || welcomeAutoSpokenRef.current) return;
     const welcome = items.find(
       (i): i is Extract<ChatListItem, { role: "tutor" }> =>
         i.role === "tutor" && i.id === "welcome",
@@ -67,7 +91,7 @@ export function StudySignalChatThread({
     if (!welcome) return;
     welcomeAutoSpokenRef.current = true;
     speakWithBrowserTTS(tutorUtteranceText(welcome), dictationVoiceLang);
-  }, [items, dictationVoiceLang]);
+  }, [items, dictationVoiceLang, welcomeAutoSpokenRef]);
 
   return (
     <div className={`flex flex-col gap-5 ${className}`}>
@@ -164,6 +188,22 @@ export function StudySignalChatThread({
               >
                 {item.analyzeError}
               </p>
+            ) : null}
+            {item.analysis && showSummaryForItem.has(item.id) ? (
+              <div className="w-full min-w-0">
+                <AnalyzeFeedbackSummaryCard
+                  result={item.analysis}
+                  onViewFullAnalysis={
+                    onViewFullAnalysis
+                      ? () =>
+                          onViewFullAnalysis({
+                            id: item.id,
+                            result: item.analysis!,
+                          })
+                      : undefined
+                  }
+                />
+              </div>
             ) : null}
           </div>
         )
