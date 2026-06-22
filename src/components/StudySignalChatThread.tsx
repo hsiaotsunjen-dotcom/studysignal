@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useRef, type MutableRefObject, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type MutableRefObject,
+  type RefObject,
+} from "react";
 
-import { AnalyzeFeedbackSummaryCard } from "@/components/AnalyzeFeedbackSummaryCard";
 import { Volume2 } from "@/components/LucideVolume2";
-import type { AnalyzeFeedback } from "@/lib/analyzeFeedback";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
   cancelBrowserTTS,
+  isLikelyMobileBrowser,
   speakWithBrowserTTS,
+  speakWithBrowserTTSAsync,
+  speakWithBrowserTTSUntilEnd,
 } from "@/lib/speechSynthesis";
 
 export type { ChatListItem };
@@ -24,21 +33,16 @@ function studentReplayableTextForTts(body: string): string | null {
   return t;
 }
 
-const TALK_RECENT_ANALYSIS_LIMIT = 3;
+function subscribeMobileAutoplayRestriction() {
+  return () => {};
+}
 
-/** Most recent N student turns that have analysis (chat order). */
-function recentAnalysisItemIds(
-  items: ChatListItem[],
-  limit = TALK_RECENT_ANALYSIS_LIMIT,
-): Set<string> {
-  const ids: string[] = [];
-  for (let i = items.length - 1; i >= 0 && ids.length < limit; i -= 1) {
-    const item = items[i];
-    if (item.role === "student" && item.analysis) {
-      ids.push(item.id);
-    }
-  }
-  return new Set(ids);
+function getMobileAutoplayRestrictionSnapshot() {
+  return isLikelyMobileBrowser();
+}
+
+function getMobileAutoplayRestrictionServerSnapshot() {
+  return false;
 }
 
 export function StudySignalChatThread({
@@ -47,7 +51,7 @@ export function StudySignalChatThread({
   className = "",
   dictationVoiceLang = "en-US",
   welcomeAutoSpokenRef,
-  onViewFullAnalysis,
+  onWelcomeSessionReady,
 }: {
   items: ChatListItem[];
   scrollParentRef: RefObject<HTMLDivElement | null>;
@@ -56,14 +60,49 @@ export function StudySignalChatThread({
   dictationVoiceLang?: "en-US" | "en-GB";
   /** Persists across tab switches; reset only when chat is cleared. */
   welcomeAutoSpokenRef: MutableRefObject<boolean>;
-  /** Opens Signals tab with the full analysis for this result. */
-  onViewFullAnalysis?: (payload: {
-    id: string;
-    result: AnalyzeFeedback;
-  }) => void;
+  /** Focus composer after mobile welcome playback completes. */
+  onWelcomeSessionReady?: () => void;
 }) {
   const inlineReplayAudioRef = useRef<HTMLAudioElement | null>(null);
-  const showSummaryForItem = recentAnalysisItemIds(items);
+  const mobileAutoplayRestricted = useSyncExternalStore(
+    subscribeMobileAutoplayRestriction,
+    getMobileAutoplayRestrictionSnapshot,
+    getMobileAutoplayRestrictionServerSnapshot,
+  );
+  const [welcomeStartPromptVisible, setWelcomeStartPromptVisible] =
+    useState(false);
+  const [welcomePlaying, setWelcomePlaying] = useState(false);
+  const welcomePlayInFlightRef = useRef(false);
+
+  const welcomeItem = items.find(
+    (i): i is Extract<ChatListItem, { role: "tutor" }> =>
+      i.role === "tutor" && i.id === "welcome",
+  );
+
+  const completeWelcomePlayback = useCallback(() => {
+    welcomeAutoSpokenRef.current = true;
+    setWelcomeStartPromptVisible(false);
+    setWelcomePlaying(false);
+    welcomePlayInFlightRef.current = false;
+    onWelcomeSessionReady?.();
+  }, [welcomeAutoSpokenRef, onWelcomeSessionReady]);
+
+  const playWelcomeTts = useCallback(() => {
+    if (!welcomeItem || welcomePlayInFlightRef.current) return;
+    welcomePlayInFlightRef.current = true;
+    setWelcomePlaying(true);
+    void speakWithBrowserTTSUntilEnd(
+      tutorUtteranceText(welcomeItem),
+      dictationVoiceLang,
+    ).then((finished) => {
+      if (finished) {
+        completeWelcomePlayback();
+        return;
+      }
+      welcomePlayInFlightRef.current = false;
+      setWelcomePlaying(false);
+    });
+  }, [welcomeItem, dictationVoiceLang, completeWelcomePlayback]);
 
   useEffect(() => {
     const el = scrollParentRef.current;
@@ -80,18 +119,38 @@ export function StudySignalChatThread({
   }, []);
 
   useEffect(() => {
-    const hasWelcome = items.some(
-      (i) => i.role === "tutor" && i.id === "welcome",
-    );
-    if (!hasWelcome || welcomeAutoSpokenRef.current) return;
-    const welcome = items.find(
-      (i): i is Extract<ChatListItem, { role: "tutor" }> =>
-        i.role === "tutor" && i.id === "welcome",
-    );
-    if (!welcome) return;
-    welcomeAutoSpokenRef.current = true;
-    speakWithBrowserTTS(tutorUtteranceText(welcome), dictationVoiceLang);
-  }, [items, dictationVoiceLang, welcomeAutoSpokenRef]);
+    if (!welcomeItem || welcomeAutoSpokenRef.current) {
+      setWelcomeStartPromptVisible(false);
+      return;
+    }
+
+    if (mobileAutoplayRestricted) {
+      setWelcomeStartPromptVisible(true);
+      setWelcomePlaying(false);
+      return;
+    }
+
+    let cancelled = false;
+    const text = tutorUtteranceText(welcomeItem);
+    void speakWithBrowserTTSAsync(text, dictationVoiceLang).then((started) => {
+      if (cancelled) return;
+      if (started) {
+        welcomeAutoSpokenRef.current = true;
+        setWelcomeStartPromptVisible(false);
+      } else {
+        setWelcomeStartPromptVisible(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    welcomeItem,
+    dictationVoiceLang,
+    welcomeAutoSpokenRef,
+    mobileAutoplayRestricted,
+  ]);
 
   return (
     <div className={`flex flex-col gap-5 ${className}`}>
@@ -107,6 +166,16 @@ export function StudySignalChatThread({
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1 rounded-2xl border border-white/[0.08] bg-zinc-900/75 px-3.5 py-2.5 text-[15px] leading-snug text-zinc-100 shadow-inner ring-1 ring-white/[0.04]">
                 <p className="whitespace-pre-wrap">{item.body}</p>
+                {item.id === "welcome" && welcomeStartPromptVisible ? (
+                  <button
+                    type="button"
+                    onClick={playWelcomeTts}
+                    disabled={welcomePlaying}
+                    className="mt-3 flex w-full items-center justify-center rounded-xl border border-violet-500/35 bg-violet-500/20 px-3 py-2.5 text-sm font-semibold text-violet-100 shadow-inner ring-1 ring-violet-500/20 transition-colors active:scale-[0.98] touch-manipulation hover:bg-violet-500/30 disabled:cursor-wait disabled:opacity-80"
+                  >
+                    {welcomePlaying ? "播放中…" : "👋 點我開始"}
+                  </button>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -116,6 +185,10 @@ export function StudySignalChatThread({
                   inlineReplayAudioRef.current?.pause();
                   inlineReplayAudioRef.current = null;
                   cancelBrowserTTS();
+                  if (item.id === "welcome" && welcomeStartPromptVisible) {
+                    playWelcomeTts();
+                    return;
+                  }
                   speakWithBrowserTTS(
                     tutorUtteranceText(item),
                     dictationVoiceLang,
@@ -189,24 +262,8 @@ export function StudySignalChatThread({
                 {item.analyzeError}
               </p>
             ) : null}
-            {item.analysis && showSummaryForItem.has(item.id) ? (
-              <div className="w-full min-w-0">
-                <AnalyzeFeedbackSummaryCard
-                  result={item.analysis}
-                  onViewFullAnalysis={
-                    onViewFullAnalysis
-                      ? () =>
-                          onViewFullAnalysis({
-                            id: item.id,
-                            result: item.analysis!,
-                          })
-                      : undefined
-                  }
-                />
-              </div>
-            ) : null}
           </div>
-        )
+        ),
       )}
     </div>
   );

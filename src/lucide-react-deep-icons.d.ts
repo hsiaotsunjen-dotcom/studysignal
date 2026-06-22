@@ -52,6 +52,18 @@ declare module "lucide-react/dist/esm/icons/x.js" {
   export default Icon;
 }
 
+declare module "lucide-react/dist/esm/icons/trash-2.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
+declare module "lucide-react/dist/esm/icons/upload.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
 declare module "lucide-react/dist/esm/icons/volume-2.js" {
   import type { FC, SVGProps } from "react";
   const Icon: FC<SVGProps<SVGSVGElement>>;
