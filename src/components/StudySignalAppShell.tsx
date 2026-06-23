@@ -27,7 +27,7 @@ const NAV_ITEMS: {
   },
   {
     id: "tools",
-    label: "Tools",
+    label: "我的",
     description: "OCR and analyzers",
     icon: WrenchIcon,
   },
