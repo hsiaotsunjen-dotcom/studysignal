@@ -27,6 +27,11 @@ import X from "lucide-react/dist/esm/icons/x.js";
 
 import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
 import {
+  StudySignalMicDebugDiagnosticsButton,
+  StudySignalMicDebugModal,
+  useStudySignalMicDebug,
+} from "@/components/StudySignalMicDebug";
+import {
   StudySignalAppShell,
   type MainTab,
 } from "@/components/StudySignalAppShell";
@@ -484,6 +489,14 @@ export function StudySignalHome({
   const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const {
+    open: micDebugOpen,
+    env: micDebugEnv,
+    micProbe: micDebugProbe,
+    openModal: openMicDebugModal,
+    closeModal: closeMicDebugModal,
+    onRecordButtonPressed,
+  } = useStudySignalMicDebug();
 
   /** Most recent completed parallel mic recording (MediaRecorder), for waveform playback. */
   const [lastVoiceRecording, setLastVoiceRecording] = useState<Blob | null>(null);
@@ -2026,8 +2039,11 @@ export function StudySignalHome({
                 </p>
               </div>
             </div>
-            <div className="hidden rounded-full border border-white/10 bg-surface-raised/80 px-3 py-1 text-xs font-medium text-zinc-400 backdrop-blur sm:block">
-              Beta
+            <div className="flex shrink-0 items-center gap-2">
+              <StudySignalMicDebugDiagnosticsButton onOpen={openMicDebugModal} />
+              <div className="hidden rounded-full border border-white/10 bg-surface-raised/80 px-3 py-1 text-xs font-medium text-zinc-400 backdrop-blur sm:block">
+                Beta
+              </div>
             </div>
           </div>
         </header>
@@ -2256,7 +2272,14 @@ export function StudySignalHome({
 
                   <button
                     type="button"
-                    onClick={toggleMicrophoneDictation}
+                    onClick={() => {
+                      if (
+                        dictationMediaRecorderRef.current?.state !== "recording"
+                      ) {
+                        onRecordButtonPressed();
+                      }
+                      toggleMicrophoneDictation();
+                    }}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-colors hover:bg-white/5 hover:text-white active:scale-95 touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl"
                     title={speechListening ? "Stop microphone" : "Microphone"}
                     aria-label={
@@ -2663,6 +2686,12 @@ export function StudySignalHome({
         </div>
       ) : null}
 
+      <StudySignalMicDebugModal
+        open={micDebugOpen}
+        env={micDebugEnv}
+        micProbe={micDebugProbe}
+        onClose={closeMicDebugModal}
+      />
     </>
   );
 }
