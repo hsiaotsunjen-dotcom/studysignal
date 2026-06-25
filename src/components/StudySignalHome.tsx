@@ -29,6 +29,8 @@ import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
 import {
   StudySignalMicDebugDiagnosticsButton,
   StudySignalMicDebugModal,
+  StudySignalSpeechVoicesDebugButton,
+  StudySignalSpeechVoicesDebugModal,
   useStudySignalMicDebug,
 } from "@/components/StudySignalMicDebug";
 import {
@@ -496,6 +498,17 @@ export function StudySignalHome({
     openModal: openMicDebugModal,
     closeModal: closeMicDebugModal,
     onRecordButtonPressed,
+    voicesOpen: speechVoicesDebugOpen,
+    voicesLoading: speechVoicesLoading,
+    speechVoicesAvailable,
+    voicesUserAgent,
+    allVoices,
+    voiceCount,
+    speechDiag,
+    speechDiagLoading,
+    openVoicesModal,
+    closeVoicesModal,
+    refreshSpeechVoices,
   } = useStudySignalMicDebug();
 
   /** Most recent completed parallel mic recording (MediaRecorder), for waveform playback. */
@@ -2040,6 +2053,7 @@ export function StudySignalHome({
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              <StudySignalSpeechVoicesDebugButton onOpen={openVoicesModal} />
               <StudySignalMicDebugDiagnosticsButton onOpen={openMicDebugModal} />
               <div className="hidden rounded-full border border-white/10 bg-surface-raised/80 px-3 py-1 text-xs font-medium text-zinc-400 backdrop-blur sm:block">
                 Beta
@@ -2691,6 +2705,18 @@ export function StudySignalHome({
         env={micDebugEnv}
         micProbe={micDebugProbe}
         onClose={closeMicDebugModal}
+      />
+      <StudySignalSpeechVoicesDebugModal
+        open={speechVoicesDebugOpen}
+        loading={speechVoicesLoading}
+        available={speechVoicesAvailable}
+        userAgent={voicesUserAgent}
+        voiceCount={voiceCount}
+        voices={allVoices}
+        speechDiag={speechDiag}
+        speechDiagLoading={speechDiagLoading}
+        onClose={closeVoicesModal}
+        onRefresh={refreshSpeechVoices}
       />
     </>
   );
