@@ -56,6 +56,14 @@ import { cancelBrowserTTS, speakWithBrowserTTS } from "@/lib/speechSynthesis";
 /** TEMPORARY: logs analyze request/response in the browser console. Set false to silence. */
 const ANALYZE_CLIENT_DEBUG = true;
 
+const MAX_SIGNAL_ANALYZE_HISTORY = 5;
+
+type SignalAnalyzeHistoryEntry = {
+  id: string;
+  analyzedAt: number;
+  feedback: AnalyzeFeedback;
+};
+
 type SchoolLevel = "elementary" | "junior" | "senior";
 
 /** Minimal Web Speech API surface used for dictation (Chrome: `webkitSpeechRecognition`). */
@@ -199,6 +207,7 @@ async function blobUrlToImagePayload(url: string): Promise<{
   mimeType: string;
   dataBase64: string;
 } | null> {
+  console.log("[blobUrlToImagePayload]", url);
   try {
     const res = await fetch(url);
     const blob = await res.blob();
@@ -482,8 +491,9 @@ export function StudySignalHome({
   } | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("talk");
-  const [latestAnalyzeFeedback, setLatestAnalyzeFeedback] =
-    useState<AnalyzeFeedback | null>(null);
+  const [analyzeFeedbackHistory, setAnalyzeFeedbackHistory] = useState<
+    SignalAnalyzeHistoryEntry[]
+  >([]);
   const [chatSendError, setChatSendError] = useState<string | null>(null);
   const chatSendInFlightRef = useRef(false);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -759,6 +769,12 @@ export function StudySignalHome({
 
       const added: UploadedImage[] = [];
       for (const file of Array.from(files)) {
+        console.log("[Gallery File]", {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          isImageFile: isImageFile(file),
+        });
         if (!isImageFile(file)) continue;
         if (added.length >= remaining) break;
         added.push({
@@ -768,7 +784,9 @@ export function StudySignalHome({
         });
       }
       if (!added.length) return prev;
-      return [...prev, ...added];
+      const next = [...prev, ...added];
+      console.log("[Attachments Count]", next.length);
+      return next;
     });
 
     event.target.value = "";
@@ -929,7 +947,7 @@ export function StudySignalHome({
       return initialChatItems();
     });
     setChatSendError(null);
-    setLatestAnalyzeFeedback(null);
+    setAnalyzeFeedbackHistory([]);
   }, [stopDictationMediaHard]);
 
   const confirmClearChatAnyway = useCallback(() => {
@@ -1289,6 +1307,7 @@ export function StudySignalHome({
           const part = await blobUrlToImagePayload(att.url);
           if (part) images.push(part);
         }
+        console.log("[Analyze Images]", images.length);
         if (images.length === 0) {
           const msg =
             "無法讀取已附加的圖片，請移除後重新上傳再試。";
@@ -1447,7 +1466,14 @@ export function StudySignalHome({
             : m
         )
       );
-      setLatestAnalyzeFeedback(parsed);
+      if (learningReviewMode) {
+        setAnalyzeFeedbackHistory((prev) =>
+          [
+            { id: turnId, analyzedAt: Date.now(), feedback: parsed },
+            ...prev,
+          ].slice(0, MAX_SIGNAL_ANALYZE_HISTORY),
+        );
+      }
       return true;
     } catch (e) {
       setChatItems((prev) =>
@@ -2436,15 +2462,27 @@ export function StudySignalHome({
                 {analyzeError}
               </p>
             ) : null}
-            {latestAnalyzeFeedback ? (
-              <AnalyzeFeedbackPanel
-                result={latestAnalyzeFeedback}
-                className="max-h-[min(70vh,560px)] min-h-0 flex-1"
-                dictationVoiceLang={selectedSpeechLang}
-              />
+            {analyzeFeedbackHistory.length > 0 ? (
+              <ul className="flex flex-col gap-4">
+                {analyzeFeedbackHistory.map((entry, index) => (
+                  <li key={entry.id}>
+                    {index === 0 ? (
+                      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-violet-400/80">
+                        最新
+                      </p>
+                    ) : null}
+                    <AnalyzeFeedbackPanel
+                      result={entry.feedback}
+                      className="max-h-[min(70vh,560px)] min-h-0"
+                      dictationVoiceLang={selectedSpeechLang}
+                    />
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="mt-6 rounded-2xl border border-white/[0.08] bg-black/20 px-4 py-6 text-center text-sm leading-relaxed text-zinc-500 ring-1 ring-white/[0.04]">
-                尚無分析結果。請到 Talk 分頁按下「分析英文（發音／語法）」後，再回到此處查看。
+                尚無學習回顧。請到 Talk 分頁在輸入框留空時按下「分析」，再回到此處查看（最多保留
+                5 筆）。
               </p>
             )}
           </div>

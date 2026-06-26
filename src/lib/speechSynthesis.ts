@@ -2,8 +2,104 @@
 
 export type DictationSpeechLang = "en-US" | "en-GB";
 
+type VoiceGenderPreference = "female" | "male";
+
 function resolveLang(lang: unknown): DictationSpeechLang {
   return typeof lang === "string" && lang === "en-GB" ? "en-GB" : "en-US";
+}
+
+function canonicalVoiceLang(lang: string): string {
+  return lang.trim().replace(/_/g, "-").toLowerCase();
+}
+
+function voiceGenderFromName(name: string): VoiceGenderPreference | "unknown" {
+  const lower = name.toLowerCase();
+  if (/\bfemale\b/.test(lower) || /\bwoman\b/.test(lower) || /\bwomen\b/.test(lower)) {
+    return "female";
+  }
+  if (/\bmale\b/.test(lower)) {
+    return "male";
+  }
+  return "unknown";
+}
+
+function voicesForLang(
+  voices: SpeechSynthesisVoice[],
+  target: DictationSpeechLang,
+): SpeechSynthesisVoice[] {
+  const want = canonicalVoiceLang(target);
+  return voices.filter((v) => canonicalVoiceLang(v.lang) === want);
+}
+
+function pickVoiceFromCandidates(
+  candidates: SpeechSynthesisVoice[],
+  genderPreference: VoiceGenderPreference,
+): SpeechSynthesisVoice | null {
+  if (candidates.length === 0) return null;
+
+  const genderMatches = candidates.filter(
+    (v) => voiceGenderFromName(v.name) === genderPreference,
+  );
+  if (genderMatches.length > 0) {
+    return genderMatches.find((v) => v.default) ?? genderMatches[0];
+  }
+
+  return candidates.find((v) => v.default) ?? candidates[0];
+}
+
+function logSelectedVoice(
+  voice: SpeechSynthesisVoice,
+  requestedLang: DictationSpeechLang,
+): void {
+  console.log("[speechSynthesis] selected voice:", {
+    requestedLang,
+    name: voice.name,
+    lang: voice.lang,
+    default: voice.default,
+  });
+}
+
+/**
+ * Pick a SpeechSynthesis voice by BCP-47 lang (not by fixed voice name).
+ * US → en-US + female preference; UK → en-GB + male preference (any en-GB if no male).
+ */
+export function selectSpeechVoiceForLang(
+  lang: DictationSpeechLang | string,
+  voices?: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | null {
+  const targetLang = resolveLang(lang);
+  const allVoices =
+    voices ??
+    (typeof window !== "undefined"
+      ? (window.speechSynthesis?.getVoices() ?? [])
+      : []);
+
+  const genderPreference: VoiceGenderPreference =
+    targetLang === "en-GB" ? "male" : "female";
+
+  const langMatches = voicesForLang(allVoices, targetLang);
+  const selected = pickVoiceFromCandidates(langMatches, genderPreference);
+
+  if (selected) {
+    logSelectedVoice(selected, targetLang);
+    return selected;
+  }
+
+  console.warn(
+    `[speechSynthesis] no voice for ${targetLang} among ${allVoices.length} voices`,
+  );
+  return null;
+}
+
+function configureUtteranceVoice(
+  utterance: SpeechSynthesisUtterance,
+  lang: DictationSpeechLang,
+): void {
+  utterance.lang = lang;
+  const voice = selectSpeechVoiceForLang(lang);
+  if (voice) {
+    utterance.voice = voice;
+  }
 }
 
 function synthesisErrorMessage(ev: SpeechSynthesisErrorEvent): string {
@@ -84,7 +180,7 @@ export function speakWithBrowserTTSAsync(
         try {
           syn.cancel();
           const u = new SpeechSynthesisUtterance(trimmed);
-          u.lang = resolved;
+          configureUtteranceVoice(u, resolved);
           u.onstart = () => finish(true);
           u.onerror = (ev) => {
             if (process.env.NODE_ENV === "development") {
@@ -134,7 +230,7 @@ export function speakWithBrowserTTSUntilEnd(
         try {
           syn.cancel();
           const u = new SpeechSynthesisUtterance(trimmed);
-          u.lang = resolved;
+          configureUtteranceVoice(u, resolved);
           u.onend = () => finish(true);
           u.onerror = (ev) => {
             if (process.env.NODE_ENV === "development") {
@@ -184,7 +280,7 @@ export function speakWithBrowserTTS(
     try {
       syn.cancel();
       const u = new SpeechSynthesisUtterance(trimmed);
-      u.lang = resolved;
+      configureUtteranceVoice(u, resolved);
       u.onerror = (ev) => {
         if (process.env.NODE_ENV === "development") {
           console.warn(synthesisErrorMessage(ev));
