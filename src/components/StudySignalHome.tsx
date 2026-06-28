@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
@@ -33,6 +34,18 @@ import {
   StudySignalSpeechVoicesDebugModal,
   useStudySignalMicDebug,
 } from "@/components/StudySignalMicDebug";
+import {
+  SECURE_CONTEXT_MIC_DIAG_ENABLED,
+  triggerSecureContextMicTalkProbe,
+} from "@/components/StudySignalSecureContextMicDiag";
+
+const StudySignalSecureContextMicDiagLoader = dynamic(
+  () =>
+    import("@/components/StudySignalSecureContextMicDiag").then(
+      (mod) => mod.StudySignalSecureContextMicDiagLoader,
+    ),
+  { ssr: false },
+);
 import {
   StudySignalAppShell,
   type MainTab,
@@ -454,6 +467,8 @@ export function StudySignalHome({
   const clearSaveDialogTitleId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const composerIsComposingRef = useRef(false);
+  const composerModeRef = useRef<"chat" | "translate">("chat");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [schoolLevel, setSchoolLevel] = useState<SchoolLevel>("junior");
@@ -589,6 +604,7 @@ export function StudySignalHome({
   }, []);
 
   useLayoutEffect(() => {
+    if (composerIsComposingRef.current) return;
     syncMessageTextareaHeight();
   }, [message, syncMessageTextareaHeight]);
 
@@ -1126,10 +1142,20 @@ export function StudySignalHome({
     }
   }, [chatItems, selectedSpeechLang, syncMessageTextareaHeight]);
 
-  const sendChineseEnglishHelp = useCallback(async () => {
-    const raw =
-      messageTextareaRef.current?.value ?? messageRef.current;
-    const text = raw.trim();
+  const sendChineseEnglishHelp = useCallback(async (chineseText: string) => {
+    if (typeof chineseText !== "string") {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          "[sendChineseEnglishHelp] skipped: expected string, got",
+          typeof chineseText,
+        );
+      }
+      return;
+    }
+    const text = chineseText.trim();
+    // Yield before setState/fetch so work never runs in the click event turn
+    // (avoids React 19 dev "onUnhandledRejection" / [object Event] overlay).
+    await Promise.resolve();
     setChatSendError(null);
     if (!text) {
       setChatSendError(
@@ -1146,40 +1172,17 @@ export function StudySignalHome({
     if (chatSendInFlightRef.current) return;
     chatSendInFlightRef.current = true;
 
-    const studentId = newAttachmentId();
-    const tutorId = newAttachmentId();
-    const displayBody = `（中文語意）\n${text}`;
-    const modelUserText =
-      "The student wrote the following in Chinese—it describes what they want to express in English. " +
-      "Reply in English **only**. Give 1–3 natural, conversational English options (short phrases or sentences) they could say. " +
-      "Label the options clearly (e.g. Option 1 / Option 2). Do not use Chinese in your reply except optional brief glosses in parentheses if helpful. " +
-      "Do not ask them to re-type the Chinese.\n\nChinese:\n" +
-      text;
-
-    const requestMessages = buildTutorChatOpenAIMessages(
-      chatItems,
-      modelUserText,
-    );
-
-    setMessage("");
-    messageRef.current = "";
-    queueMicrotask(() => {
-      syncMessageTextareaHeight();
-    });
-
-    setChatItems((prev) => [
-      ...prev,
+    const requestMessages = [
       {
-        id: studentId,
-        role: "student",
-        body: displayBody,
+        role: "system" as const,
+        content:
+          "You translate Chinese into natural conversational English for a student learning English. Return exactly ONE English sentence they could say aloud in a tutoring conversation. Output only the English text—no labels, numbered options, Chinese, markdown, or explanation.",
       },
       {
-        id: tutorId,
-        role: "tutor",
-        body: TUTOR_CHAT_PENDING_BODY,
+        role: "user" as const,
+        content: text,
       },
-    ]);
+    ];
 
     try {
       const res = await fetch("/api/tutor-chat", {
@@ -1196,12 +1199,7 @@ export function StudySignalHome({
           ? (data as { error: string }).error
           : null;
       if (!res.ok) {
-        const msg = errMsg ?? `對話服務暫時不可用（${res.status}）。`;
-        setChatItems((prev) =>
-          prev.map((m) =>
-            m.id === tutorId && m.role === "tutor" ? { ...m, body: msg } : m,
-          ),
-        );
+        setChatSendError(errMsg ?? `翻譯服務暫時不可用（${res.status}）。`);
         return;
       }
       const reply =
@@ -1212,39 +1210,50 @@ export function StudySignalHome({
           ? (data as { reply: string }).reply.trim()
           : "";
       if (!reply) {
-        setChatItems((prev) =>
-          prev.map((m) =>
-            m.id === tutorId && m.role === "tutor"
-              ? { ...m, body: "（沒有收到回覆，請再試一次。）" }
-              : m,
-          ),
-        );
+        setChatSendError("沒有收到翻譯結果，請再試一次。");
         return;
       }
-      setChatItems((prev) =>
-        prev.map((m) =>
-          m.id === tutorId && m.role === "tutor" ? { ...m, body: reply } : m,
-        ),
-      );
-      speakWithBrowserTTS(reply, selectedSpeechLang);
+      setMessage(reply);
+      messageRef.current = reply;
+      composerModeRef.current = "chat";
+      queueMicrotask(() => {
+        syncMessageTextareaHeight();
+      });
     } catch (e) {
-      setChatItems((prev) =>
-        prev.map((m) =>
-          m.id === tutorId && m.role === "tutor"
-            ? {
-                ...m,
-                body:
-                  e instanceof Error
-                    ? e.message
-                    : "網路連線異常，請稍後再試。",
-              }
-            : m,
-        ),
+      setChatSendError(
+        e instanceof Error ? e.message : "網路連線異常，請稍後再試。",
       );
     } finally {
       chatSendInFlightRef.current = false;
     }
-  }, [chatItems, selectedSpeechLang, syncMessageTextareaHeight]);
+  }, [syncMessageTextareaHeight]);
+
+  const readComposerText = useCallback((): string => {
+    const fromDom = messageTextareaRef.current?.value;
+    if (typeof fromDom === "string") {
+      messageRef.current = fromDom;
+      return fromDom;
+    }
+    return messageRef.current;
+  }, []);
+
+  const submitTranslateFromComposer = useCallback(
+    (textOverride?: string) => {
+      composerModeRef.current = "translate";
+      const chineseText = (textOverride ?? readComposerText()).trim();
+      queueMicrotask(() => {
+        void sendChineseEnglishHelp(chineseText).catch((err: unknown) => {
+          if (process.env.NODE_ENV === "development") {
+            console.warn(
+              "[sendChineseEnglishHelp]",
+              err instanceof Error ? err.message : err,
+            );
+          }
+        });
+      });
+    },
+    [readComposerText, sendChineseEnglishHelp],
+  );
 
   const runAnalyze = useCallback(async (): Promise<boolean> => {
     setAnalyzeError(null);
@@ -2189,10 +2198,40 @@ export function StudySignalHome({
                       ref={messageTextareaRef}
                       rows={MESSAGE_TEXTAREA_MIN_LINES}
                       value={message}
+                      lang="zh-Hant"
+                      onCompositionStart={() => {
+                        composerIsComposingRef.current = true;
+                      }}
+                      onCompositionEnd={(e) => {
+                        composerIsComposingRef.current = false;
+                        const next = e.currentTarget.value;
+                        setMessage(next);
+                        messageRef.current = next;
+                        syncMessageTextareaHeight();
+                      }}
                       onChange={(e) => {
                         pronunciationFromSpeechRef.current = false;
                         setChatSendError(null);
-                        setMessage(e.target.value);
+                        const next = e.target.value;
+                        setMessage(next);
+                        messageRef.current = next;
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key !== "Enter" ||
+                          e.shiftKey ||
+                          e.nativeEvent.isComposing ||
+                          composerIsComposingRef.current
+                        ) {
+                          return;
+                        }
+                        if (composerModeRef.current !== "translate") {
+                          return;
+                        }
+                        e.preventDefault();
+                        const raw = e.currentTarget.value.trim();
+                        if (!raw || attachmentsRef.current.length > 0) return;
+                        submitTranslateFromComposer(raw);
                       }}
                       placeholder="英文與家教對話，或輸入中文語意再按「幫我找英文」…"
                       className="max-h-[min(50vh,28rem)] min-h-0 w-full resize-none overflow-y-auto border-0 bg-black/25 px-3 pb-8 pt-3 text-[15px] leading-snug text-zinc-100 placeholder:text-zinc-500 outline-none transition-[box-shadow,height] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500/25 sm:px-4"
@@ -2317,6 +2356,9 @@ export function StudySignalHome({
                         dictationMediaRecorderRef.current?.state !== "recording"
                       ) {
                         onRecordButtonPressed();
+                        if (SECURE_CONTEXT_MIC_DIAG_ENABLED) {
+                          triggerSecureContextMicTalkProbe();
+                        }
                       }
                       toggleMicrophoneDictation();
                     }}
@@ -2364,11 +2406,9 @@ export function StudySignalHome({
                   >
                     <button
                       type="button"
-                      disabled={!message.trim() || attachments.length > 0}
+                      disabled={attachments.length > 0}
                       onClick={() => {
-                        messageRef.current =
-                          messageTextareaRef.current?.value ?? message;
-                        void sendChineseEnglishHelp();
+                        submitTranslateFromComposer();
                       }}
                       className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl border border-teal-500/40 bg-teal-500/15 px-3 text-sm font-semibold text-teal-100 transition-colors hover:bg-teal-500/25 disabled:cursor-not-allowed disabled:opacity-40 touch-manipulation active:scale-[0.99] sm:px-4"
                     >
@@ -2378,8 +2418,8 @@ export function StudySignalHome({
                       type="button"
                       disabled={!message.trim() && attachments.length === 0}
                       onClick={() => {
-                        messageRef.current =
-                          messageTextareaRef.current?.value ?? message;
+                        composerModeRef.current = "chat";
+                        readComposerText();
                         void sendTutorMessage();
                       }}
                       className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl bg-white px-3 text-sm font-semibold text-zinc-950 shadow-lg ring-1 ring-white/25 transition-opacity disabled:cursor-not-allowed disabled:opacity-40 touch-manipulation active:scale-[0.99] sm:px-4 sm:shadow-xl"
@@ -2756,6 +2796,9 @@ export function StudySignalHome({
         onClose={closeVoicesModal}
         onRefresh={refreshSpeechVoices}
       />
+      {SECURE_CONTEXT_MIC_DIAG_ENABLED ? (
+        <StudySignalSecureContextMicDiagLoader />
+      ) : null}
     </>
   );
 }

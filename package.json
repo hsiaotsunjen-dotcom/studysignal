@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "dev:https": "node scripts/dev-https.mjs",
+    "setup:dev-https": "node scripts/setup-dev-https.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
