@@ -8,6 +8,7 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 body {
