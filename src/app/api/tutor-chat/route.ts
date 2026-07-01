@@ -95,7 +95,44 @@ function totalPayloadEstimate(messages: ApiMessage[]): number {
   return n;
 }
 
+async function logTutorChatIncomingImageDebug(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  console.log("[image upload debug] api /api/tutor-chat transport", {
+    contentType,
+    multipart: contentType.includes("multipart/form-data"),
+    note:
+      "StudySignal sends vision images in JSON messages[].content image_url, NOT FormData",
+  });
+
+  if (contentType.includes("multipart/form-data")) {
+    try {
+      const formData = await request.clone().formData();
+      const keys = [...formData.keys()];
+      const image =
+        formData.get("image") ?? formData.get("file") ?? formData.get("images");
+      console.log("[image upload debug] api /api/tutor-chat formData", {
+        keys,
+        "image exists": image != null,
+        "image.name": image instanceof File ? image.name : null,
+        "image.type": image instanceof Blob ? image.type : null,
+        "image.size": image instanceof Blob ? image.size : null,
+      });
+    } catch (e) {
+      console.log("[image upload debug] api /api/tutor-chat formData error", {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+    return;
+  }
+
+  console.log("[image upload debug] api /api/tutor-chat formData skipped", {
+    reason: "JSON transport — check vision images in messages log next",
+  });
+}
+
 export async function POST(request: Request) {
+  await logTutorChatIncomingImageDebug(request);
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -135,6 +172,24 @@ export async function POST(request: Request) {
   const hasVision =
     typeof last.content !== "string" &&
     last.content.some((p) => p.type === "image_url");
+
+  if (hasVision && typeof last.content !== "string") {
+    const imageParts = last.content.filter((p) => p.type === "image_url");
+    console.log("[image upload debug] api /api/tutor-chat vision images in messages", {
+      imagePartCount: imageParts.length,
+      images: imageParts.map((p, i) => {
+        const url =
+          p.type === "image_url" ? p.image_url.url : "";
+        const mimeMatch = /^data:(image\/[^;]+);base64,/.exec(url);
+        return {
+          index: i,
+          "image MIME type": mimeMatch?.[1] ?? "unknown",
+          "image.size (base64 chars)": url.length,
+          dataUrlPrefix: url.slice(0, 48),
+        };
+      }),
+    });
+  }
 
   const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",

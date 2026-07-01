@@ -14,6 +14,41 @@ function analyzeLog(label: string, payload?: unknown) {
   }
 }
 
+async function logAnalyzeIncomingImageDebug(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  console.log("[image upload debug] api /api/analyze transport", {
+    contentType,
+    multipart: contentType.includes("multipart/form-data"),
+    note:
+      "StudySignal sends images as JSON body.images[] (base64), NOT FormData image field",
+  });
+
+  if (contentType.includes("multipart/form-data")) {
+    try {
+      const formData = await request.clone().formData();
+      const keys = [...formData.keys()];
+      const image =
+        formData.get("image") ?? formData.get("file") ?? formData.get("images");
+      console.log("[image upload debug] api /api/analyze formData", {
+        keys,
+        "image exists": image != null,
+        "image.name": image instanceof File ? image.name : null,
+        "image.type": image instanceof Blob ? image.type : null,
+        "image.size": image instanceof Blob ? image.size : null,
+      });
+    } catch (e) {
+      console.log("[image upload debug] api /api/analyze formData error", {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+    return;
+  }
+
+  console.log("[image upload debug] api /api/analyze formData skipped", {
+    reason: "JSON transport — check JSON images received log next",
+  });
+}
+
 const TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT = `You are an expert, warm English tutor for Taiwanese junior-high / elementary learners. The student submitted text that came from **actual speech audio** (dictation). Infer intended English when ASR is imperfect.
 
 Return ONLY one JSON object (no markdown fences, no prose outside JSON). All student-facing explanation strings MUST be Traditional Chinese (繁體中文), except:
@@ -121,6 +156,8 @@ function parseRequestBody(body: unknown): {
 }
 
 export async function POST(request: Request) {
+  await logAnalyzeIncomingImageDebug(request);
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -146,6 +183,16 @@ export async function POST(request: Request) {
 
   const { text, includePronunciation, images } = parsedBody;
   const hasImages = images.length > 0;
+
+  console.log("[image upload debug] api /api/analyze JSON images received", {
+    imageCount: images.length,
+    images: images.map((im, i) => ({
+      index: i,
+      "image MIME type": im.mimeType,
+      dataBase64Length: im.dataBase64.length,
+      "image.size (base64 chars)": im.dataBase64.length,
+    })),
+  });
 
   analyzeLog("1_request_body_summary", {
     textLength: text.length,

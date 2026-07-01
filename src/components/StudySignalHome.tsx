@@ -38,14 +38,6 @@ import {
   SECURE_CONTEXT_MIC_DIAG_ENABLED,
   triggerSecureContextMicTalkProbe,
 } from "@/components/StudySignalSecureContextMicDiag";
-
-const StudySignalSecureContextMicDiagLoader = dynamic(
-  () =>
-    import("@/components/StudySignalSecureContextMicDiag").then(
-      (mod) => mod.StudySignalSecureContextMicDiagLoader,
-    ),
-  { ssr: false },
-);
 import {
   StudySignalAppShell,
   type MainTab,
@@ -57,6 +49,29 @@ import {
   type AnalyzeFeedback,
 } from "@/lib/analyzeFeedback";
 import {
+  imageUploadDebugLog,
+  logAndroidAttachmentBuilt,
+  logAndroidAttachmentsSnapshot,
+  logAndroidComposerImgEvent,
+  logAndroidCreateObjectURLAttempt,
+  logAndroidGalleryFileSkipped,
+  logAndroidGalleryPickInput,
+  logAndroidIsImageFileCheck,
+  logEncodeAttachmentBranch,
+  logEncodeAttachmentResult,
+  logEncodeBlobArrayBufferBefore,
+  logEncodeBlobArrayBufferFailure,
+  logEncodeBlobArrayBufferSuccess,
+  logEncodeErrorReturn,
+  logEncodeFlowEnd,
+  logEncodeFlowStart,
+  logImageFileDebug,
+  logSendTutorMessageCaughtError,
+  logSendTutorMessageTrace,
+  probeAndroidThumbnailUrl,
+  logPreAnalyzeApiPayload,
+} from "@/lib/imageUploadDebug";
+import {
   buildLearningReviewAnalyzeText,
   LEARNING_REVIEW_ANALYZE_PREAMBLE,
 } from "@/lib/learningReviewAnalyzeText";
@@ -65,6 +80,14 @@ import {
   TUTOR_CHAT_PENDING_BODY,
 } from "@/lib/tutorChatOpenAiMessages";
 import { cancelBrowserTTS, speakWithBrowserTTS } from "@/lib/speechSynthesis";
+
+const StudySignalSecureContextMicDiagLoader = dynamic(
+  () =>
+    import("@/components/StudySignalSecureContextMicDiag").then(
+      (mod) => mod.StudySignalSecureContextMicDiagLoader,
+    ),
+  { ssr: false },
+);
 
 /** TEMPORARY: logs analyze request/response in the browser console. Set false to silence. */
 const ANALYZE_CLIENT_DEBUG = true;
@@ -75,6 +98,26 @@ type SignalAnalyzeHistoryEntry = {
   id: string;
   analyzedAt: number;
   feedback: AnalyzeFeedback;
+};
+
+/** Step-by-step logs for homework image → analyze → Signals → tutor flow. */
+const HOMEWORK_PIPELINE_DEBUG = true;
+
+function homeworkPipelineLog(step: string, payload?: unknown) {
+  if (!HOMEWORK_PIPELINE_DEBUG) return;
+  if (payload !== undefined) {
+    console.log(`[homework pipeline] ${step}`, payload);
+  } else {
+    console.log(`[homework pipeline] ${step}`);
+  }
+}
+
+type AnalyzeImagePayload = { mimeType: string; dataBase64: string };
+
+type AnalyzeApiPayload = {
+  text: string;
+  includePronunciation: boolean;
+  images?: AnalyzeImagePayload[];
 };
 
 type SchoolLevel = "elementary" | "junior" | "senior";
@@ -97,11 +140,19 @@ type BrowserSpeechRecognizerCtor = new () => BrowserSpeechRecognizer;
 
 /** Web Speech API ctor (Chrome: webkitSpeechRecognition). */
 function getBrowserSpeechRecognitionCtor(): BrowserSpeechRecognizerCtor | null {
-  if (typeof window === "undefined") return null;
-  const w = window as unknown as {
+  // Do not use `typeof window === "undefined"` here: Next's server bundle can
+  // treat that as always-true at compile time, fold this helper to `() => null`,
+  // DCE the rest of dictation, and break the client chunk graph.
+  if (typeof globalThis === "undefined") return null;
+  const g = globalThis as unknown as {
     SpeechRecognition?: BrowserSpeechRecognizerCtor;
     webkitSpeechRecognition?: BrowserSpeechRecognizerCtor;
+    window?: {
+      SpeechRecognition?: BrowserSpeechRecognizerCtor;
+      webkitSpeechRecognition?: BrowserSpeechRecognizerCtor;
+    };
   };
+  const w = g.window ?? g;
   return w.webkitSpeechRecognition ?? w.SpeechRecognition ?? null;
 }
 
@@ -202,7 +253,34 @@ type UploadedImage = {
   id: string;
   url: string;
   name: string;
+  /** Keep original Blob/File — Android Chrome often cannot re-read via fetch(blob:). */
+  sourceBlob: Blob;
+  /** Populated once from preview data URL; reused for analyze + tutor (no second File read). */
+  analyzePayload?: { mimeType: string; dataBase64: string };
+  tutorPayload?: { mimeType: string; dataBase64: string };
 };
+
+function parseDataUrlPayload(
+  dataUrl: string,
+): { mimeType: string; dataBase64: string } | null {
+  const comma = dataUrl.indexOf(",");
+  if (comma < 0 || !dataUrl.startsWith("data:image")) return null;
+  const header = dataUrl.slice(0, comma);
+  const dataBase64 = dataUrl.slice(comma + 1);
+  const mimeMatch = /^data:([^;,]+)/.exec(header);
+  const mimeType =
+    mimeMatch?.[1]?.startsWith("image/") ? mimeMatch[1]! : "image/jpeg";
+  if (!dataBase64) return null;
+  return { mimeType, dataBase64 };
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
 
 function isImageFile(file: File) {
   return file.type.startsWith("image/");
@@ -215,27 +293,277 @@ function newAttachmentId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-/** Read object-URL image for `/api/analyze` vision payload. */
+/** Encode a Blob/File to analyze API base64 payload (no fetch(blob:) round-trip). */
+async function blobToImagePayload(
+  blob: Blob,
+  fileName?: string,
+): Promise<{ mimeType: string; dataBase64: string } | null> {
+  imageUploadDebugLog("blobToImagePayload", {
+    "file.name": fileName ?? null,
+    "file.type": blob.type,
+    "file.size": blob.size,
+    "file instanceof File": blob instanceof File,
+    "image MIME type":
+      blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg",
+    readPath: "direct Blob.arrayBuffer (not fetch blob URL)",
+  });
+  try {
+    const mimeType =
+      blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+    logEncodeBlobArrayBufferBefore("blobToImagePayload", blob, fileName);
+    const ab = await blob.arrayBuffer();
+    logEncodeBlobArrayBufferSuccess("blobToImagePayload", ab.byteLength);
+    const dataBase64 = bytesToBase64(new Uint8Array(ab));
+    imageUploadDebugLog("blobToImagePayload ok", {
+      mimeType,
+      dataBase64Length: dataBase64.length,
+    });
+    return { mimeType, dataBase64 };
+  } catch (e) {
+    logSendTutorMessageCaughtError(
+      "blobToImagePayload: await blob.arrayBuffer() (approx line 287)",
+      e,
+    );
+    logEncodeBlobArrayBufferFailure("blobToImagePayload", e);
+    imageUploadDebugLog("blobToImagePayload failed", {
+      error: e instanceof Error ? e.message : String(e),
+      "file.name": fileName ?? null,
+    });
+    return null;
+  }
+}
+
+/** Read object-URL image for `/api/analyze` vision payload (fallback when no sourceBlob). */
 async function blobUrlToImagePayload(url: string): Promise<{
   mimeType: string;
   dataBase64: string;
 } | null> {
-  console.log("[blobUrlToImagePayload]", url);
+  if (url.startsWith("data:image")) {
+    const parsed = parseDataUrlPayload(url);
+    if (parsed) return parsed;
+  }
+  imageUploadDebugLog("blobUrlToImagePayload start", { blobUrlPrefix: url.slice(0, 48) });
   try {
     const res = await fetch(url);
+    imageUploadDebugLog("blobUrlToImagePayload fetch", {
+      ok: res.ok,
+      status: res.status,
+      contentType: res.headers.get("content-type"),
+    });
     const blob = await res.blob();
     const mimeType =
       blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+    logEncodeBlobArrayBufferBefore("blobUrlToImagePayload fetched blob", blob);
+    imageUploadDebugLog("blobUrlToImagePayload blob", {
+      "file instanceof File": false,
+      "image MIME type": mimeType,
+      "file.type": blob.type,
+      "file.size": blob.size,
+      "file.name": null,
+    });
     const ab = await blob.arrayBuffer();
+    logEncodeBlobArrayBufferSuccess("blobUrlToImagePayload", ab.byteLength);
     const bytes = new Uint8Array(ab);
     let binary = "";
     for (let i = 0; i < bytes.byteLength; i++) {
       binary += String.fromCharCode(bytes[i]!);
     }
-    return { mimeType, dataBase64: btoa(binary) };
-  } catch {
+    const dataBase64 = btoa(binary);
+    imageUploadDebugLog("blobUrlToImagePayload ok", {
+      mimeType,
+      dataBase64Length: dataBase64.length,
+    });
+    return { mimeType, dataBase64 };
+  } catch (e) {
+    logEncodeBlobArrayBufferFailure("blobUrlToImagePayload", e);
+    imageUploadDebugLog("blobUrlToImagePayload failed", {
+      error: e instanceof Error ? e.message : String(e),
+      blobUrlPrefix: url.slice(0, 48),
+    });
     return null;
   }
+}
+
+async function attachmentToImagePayload(
+  att: UploadedImage,
+  caller: string,
+): Promise<{ mimeType: string; dataBase64: string } | null> {
+  if (att.analyzePayload) {
+    logEncodeAttachmentResult(caller, att.name, true, {
+      path: "analyzePayload cache",
+      dataBase64Length: att.analyzePayload.dataBase64.length,
+    });
+    return att.analyzePayload;
+  }
+
+  if (att.url.startsWith("data:image")) {
+    logEncodeAttachmentBranch(
+      caller,
+      att,
+      "parseDataUrlPayload",
+      "att.url is data:image (reuse preview read, no File I/O)",
+    );
+    const parsed = parseDataUrlPayload(att.url);
+    if (parsed) {
+      att.analyzePayload = parsed;
+      logEncodeAttachmentResult(caller, att.name, true, {
+        path: "parseDataUrlPayload",
+        dataBase64Length: parsed.dataBase64.length,
+      });
+      return parsed;
+    }
+  }
+
+  if (att.sourceBlob.size > 0) {
+    logEncodeAttachmentBranch(
+      caller,
+      att,
+      "blobToImagePayload",
+      "att.sourceBlob.size > 0 (no data URL cache)",
+    );
+    const result = await blobToImagePayload(att.sourceBlob, att.name);
+    if (result) att.analyzePayload = result;
+    logEncodeAttachmentResult(caller, att.name, result != null, {
+      path: "blobToImagePayload",
+      dataBase64Length: result?.dataBase64.length ?? null,
+    });
+    return result;
+  }
+  logEncodeAttachmentBranch(
+    caller,
+    att,
+    "blobUrlToImagePayload",
+    "att.sourceBlob.size === 0 (fallback fetch attachment.url)",
+  );
+  imageUploadDebugLog("attachmentToImagePayload fallback blob URL", {
+    attachmentName: att.name,
+    blobUrlPrefix: att.url.slice(0, 48),
+    urlIsDataImage: att.url.startsWith("data:image"),
+  });
+  const result = await blobUrlToImagePayload(att.url);
+  if (result) att.analyzePayload = result;
+  logEncodeAttachmentResult(caller, att.name, result != null, {
+    path: "blobUrlToImagePayload",
+    dataBase64Length: result?.dataBase64.length ?? null,
+  });
+  return result;
+}
+
+async function loadAnalyzeImagesFromAttachments(
+  attachments: UploadedImage[],
+  caller: string,
+): Promise<AnalyzeImagePayload[]> {
+  logSendTutorMessageTrace("loadAnalyzeImagesFromAttachments entry", { caller });
+  try {
+    logEncodeFlowStart(caller, attachments);
+    logAndroidAttachmentsSnapshot(
+      "loadAnalyzeImagesFromAttachments start",
+      attachments,
+    );
+    homeworkPipelineLog("ocr_vision_prepare", { attachmentCount: attachments.length });
+    const images: AnalyzeImagePayload[] = [];
+    for (const att of attachments) {
+      imageUploadDebugLog("loadAnalyzeImagesFromAttachments item", {
+        attachmentName: att.name,
+        urlPrefix: att.url.slice(0, 48),
+        urlIsDataImage: att.url.startsWith("data:image"),
+        sourceBlobExists: att.sourceBlob != null,
+        sourceBlobSize: att.sourceBlob.size,
+        sourceBlobType: att.sourceBlob.type,
+      });
+      const part = await attachmentToImagePayload(att, caller);
+      if (part) images.push(part);
+    }
+    logEncodeFlowEnd(caller, attachments.length, images.length);
+    homeworkPipelineLog("ocr_vision_ready", {
+      encodedImageCount: images.length,
+      perImage: images.map((im, i) => ({
+        index: i,
+        mimeType: im.mimeType,
+        base64Length: im.dataBase64.length,
+      })),
+    });
+    logSendTutorMessageTrace("loadAnalyzeImagesFromAttachments exit", {
+      caller,
+      imagesLength: images.length,
+    });
+    return images;
+  } catch (error) {
+    logSendTutorMessageCaughtError(
+      "loadAnalyzeImagesFromAttachments (uncaught throw)",
+      error,
+    );
+    throw error;
+  }
+}
+
+async function postAnalyzeApi(
+  payload: AnalyzeApiPayload,
+): Promise<
+  { ok: true; feedback: AnalyzeFeedback } | { ok: false; error: string }
+> {
+  homeworkPipelineLog("homework_analysis_request", {
+    textLength: payload.text.length,
+    imageCount: payload.images?.length ?? 0,
+    includePronunciation: payload.includePronunciation,
+  });
+
+  logPreAnalyzeApiPayload(payload);
+
+  const res = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data: unknown = await res.json().catch(() => ({}));
+  const errMsg =
+    typeof data === "object" &&
+    data !== null &&
+    "error" in data &&
+    typeof (data as { error: unknown }).error === "string"
+      ? (data as { error: string }).error
+      : null;
+
+  if (!res.ok) {
+    const msg = errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`;
+    homeworkPipelineLog("homework_analysis_response_error", {
+      status: res.status,
+      msg,
+    });
+    return { ok: false, error: msg };
+  }
+
+  homeworkPipelineLog("homework_analysis_response_ok", {
+    status: res.status,
+    hasImageInsights:
+      typeof data === "object" &&
+      data !== null &&
+      "imageInsights" in data,
+  });
+
+  const parseDbg = HOMEWORK_PIPELINE_DEBUG
+    ? (label: string, detail?: unknown) =>
+        homeworkPipelineLog(`parse:${label}`, detail)
+    : undefined;
+
+  const parsed = parseAnalyzeApiData(
+    data,
+    payload.includePronunciation,
+    parseDbg,
+  );
+
+  if (!parsed) {
+    homeworkPipelineLog("homework_analysis_parse_failed");
+    return { ok: false, error: "分析結果不完整，請再試一次。" };
+  }
+
+  homeworkPipelineLog("homework_analysis_parsed", {
+    hasImageInsights: Boolean(parsed.imageInsights),
+    grammarScore: parsed.grammar.score,
+    vocabularyScore: parsed.vocabulary.score,
+  });
+
+  return { ok: true, feedback: parsed };
 }
 
 const TUTOR_VISION_MAX_WIDTH_PX = 1200;
@@ -260,97 +588,166 @@ async function loadImageElementFromObjectUrl(url: string): Promise<HTMLImageElem
   return img;
 }
 
+async function tutorJpegPayloadFromImageSource(
+  source: HTMLImageElement,
+): Promise<{ mimeType: string; dataBase64: string } | null> {
+  const sw = source.naturalWidth || source.width;
+  const sh = source.naturalHeight || source.height;
+  if (!sw || !sh) {
+    return null;
+  }
+
+  const scale =
+    sw > TUTOR_VISION_MAX_WIDTH_PX ? TUTOR_VISION_MAX_WIDTH_PX / sw : 1;
+  const dw = Math.max(1, Math.round(sw * scale));
+  const dh = Math.max(1, Math.round(sh * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = dw;
+  canvas.height = dh;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return null;
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(source, 0, 0, dw, dh);
+
+  const jpegBlob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(
+      (b) => resolve(b),
+      "image/jpeg",
+      TUTOR_VISION_JPEG_QUALITY,
+    );
+  });
+
+  if (!jpegBlob) {
+    try {
+      const dataUrl = canvas.toDataURL("image/jpeg", TUTOR_VISION_JPEG_QUALITY);
+      const comma = dataUrl.indexOf(",");
+      if (comma < 0) return null;
+      return { mimeType: "image/jpeg", dataBase64: dataUrl.slice(comma + 1) };
+    } catch {
+      return null;
+    }
+  }
+
+  const ab = await jpegBlob.arrayBuffer();
+  return { mimeType: "image/jpeg", dataBase64: bytesToBase64(new Uint8Array(ab)) };
+}
+
+/** Tutor vision encode from preview URL — never re-reads the original Android File. */
+async function tutorChatImagePayloadFromUrl(
+  imageUrl: string,
+): Promise<{ mimeType: string; dataBase64: string } | null> {
+  try {
+    const source = await loadImageElementFromObjectUrl(imageUrl);
+    return await tutorJpegPayloadFromImageSource(source);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Downscale + JPEG-compress before base64 for `/api/tutor-chat` only (payload guard unchanged).
- * Analyze still uses `blobUrlToImagePayload` (full resolution).
+ * Fallback when only an in-memory Blob is available (e.g. camera).
  */
-async function blobUrlToTutorChatImagePayload(url: string): Promise<{
+async function blobToTutorChatImagePayload(blob: Blob): Promise<{
   mimeType: string;
   dataBase64: string;
 } | null> {
   try {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    if (!blob.type.startsWith("image/")) return null;
-
-    let source: CanvasImageSource;
-    let releaseBitmap: (() => void) | undefined;
-
-    if (typeof createImageBitmap === "function") {
-      try {
-        const bitmap = await createImageBitmap(blob);
-        source = bitmap;
-        releaseBitmap = () => bitmap.close();
-      } catch {
-        source = await loadImageElementFromObjectUrl(url);
-      }
-    } else {
-      source = await loadImageElementFromObjectUrl(url);
+    if (blob.size === 0) return null;
+    const url = URL.createObjectURL(blob);
+    try {
+      return await tutorChatImagePayloadFromUrl(url);
+    } finally {
+      URL.revokeObjectURL(url);
     }
-
-    const sw =
-      source instanceof HTMLImageElement
-        ? source.naturalWidth || source.width
-        : source.width;
-    const sh =
-      source instanceof HTMLImageElement
-        ? source.naturalHeight || source.height
-        : source.height;
-    if (!sw || !sh) {
-      releaseBitmap?.();
-      return null;
-    }
-
-    const scale =
-      sw > TUTOR_VISION_MAX_WIDTH_PX
-        ? TUTOR_VISION_MAX_WIDTH_PX / sw
-        : 1;
-    const dw = Math.max(1, Math.round(sw * scale));
-    const dh = Math.max(1, Math.round(sh * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = dw;
-    canvas.height = dh;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      releaseBitmap?.();
-      return null;
-    }
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(source, 0, 0, dw, dh);
-    releaseBitmap?.();
-
-    const jpegBlob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(
-        (b) => resolve(b),
-        "image/jpeg",
-        TUTOR_VISION_JPEG_QUALITY,
-      );
-    });
-
-    if (!jpegBlob) {
-      let dataUrl: string;
-      try {
-        dataUrl = canvas.toDataURL("image/jpeg", TUTOR_VISION_JPEG_QUALITY);
-      } catch {
-        return null;
-      }
-      const comma = dataUrl.indexOf(",");
-      if (comma < 0) return null;
-      return { mimeType: "image/jpeg", dataBase64: dataUrl.slice(comma + 1) };
-    }
-
-    const ab = await jpegBlob.arrayBuffer();
-    const bytes = new Uint8Array(ab);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]!);
-    }
-    return { mimeType: "image/jpeg", dataBase64: btoa(binary) };
   } catch {
     return null;
   }
+}
+
+async function attachmentToTutorChatImagePayload(
+  att: UploadedImage,
+  caller: string,
+): Promise<{ mimeType: string; dataBase64: string } | null> {
+  if (att.tutorPayload) {
+    logEncodeAttachmentResult(caller, att.name, true, {
+      path: "tutorPayload cache",
+      dataBase64Length: att.tutorPayload.dataBase64.length,
+    });
+    return att.tutorPayload;
+  }
+
+  if (att.url.startsWith("data:image") || att.url.startsWith("blob:")) {
+    logEncodeAttachmentBranch(
+      caller,
+      att,
+      "tutorChatImagePayloadFromUrl",
+      "reuse att.url for tutor vision (no sourceBlob read)",
+    );
+    const result = await tutorChatImagePayloadFromUrl(att.url);
+    if (result) att.tutorPayload = result;
+    logEncodeAttachmentResult(caller, att.name, result != null, {
+      path: "tutorChatImagePayloadFromUrl",
+      dataBase64Length: result?.dataBase64.length ?? null,
+    });
+    return result;
+  }
+
+  if (att.analyzePayload) {
+    const dataUrl = `data:${att.analyzePayload.mimeType};base64,${att.analyzePayload.dataBase64}`;
+    logEncodeAttachmentBranch(
+      caller,
+      att,
+      "tutorChatImagePayloadFromUrl",
+      "reuse analyzePayload as data URL for tutor vision",
+    );
+    const result = await tutorChatImagePayloadFromUrl(dataUrl);
+    if (result) att.tutorPayload = result;
+    logEncodeAttachmentResult(caller, att.name, result != null, {
+      path: "tutorChatImagePayloadFromUrl(analyzePayload)",
+      dataBase64Length: result?.dataBase64.length ?? null,
+    });
+    return result;
+  }
+
+  if (att.sourceBlob.size > 0) {
+    logEncodeAttachmentBranch(
+      caller,
+      att,
+      "blobToTutorChatImagePayload",
+      "fallback: in-memory blob URL only",
+    );
+    imageUploadDebugLog("attachmentToTutorChatImagePayload direct blob", {
+      attachmentName: att.name,
+      sourceBlobSize: att.sourceBlob.size,
+      sourceBlobType: att.sourceBlob.type,
+    });
+    const result = await blobToTutorChatImagePayload(att.sourceBlob);
+    if (result) att.tutorPayload = result;
+    logEncodeAttachmentResult(caller, att.name, result != null, {
+      path: "blobToTutorChatImagePayload",
+      dataBase64Length: result?.dataBase64.length ?? null,
+    });
+    return result;
+  }
+
+  logEncodeAttachmentBranch(
+    caller,
+    att,
+    "tutorChatImagePayloadFromUrl",
+    "att.sourceBlob.size === 0 (fallback attachment.url)",
+  );
+  const result = await tutorChatImagePayloadFromUrl(att.url);
+  if (result) att.tutorPayload = result;
+  logEncodeAttachmentResult(caller, att.name, result != null, {
+    path: "tutorChatImagePayloadFromUrl(fallback)",
+    dataBase64Length: result?.dataBase64.length ?? null,
+  });
+  return result;
 }
 
 const SPEECH_LANG_OPTIONS = [
@@ -583,6 +980,11 @@ export function StudySignalHome({
     attachmentsRef.current = attachments;
     if (attachments.length > 0) {
       pronunciationFromSpeechRef.current = false;
+      homeworkPipelineLog("image_upload_attached", {
+        count: attachments.length,
+        names: attachments.map((a) => a.name),
+      });
+      logAndroidAttachmentsSnapshot("attachments state updated", attachments);
     }
   }, [attachments]);
 
@@ -777,35 +1179,74 @@ export function StudySignalHome({
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
+    const inputValue = event.target.value;
     if (!files?.length) return;
 
-    setAttachments((prev) => {
+    const fileArray = Array.from(files);
+    event.target.value = "";
+
+    void (async () => {
+      const prev = attachmentsRef.current;
       const remaining = MAX_IMAGES - prev.length;
-      if (remaining <= 0) return prev;
+      if (remaining <= 0) return;
 
       const added: UploadedImage[] = [];
-      for (const file of Array.from(files)) {
-        console.log("[Gallery File]", {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          isImageFile: isImageFile(file),
-        });
-        if (!isImageFile(file)) continue;
-        if (added.length >= remaining) break;
-        added.push({
-          id: newAttachmentId(),
-          url: URL.createObjectURL(file),
-          name: file.name,
-        });
-      }
-      if (!added.length) return prev;
-      const next = [...prev, ...added];
-      console.log("[Attachments Count]", next.length);
-      return next;
-    });
+      for (const file of fileArray) {
+        logImageFileDebug("gallery file selected", file);
+        logAndroidGalleryPickInput("handleImageChange", file, inputValue);
 
-    event.target.value = "";
+        const imageOk = isImageFile(file);
+        logAndroidIsImageFileCheck(
+          file,
+          imageOk,
+          "StudySignalHome.tsx handleImageChange",
+        );
+        if (!imageOk) {
+          logAndroidGalleryFileSkipped(
+            "isImageFile(file) returned false",
+            file,
+            "StudySignalHome.tsx handleImageChange line: if (!isImageFile(file)) continue;",
+          );
+          continue;
+        }
+        if (added.length >= remaining) break;
+
+        const previewUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === "string") resolve(reader.result);
+            else reject(new Error("FileReader result was not a string"));
+          };
+          reader.onerror = () =>
+            reject(reader.error ?? new Error("FileReader failed"));
+          reader.readAsDataURL(file);
+        });
+        logAndroidCreateObjectURLAttempt("handleImageChange", file, {
+          ok: true,
+          url: previewUrl,
+        });
+
+        const analyzePayload = parseDataUrlPayload(previewUrl) ?? undefined;
+
+        const attachment: UploadedImage = {
+          id: newAttachmentId(),
+          url: previewUrl,
+          name: file.name,
+          sourceBlob: file,
+          ...(analyzePayload ? { analyzePayload } : {}),
+        };
+        logAndroidAttachmentBuilt("handleImageChange", attachment);
+        probeAndroidThumbnailUrl(previewUrl, attachment.id, attachment.name);
+        added.push(attachment);
+      }
+      if (!added.length) return;
+
+      setAttachments((p) => {
+        const next = [...p, ...added];
+        console.log("[Attachments Count]", next.length);
+        return next;
+      });
+    })();
   };
 
   const removeImageById = (id: string) => {
@@ -881,14 +1322,25 @@ export function StudySignalHome({
         if (!blob) return;
         const stamp = new Date();
         const name = `Camera ${stamp.toISOString().replace(/[:.]/g, "-")}.jpg`;
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        const analyzePayload = parseDataUrlPayload(dataUrl) ?? undefined;
+        imageUploadDebugLog("camera photo captured", {
+          "file.name": name,
+          "file.type": blob.type,
+          "file.size": blob.size,
+          "file instanceof File": false,
+          "image MIME type": blob.type || "image/jpeg",
+        });
         setAttachments((prev) => {
           if (prev.length >= MAX_IMAGES) return prev;
           const next: UploadedImage[] = [
             ...prev,
             {
               id: newAttachmentId(),
-              url: URL.createObjectURL(blob),
+              url: dataUrl,
               name,
+              sourceBlob: blob,
+              ...(analyzePayload ? { analyzePayload } : {}),
             },
           ];
           if (next.length >= MAX_IMAGES) {
@@ -971,12 +1423,40 @@ export function StudySignalHome({
     clearTranscript();
   }, [clearTranscript]);
 
+  const saveAnalysis = useCallback(
+    (id: string, feedback: AnalyzeFeedback, source: string) => {
+      homeworkPipelineLog("saveAnalysis", {
+        id,
+        source,
+        hasImageInsights: Boolean(feedback.imageInsights),
+      });
+      setAnalyzeFeedbackHistory((prev) => {
+        const next: SignalAnalyzeHistoryEntry[] = [
+          { id, analyzedAt: Date.now(), feedback },
+          ...prev,
+        ].slice(0, MAX_SIGNAL_ANALYZE_HISTORY);
+        homeworkPipelineLog("signals_storage_updated", {
+          entryCount: next.length,
+          newestId: next[0]?.id ?? null,
+        });
+        return next;
+      });
+    },
+    [],
+  );
+
   const sendTutorMessage = useCallback(async () => {
+    logSendTutorMessageTrace("sendTutorMessage entry");
+    try {
     const raw =
       messageTextareaRef.current?.value ?? messageRef.current;
     const text = raw.trim();
     const currentAttachments = attachmentsRef.current;
     const hasImages = currentAttachments.length > 0;
+    logSendTutorMessageTrace("sendTutorMessage after read state", {
+      hasImages,
+      attachmentsCount: currentAttachments.length,
+    });
     setChatSendError(null);
     if (!text && !hasImages) {
       setChatSendError("請輸入文字或附加圖片後再按 CHAT 送出。");
@@ -985,19 +1465,179 @@ export function StudySignalHome({
     if (chatSendInFlightRef.current) return;
     chatSendInFlightRef.current = true;
 
+    const studentId = newAttachmentId();
+    const voiceBlob =
+      pronunciationFromSpeechRef.current &&
+      lastVoiceRecordingRef.current != null
+        ? lastVoiceRecordingRef.current
+        : null;
+    const voiceRecordingObjectUrl =
+      voiceBlob != null ? URL.createObjectURL(voiceBlob) : undefined;
+
+    setMessage("");
+    messageRef.current = "";
+    queueMicrotask(() => {
+      syncMessageTextareaHeight();
+    });
+
     const images: { mimeType: string; dataBase64: string }[] = [];
+    let homeworkAnalysis: AnalyzeFeedback | null = null;
+
     if (hasImages) {
-      for (const att of currentAttachments) {
-        const part = await blobUrlToTutorChatImagePayload(att.url);
-        if (part) images.push(part);
+      logSendTutorMessageTrace("sendTutorMessage hasImages block entry");
+      homeworkPipelineLog("1_image_upload_detected", {
+        attachmentCount: currentAttachments.length,
+        hasTypedText: text.length > 0,
+      });
+      logSendTutorMessageTrace(
+        "sendTutorMessage after homeworkPipelineLog, before logAndroidAttachmentsSnapshot",
+      );
+      logAndroidAttachmentsSnapshot(
+        "sendTutorMessage before encode",
+        currentAttachments,
+      );
+      logSendTutorMessageTrace(
+        "sendTutorMessage after logAndroidAttachmentsSnapshot, before loadAnalyzeImagesFromAttachments",
+        { attachmentsCount: currentAttachments.length },
+      );
+
+      let analyzeImages: AnalyzeImagePayload[];
+      try {
+        analyzeImages = await loadAnalyzeImagesFromAttachments(
+          currentAttachments,
+          "sendTutorMessage → loadAnalyzeImagesFromAttachments",
+        );
+      } catch (error) {
+        logSendTutorMessageCaughtError(
+          "sendTutorMessage: await loadAnalyzeImagesFromAttachments",
+          error,
+        );
+        throw error;
       }
-      if (images.length === 0) {
-        setChatSendError(
-          "無法讀取已附加的圖片，請移除後重新上傳再試。",
+      logSendTutorMessageTrace(
+        "sendTutorMessage after loadAnalyzeImagesFromAttachments",
+        { analyzeImagesLength: analyzeImages.length },
+      );
+      if (analyzeImages.length === 0) {
+        logEncodeErrorReturn(
+          "sendTutorMessage",
+          "StudySignalHome.tsx sendTutorMessage: if (analyzeImages.length === 0)",
+          {
+            analyzeImagesLength: analyzeImages.length,
+            attachmentsCount: currentAttachments.length,
+          },
+        );
+        const msg = "無法讀取已附加的圖片，請移除後重新上傳再試。";
+        setChatSendError(msg);
+        chatSendInFlightRef.current = false;
+        return;
+      }
+
+      const nImgAnalyze = analyzeImages.length;
+      const homeworkDisplayBody =
+        text && hasImages
+          ? `${text}\n\n（作業圖片 ${nImgAnalyze} 張，分析中…）`
+          : `（作業圖片 ${nImgAnalyze} 張，分析中…）`;
+
+      setAnalyzeLoading(true);
+      setChatItems((prev) => [
+        ...prev,
+        {
+          id: studentId,
+          role: "student",
+          body: homeworkDisplayBody,
+          analyzeLoading: true,
+          ...(voiceRecordingObjectUrl != null
+            ? { voiceRecordingObjectUrl }
+            : {}),
+        },
+      ]);
+
+      const analyzeResult = await postAnalyzeApi({
+        text,
+        includePronunciation: false,
+        images: analyzeImages,
+      });
+
+      if (!analyzeResult.ok) {
+        homeworkPipelineLog("pipeline_stopped_before_tutor", {
+          reason: "homework_analysis_failed",
+          error: analyzeResult.error,
+        });
+        setAnalyzeError(analyzeResult.error);
+        setAnalyzeLoading(false);
+        setChatItems((prev) =>
+          prev.map((m) =>
+            m.id === studentId && m.role === "student"
+              ? {
+                  ...m,
+                  body: homeworkDisplayBody.replace("分析中…", "分析失敗"),
+                  analyzeLoading: false,
+                  analyzeError: analyzeResult.error,
+                  analysis: null,
+                }
+              : m,
+          ),
         );
         chatSendInFlightRef.current = false;
         return;
       }
+
+      homeworkAnalysis = analyzeResult.feedback;
+      saveAnalysis(studentId, homeworkAnalysis, "homework_chat");
+
+      const analyzedDisplayBody =
+        text && hasImages
+          ? `${text}\n\n（作業圖片 ${nImgAnalyze} 張，已分析）`
+          : `（作業圖片 ${nImgAnalyze} 張，已分析）`;
+
+      setChatItems((prev) =>
+        prev.map((m) =>
+          m.id === studentId && m.role === "student"
+            ? {
+                ...m,
+                body: analyzedDisplayBody,
+                analyzeLoading: false,
+                analyzeError: null,
+                analysis: homeworkAnalysis,
+              }
+            : m,
+        ),
+      );
+      setAnalyzeLoading(false);
+      homeworkPipelineLog("6_signals_ui_ready", {
+        message: "Signals state updated; open Signals tab to view",
+      });
+
+      for (const att of currentAttachments) {
+        const part = await attachmentToTutorChatImagePayload(
+          att,
+          "sendTutorMessage → attachmentToTutorChatImagePayload",
+        );
+        if (part) images.push(part);
+      }
+      logEncodeFlowEnd(
+        "sendTutorMessage → tutor images[]",
+        currentAttachments.length,
+        images.length,
+      );
+      if (images.length === 0) {
+        logEncodeErrorReturn(
+          "sendTutorMessage",
+          "StudySignalHome.tsx sendTutorMessage: if (images.length === 0) after attachmentToTutorChatImagePayload loop",
+          {
+            imagesLength: images.length,
+            attachmentsCount: currentAttachments.length,
+            analyzeImagesLength: analyzeImages.length,
+          },
+        );
+        const msg = "無法讀取已附加的圖片，請移除後重新上傳再試。";
+        setChatSendError(msg);
+        chatSendInFlightRef.current = false;
+        return;
+      }
+    } else {
+      homeworkPipelineLog("skip_homework_pipeline", { reason: "no_images" });
     }
 
     const nImg = images.length;
@@ -1006,16 +1646,19 @@ export function StudySignalHome({
         ? `${text}\n\n(${nImg} image${nImg === 1 ? "" : "s"} attached.)`
         : text
           ? text
-          : `(Sent ${nImg} image${nImg === 1 ? "" : "s"} — please read and help with my homework.)`;
+          : hasImages
+            ? `(Sent ${nImg} image${nImg === 1 ? "" : "s"} — please read and help with my homework.)`
+            : text;
 
     const modelUserText =
       text && hasImages
         ? `${text}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
         : text
           ? text
-          : `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`;
+          : hasImages
+            ? `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`
+            : text;
 
-    const studentId = newAttachmentId();
     const tutorId = newAttachmentId();
     const baseMessages = buildTutorChatOpenAIMessages(chatItems, modelUserText);
 
@@ -1038,30 +1681,22 @@ export function StudySignalHome({
           ]
         : baseMessages;
 
-    const voiceBlob =
-      pronunciationFromSpeechRef.current &&
-      lastVoiceRecordingRef.current != null
-        ? lastVoiceRecordingRef.current
-        : null;
-    const voiceRecordingObjectUrl =
-      voiceBlob != null ? URL.createObjectURL(voiceBlob) : undefined;
-
-    setMessage("");
-    messageRef.current = "";
-    queueMicrotask(() => {
-      syncMessageTextareaHeight();
-    });
+    if (!hasImages) {
+      setChatItems((prev) => [
+        ...prev,
+        {
+          id: studentId,
+          role: "student",
+          body: displayBody,
+          ...(voiceRecordingObjectUrl != null
+            ? { voiceRecordingObjectUrl }
+            : {}),
+        },
+      ]);
+    }
 
     setChatItems((prev) => [
       ...prev,
-      {
-        id: studentId,
-        role: "student",
-        body: displayBody,
-        ...(voiceRecordingObjectUrl != null
-          ? { voiceRecordingObjectUrl }
-          : {}),
-      },
       {
         id: tutorId,
         role: "tutor",
@@ -1069,7 +1704,24 @@ export function StudySignalHome({
       },
     ]);
 
+    if (hasImages) {
+      homeworkPipelineLog("7_tutor_chat_start", {
+        afterHomeworkAnalysis: true,
+        hasSignalsEntry: homeworkAnalysis !== null,
+      });
+    }
+
     try {
+      imageUploadDebugLog("before /api/tutor-chat", {
+        transport: "application/json",
+        "FormData keys": "N/A (vision images in messages[].content image_url)",
+        visionImageCount: images.length,
+        images: images.map((im, i) => ({
+          index: i,
+          "image MIME type": im.mimeType,
+          dataBase64Length: im.dataBase64.length,
+        })),
+      });
       const res = await fetch("/api/tutor-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1115,6 +1767,9 @@ export function StudySignalHome({
         ),
       );
       speakWithBrowserTTS(reply, selectedSpeechLang);
+      if (hasImages) {
+        homeworkPipelineLog("8_tutor_chat_complete");
+      }
       if (images.length > 0) {
         setAttachments((prev) => {
           for (const a of prev) {
@@ -1140,7 +1795,11 @@ export function StudySignalHome({
     } finally {
       chatSendInFlightRef.current = false;
     }
-  }, [chatItems, selectedSpeechLang, syncMessageTextareaHeight]);
+    } catch (error) {
+      logSendTutorMessageCaughtError("sendTutorMessage outer catch", error);
+      throw error;
+    }
+  }, [chatItems, saveAnalysis, selectedSpeechLang, syncMessageTextareaHeight]);
 
   const sendChineseEnglishHelp = useCallback(async (chineseText: string) => {
     if (typeof chineseText !== "string") {
@@ -1309,15 +1968,33 @@ export function StudySignalHome({
     ]);
     setAnalyzeLoading(true);
 
+    if (hasImages) {
+      homeworkPipelineLog("analyze_button_image_upload_detected", {
+        attachmentCount: currentAttachments.length,
+      });
+      logAndroidAttachmentsSnapshot(
+        "runAnalyze before encode",
+        currentAttachments,
+      );
+    }
+
     try {
-      const images: { mimeType: string; dataBase64: string }[] = [];
+      let images: AnalyzeImagePayload[] = [];
       if (hasImages) {
-        for (const att of currentAttachments) {
-          const part = await blobUrlToImagePayload(att.url);
-          if (part) images.push(part);
-        }
+        images = await loadAnalyzeImagesFromAttachments(
+          currentAttachments,
+          "runAnalyze → loadAnalyzeImagesFromAttachments",
+        );
         console.log("[Analyze Images]", images.length);
         if (images.length === 0) {
+          logEncodeErrorReturn(
+            "runAnalyze",
+            "StudySignalHome.tsx runAnalyze: if (images.length === 0)",
+            {
+              imagesLength: images.length,
+              attachmentsCount: currentAttachments.length,
+            },
+          );
           const msg =
             "無法讀取已附加的圖片，請移除後重新上傳再試。";
           setAnalyzeError(msg);
@@ -1346,7 +2023,7 @@ export function StudySignalHome({
       const includePronunciation =
         pronunciationFromSpeechRef.current && !hasImages;
 
-      const requestPayload = {
+      const requestPayload: AnalyzeApiPayload = {
         text,
         includePronunciation,
         ...(images.length > 0 ? { images } : {}),
@@ -1373,35 +2050,22 @@ export function StudySignalHome({
         );
       }
 
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestPayload),
-      });
-      const data: unknown = await res.json().catch(() => ({}));
-      const errMsg =
-        typeof data === "object" &&
-        data !== null &&
-        "error" in data &&
-        typeof (data as { error: unknown }).error === "string"
-          ? (data as { error: string }).error
-          : null;
-      if (!res.ok) {
+      const analyzeResult = await postAnalyzeApi(requestPayload);
+
+      if (!analyzeResult.ok) {
         if (ANALYZE_CLIENT_DEBUG) {
           console.log("[analyze client] response_not_ok", {
-            status: res.status,
-            errMsg,
-            responseBodyFull: JSON.stringify(data, null, 2),
+            errMsg: analyzeResult.error,
           });
         }
-        const msg = errMsg ?? `分析失敗（錯誤代碼 ${res.status}）。`;
+        setAnalyzeError(analyzeResult.error);
         setChatItems((prev) =>
           prev.map((m) =>
             m.id === turnId && m.role === "student"
               ? {
                   ...m,
                   analyzeLoading: false,
-                  analyzeError: msg,
+                  analyzeError: analyzeResult.error,
                   analysis: null,
                 }
               : m
@@ -1410,57 +2074,15 @@ export function StudySignalHome({
         return false;
       }
 
-      if (ANALYZE_CLIENT_DEBUG) {
-        console.log("[analyze client] 2_openai_response_via_api_json_OK", {
-          status: res.status,
-        });
-        console.log(
-          "[analyze client] 2_response_body_full_JSON",
-          JSON.stringify(data, null, 2)
-        );
-      }
-
-      const parseDbg = ANALYZE_CLIENT_DEBUG
-        ? (label: string, payload?: unknown) =>
-            console.log(`[analyze client] 3_parse_step:${label}`, payload)
-        : undefined;
-
-      const parsed = parseAnalyzeApiData(
-        data,
-        includePronunciation,
-        parseDbg
-      );
+      const parsed = analyzeResult.feedback;
 
       if (ANALYZE_CLIENT_DEBUG) {
         console.log("[analyze client] 4_after_parseAnalyzeApiData", {
-          isNull: parsed === null,
-          imageInsights: parsed?.imageInsights ?? null,
-          ocrText: parsed?.imageInsights?.ocrText ?? null,
-          visualSummaryZh: parsed?.imageInsights?.visualSummaryZh ?? null,
-          fullFeedbackJSON:
-            parsed === null ? null : JSON.stringify(parsed, null, 2),
+          imageInsights: parsed.imageInsights ?? null,
+          ocrText: parsed.imageInsights?.ocrText ?? null,
+          visualSummaryZh: parsed.imageInsights?.visualSummaryZh ?? null,
+          fullFeedbackJSON: JSON.stringify(parsed, null, 2),
         });
-      }
-
-      if (!parsed) {
-        if (ANALYZE_CLIENT_DEBUG) {
-          console.log(
-            "[analyze client] 4_UI_shows_分析結果不完整 — parseAnalyzeApiData returned null (see 3_parse_step:* above)"
-          );
-        }
-        setChatItems((prev) =>
-          prev.map((m) =>
-            m.id === turnId && m.role === "student"
-              ? {
-                  ...m,
-                  analyzeLoading: false,
-                  analyzeError: "分析結果不完整，請再試一次。",
-                  analysis: null,
-                }
-              : m
-          )
-        );
-        return false;
       }
 
       setChatItems((prev) =>
@@ -1475,14 +2097,14 @@ export function StudySignalHome({
             : m
         )
       );
-      if (learningReviewMode) {
-        setAnalyzeFeedbackHistory((prev) =>
-          [
-            { id: turnId, analyzedAt: Date.now(), feedback: parsed },
-            ...prev,
-          ].slice(0, MAX_SIGNAL_ANALYZE_HISTORY),
-        );
-      }
+
+      const saveSource = learningReviewMode
+        ? "learning_review"
+        : hasImages
+          ? "homework_analyze_button"
+          : "composer_analyze";
+      saveAnalysis(turnId, parsed, saveSource);
+
       return true;
     } catch (e) {
       setChatItems((prev) =>
@@ -1502,7 +2124,7 @@ export function StudySignalHome({
     } finally {
       setAnalyzeLoading(false);
     }
-  }, [chatItems]);
+  }, [chatItems, saveAnalysis]);
 
   const confirmClearChatAnalyzeAndSave = useCallback(async () => {
     const ok = await runAnalyze();
@@ -2282,6 +2904,16 @@ export function StudySignalHome({
                               className="h-full w-full object-cover"
                               decoding="async"
                               loading="lazy"
+                              onLoad={(e) => {
+                                const el = e.currentTarget;
+                                logAndroidComposerImgEvent("load", item, {
+                                  naturalWidth: el.naturalWidth,
+                                  naturalHeight: el.naturalHeight,
+                                });
+                              }}
+                              onError={() => {
+                                logAndroidComposerImgEvent("error", item);
+                              }}
                             />
                           </div>
                           <button
@@ -2521,7 +3153,7 @@ export function StudySignalHome({
               </ul>
             ) : (
               <p className="mt-6 rounded-2xl border border-white/[0.08] bg-black/20 px-4 py-6 text-center text-sm leading-relaxed text-zinc-500 ring-1 ring-white/[0.04]">
-                尚無學習回顧。請到 Talk 分頁在輸入框留空時按下「分析」，再回到此處查看（最多保留
+                尚無學習回饋。請在 Talk 分頁上傳作業圖片後按 CHAT（會先分析再家教），或按「分析」；學習回顧可留空輸入框後按「分析」（最多保留
                 5 筆）。
               </p>
             )}
