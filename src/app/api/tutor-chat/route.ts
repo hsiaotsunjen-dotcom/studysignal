@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+import type { HomeworkReport } from "@/lib/analyzeFeedback";
+import {
+  buildTutorChatHomeworkSystemPrompt,
+  TUTOR_CHAT_GENERIC_SYSTEM,
+} from "@/lib/tutorChatOpenAiMessages";
 type ChatRole = "system" | "user" | "assistant";
 
 type ContentPart =
@@ -58,7 +63,50 @@ function parseMessageItem(item: unknown): ApiMessage | null {
   return null;
 }
 
-function parseBody(body: unknown): { messages: ApiMessage[] } | null {
+function parseHomeworkReportInput(raw: unknown): HomeworkReport | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const homeworkType =
+    typeof o.homeworkType === "string" ? o.homeworkType.trim() : "";
+  const answerOverview =
+    typeof o.answerOverview === "string" ? o.answerOverview.trim() : "";
+  const questionCount = o.questionCount ?? o.question_count;
+  if (!homeworkType && !answerOverview && questionCount == null) return null;
+
+  const keyRaw = o.keyExplanations ?? o.key_explanations;
+  const keyExplanations = Array.isArray(keyRaw)
+    ? keyRaw.filter((x) => x && typeof x === "object")
+    : [];
+
+  const learnRaw = o.learningSignal ?? o.learning_signal;
+  const learningSignal = Array.isArray(learnRaw)
+    ? learnRaw.filter((x): x is string => typeof x === "string")
+    : [];
+
+  return {
+    homeworkType: homeworkType || "English worksheet",
+    questionCount:
+      typeof questionCount === "number" || typeof questionCount === "string"
+        ? questionCount
+        : "—",
+    imageQuality:
+      typeof o.imageQuality === "string" ? o.imageQuality : "Fair",
+    answerOverview: answerOverview || "—",
+    keyExplanations: keyExplanations as HomeworkReport["keyExplanations"],
+    pronunciationFocus: [],
+    learningSignal,
+    ...(typeof o.hintsFirst === "string" ? { hintsFirst: o.hintsFirst } : {}),
+    ...(typeof o.formattedReport === "string"
+      ? { formattedReport: o.formattedReport }
+      : {}),
+  };
+}
+
+function parseBody(body: unknown): {
+  messages: ApiMessage[];
+  homeworkReport: HomeworkReport | null;
+  homeworkContextExpected: boolean;
+} | null {
   if (!body || typeof body !== "object") return null;
   const o = body as Record<string, unknown>;
   const raw = o.messages;
@@ -77,7 +125,11 @@ function parseBody(body: unknown): { messages: ApiMessage[] } | null {
       if (typeof m.content !== "string") return null;
     }
   }
-  return { messages };
+  return {
+    messages,
+    homeworkReport: parseHomeworkReportInput(o.homeworkReport),
+    homeworkContextExpected: o.homeworkContextExpected === true,
+  };
 }
 
 function totalPayloadEstimate(messages: ApiMessage[]): number {
@@ -131,6 +183,7 @@ async function logTutorChatIncomingImageDebug(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
   await logTutorChatIncomingImageDebug(request);
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -159,8 +212,66 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages } = parsed;
-  const est = totalPayloadEstimate(messages);
+  const { messages, homeworkReport, homeworkContextExpected } = parsed;
+  if (messages.length < 2) {
+    return NextResponse.json(
+      { error: "messages 數量不足。" },
+      { status: 400 },
+    );
+  }
+
+  const answerOverviewPresent = Boolean(
+    homeworkReport?.answerOverview &&
+      homeworkReport.answerOverview.trim() !== "" &&
+      homeworkReport.answerOverview !== "—",
+  );
+
+  let promptMode: "homework" | "fallback" | "missing_homework_debug";
+  if (homeworkContextExpected && !homeworkReport) {
+    promptMode = "missing_homework_debug";
+  } else if (homeworkReport) {
+    promptMode = "homework";
+  } else {
+    promptMode = "fallback";
+  }
+
+  console.log("[tutor-chat] prompt_trace", {
+    homeworkReportPresent: Boolean(homeworkReport),
+    answerOverviewPresent,
+    homeworkContextExpected,
+    promptMode,
+    declaredQuestionCount: homeworkReport?.questionCount ?? null,
+    systemPromptKind:
+      promptMode === "homework"
+        ? "homework"
+        : promptMode === "fallback"
+          ? "fallback"
+          : "missing_homework_debug",
+  });
+
+  if (promptMode === "missing_homework_debug") {
+    return NextResponse.json({
+      reply:
+        "[DEBUG] Tutor homework context missing. homeworkContextExpected=true but homeworkReport was not provided to /api/tutor-chat. Check: postAnalyzeApi → homeworkAnalysis.imageInsights.homeworkReport → fetch body.",
+    });
+  }
+
+  const openaiMessages: ApiMessage[] =
+    promptMode === "homework" && homeworkReport
+      ? [
+          {
+            role: "system",
+            content: buildTutorChatHomeworkSystemPrompt(homeworkReport),
+          },
+          ...messages.slice(1),
+        ]
+      : messages.map((m, i) =>
+          i === 0 && m.role === "system"
+            ? { ...m, content: TUTOR_CHAT_GENERIC_SYSTEM }
+            : m,
+        );
+
+  const est = totalPayloadEstimate(openaiMessages);
   if (est > 280000) {
     return NextResponse.json(
       { error: "對話或圖片內容過長，請減少圖片數量或清除部分訊息後再試。" },
@@ -168,7 +279,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const last = messages[messages.length - 1]!;
+  const last = openaiMessages[openaiMessages.length - 1];
+  if (!last || last.role !== "user") {
+    return NextResponse.json(
+      { error: "最後一則訊息必須為 user。" },
+      { status: 400 },
+    );
+  }
   const hasVision =
     typeof last.content !== "string" &&
     last.content.some((p) => p.type === "image_url");
@@ -191,19 +308,31 @@ export async function POST(request: Request) {
     });
   }
 
-  const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.65,
-      max_tokens: hasVision ? 1400 : 900,
-    }),
-  });
+  let openaiRes: Response;
+  try {
+    openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: openaiMessages,
+        temperature: 0.65,
+        max_tokens: hasVision ? 1400 : 900,
+      }),
+    });
+  } catch (error) {
+    console.error("[tutor-chat] OpenAI fetch failed", error);
+    return NextResponse.json(
+      {
+        error: "對話服務暫時失敗，請稍後再試。",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 502 },
+    );
+  }
 
   if (!openaiRes.ok) {
     const detail = await openaiRes.text();
@@ -213,9 +342,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const data = (await openaiRes.json()) as {
+  let data: {
     choices?: Array<{ message?: { content?: string | null } }>;
   };
+  try {
+    data = (await openaiRes.json()) as {
+      choices?: Array<{ message?: { content?: string | null } }>;
+    };
+  } catch (error) {
+    console.error("[tutor-chat] OpenAI JSON parse failed", error);
+    return NextResponse.json(
+      {
+        error: "對話服務暫時失敗，請稍後再試。",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 502 },
+    );
+  }
   const rawContent = data.choices?.[0]?.message?.content?.trim() ?? "";
   if (!rawContent) {
     return NextResponse.json(
@@ -225,4 +368,14 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ reply: rawContent });
+  } catch (error) {
+    console.error("[tutor-chat] unhandled exception", error);
+    return NextResponse.json(
+      {
+        error: "對話服務暫時失敗，請稍後再試。",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
+  }
 }

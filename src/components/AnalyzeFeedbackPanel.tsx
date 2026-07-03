@@ -8,12 +8,15 @@ import {
 import { AnalyzeFeedbackReadAloudButton } from "@/components/AnalyzeFeedbackReadAloudButton";
 import type {
   AnalyzeFeedback,
+  HomeworkQuestionRecognitionIssue,
+  HomeworkReport,
   ImageInsights,
   LearningSummaryBlock,
   PronunciationScoresBlock,
   ScoreCategoryFeedback,
   TutorModelAnswerBlock,
 } from "@/lib/analyzeFeedback";
+import { resolveAnalysisCapabilities } from "@/lib/analyzeFeedback";
 import { Volume2 } from "@/components/LucideVolume2";
 import { speakWithBrowserTTS } from "@/lib/speechSynthesis";
 
@@ -272,7 +275,149 @@ function TutorModelAnswerSection({
   );
 }
 
+function HomeworkQuestionRecognitionSection({
+  issues,
+}: {
+  issues: HomeworkQuestionRecognitionIssue[];
+}) {
+  if (issues.length === 0) {
+    return (
+      <p className="mt-2 text-sm text-emerald-200/95">
+        ✅ All questions were recognized successfully.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-2">
+      <p className="text-sm font-medium text-amber-200/95">
+        ⚠️ Image quality issue
+      </p>
+      <ul className="space-y-2">
+        {issues.map((item, i) => (
+          <li key={i} className="text-sm text-zinc-100/95">
+            <p className="font-medium">{item.questionLabel}</p>
+            <p className="mt-0.5 text-zinc-300">• {item.issue}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function HomeworkReportSection({ report }: { report: HomeworkReport }) {
+  const recognitionIssues = report.questionRecognitionIssues ?? [];
+
+  if (report.formattedReport) {
+    return (
+      <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
+        <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+          {report.formattedReport}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-4 space-y-4 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
+      <section>
+        <h4 className="text-sm font-semibold text-amber-100">📸 Homework analyzed</h4>
+        <ul className="mt-2 list-none space-y-1 text-sm text-zinc-100/95">
+          <li>• Homework type: {report.homeworkType}</li>
+          <li>• Number of questions: {report.questionCount}</li>
+          <li>• Image quality: {report.imageQuality}</li>
+        </ul>
+        <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+      </section>
+
+      {report.hintsFirst ? (
+        <section>
+          <h4 className="text-sm font-semibold text-zinc-100">💡 Hints</h4>
+          <p className="mt-1.5 whitespace-pre-wrap text-sm text-zinc-100/95">
+            {report.hintsFirst}
+          </p>
+        </section>
+      ) : null}
+
+      <section>
+        <h4 className="text-sm font-semibold text-emerald-100">✅ Answer Overview</h4>
+        <p className="mt-1.5 whitespace-pre-wrap text-sm text-zinc-100/95">
+          {report.answerOverview}
+        </p>
+      </section>
+
+      {report.keyExplanations.length > 0 ? (
+        <section>
+          <h4 className="text-sm font-semibold text-sky-100">🔍 Key Explanations</h4>
+          <ul className="mt-2 space-y-3">
+            {report.keyExplanations.map((item, i) => (
+              <li
+                key={i}
+                className="rounded-lg border border-white/[0.06] bg-black/25 p-3 text-sm"
+              >
+                <p className="font-semibold text-white">{item.questionLabel}</p>
+                <p className="mt-1 text-zinc-300">
+                  <span className="text-zinc-500">Correct answer: </span>
+                  {item.correctAnswer}
+                </p>
+                <p className="mt-1 text-zinc-200/95">
+                  <span className="text-zinc-500">Why? </span>
+                  {item.why}
+                </p>
+                {item.example ? (
+                  <p className="mt-1 text-zinc-400">
+                    <span className="text-zinc-500">Example: </span>
+                    {item.example}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {report.pronunciationFocus.length > 0 ? (
+        <section>
+          <h4 className="text-sm font-semibold text-violet-100">
+            🔊 Pronunciation Practice
+          </h4>
+          <ul className="mt-2 space-y-2">
+            {report.pronunciationFocus.map((row, i) => (
+              <li
+                key={i}
+                className="rounded-lg border border-white/[0.06] bg-black/25 p-3 text-sm"
+              >
+                <p className="font-semibold text-white">{row.word}</p>
+                <p className="font-mono text-xs text-zinc-400">{row.ipa}</p>
+                <p className="mt-1 text-zinc-200/95">{row.tip}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {report.learningSignal.length > 0 ? (
+        <section>
+          <h4 className="text-sm font-semibold text-teal-100">
+            📈 Today&apos;s Learning Signal
+          </h4>
+          <ul className="mt-2 list-none space-y-1 text-sm text-zinc-100/95">
+            {report.learningSignal.map((line, i) => (
+              <li key={i}>{line.startsWith("✅") ? line : `✅ ${line}`}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
 function ImageInsightsSection({ insights }: { insights: ImageInsights }) {
+  if (insights.homeworkReport) {
+    return <HomeworkReportSection report={insights.homeworkReport} />;
+  }
+
   return (
     <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
       <div>
@@ -350,6 +495,7 @@ export function AnalyzeFeedbackPanel({
   const pronunciationFocus = Array.isArray(result.pronunciationFocus)
     ? result.pronunciationFocus
     : [];
+  const caps = resolveAnalysisCapabilities(result);
 
   return (
     <div
@@ -360,42 +506,49 @@ export function AnalyzeFeedbackPanel({
       </h3>
 
       <AnalyzeFeedbackRenderBoundary>
-      {result.imageInsights ? (
+      {caps.imageAnalysis && result.imageInsights ? (
         <ImageInsightsSection insights={result.imageInsights} />
       ) : null}
 
-      {result.pronunciationScores ? (
+      {caps.pronunciation && result.pronunciationScores ? (
         <PronunciationScoresSection ps={result.pronunciationScores} />
       ) : null}
 
-      {result.learningSummary ? (
+      {caps.learningSummary && result.learningSummary ? (
         <LearningSummarySection summary={result.learningSummary} />
       ) : null}
 
-      {result.tutorModelAnswer ? (
+      {caps.tutorModelAnswer && result.tutorModelAnswer ? (
         <TutorModelAnswerSection
           block={result.tutorModelAnswer}
           dictationVoiceLang={dictationVoiceLang}
         />
       ) : null}
 
+      {caps.grammar || caps.vocabulary || caps.fluency ? (
       <div className="mb-4 space-y-4">
+        {caps.grammar ? (
         <ScoreCategoryBlock
           title="語法 Grammar"
           subtitle="文法結構與正確性"
           cat={result.grammar}
         />
+        ) : null}
+        {caps.vocabulary ? (
         <ScoreCategoryBlock
           title="單字 Vocabulary"
           subtitle="用字與詞彙廣度"
           cat={result.vocabulary}
         />
+        ) : null}
+        {caps.fluency ? (
         <ScoreCategoryBlock
           title="流利度 Fluency"
           subtitle="句子是否自然、銜接是否順"
           cat={result.fluency}
         />
-        {result.expression ? (
+        ) : null}
+        {caps.fluency && result.expression ? (
           <ScoreCategoryBlock
             title="表達 Expression"
             subtitle="口吻、清楚度、對話感與整體溝通"
@@ -403,7 +556,9 @@ export function AnalyzeFeedbackPanel({
           />
         ) : null}
       </div>
+      ) : null}
 
+      {caps.pronunciation ? (
       <div className="mb-4">
         {result.pronunciationScores || pronunciationFocus.length > 0 ? (
           <>
@@ -486,7 +641,9 @@ export function AnalyzeFeedbackPanel({
           </div>
         )}
       </div>
+      ) : null}
 
+      {caps.tutorComment ? (
       <div className="space-y-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-100/95">
         <p className="text-[11px] font-medium uppercase tracking-wider text-emerald-400/90">
           老師的話（依你的內容量身）
@@ -518,6 +675,7 @@ export function AnalyzeFeedbackPanel({
           </div>
         </div>
       </div>
+      ) : null}
       </AnalyzeFeedbackRenderBoundary>
     </div>
   );

@@ -1,6 +1,33 @@
+// =====================================================
+// Architecture Rule
+//
+// Provider response
+//          ↓
+// Schema Mapping Layer  (homeworkSchemaMapping.ts)
+//          ↓
+// Internal Homework Schema
+//          ↓
+// Parser  (this file)
+//          ↓
+// UI
+//
+// Parser must never branch on Provider.
+// Parser must only consume Internal Schema.
+// Provider differences belong only in the Mapping Layer.
+// =====================================================
+
 import { NextResponse } from "next/server";
 
-import { parseAnalyzeApiData } from "@/lib/analyzeFeedback";
+import {
+  countAnswerOverviewEntries,
+  countHomeworkUiAnswerEntries,
+  countOcrQuestionNumbers,
+  extractAnswerOverviewFromFormattedReport,
+  hasStudentSubmissionCorpus,
+  parseAnalyzeApiData,
+  parseDeclaredQuestionCount,
+} from "@/lib/analyzeFeedback";
+import { mapProviderResponseToInternalHomeworkSchema } from "@/lib/homeworkSchemaMapping";
 
 /** TEMPORARY: set false to silence verbose analyze logs. Remove after debugging. */
 const ANALYZE_ROUTE_DEBUG = true;
@@ -8,9 +35,9 @@ const ANALYZE_ROUTE_DEBUG = true;
 function analyzeLog(label: string, payload?: unknown) {
   if (!ANALYZE_ROUTE_DEBUG) return;
   if (payload !== undefined) {
-    console.log(`[analyze api] ${label}`, payload);
+    console.log(`[analyze trace] ${label}`, payload);
   } else {
-    console.log(`[analyze api] ${label}`);
+    console.log(`[analyze trace] ${label}`);
   }
 }
 
@@ -101,30 +128,239 @@ Use exactly these keys (camelCase):
 
 **Omit** pronunciationScores entirely (do not include that key).`;
 
-const TUTOR_VISION_IMAGES_PROMPT = `You are an expert tutor for Taiwanese junior-high / elementary learners. The student attached **one or more images** to analyze.
+const TUTOR_VISION_IMAGES_PROMPT = `You are StudySignal, an AI English tutor.
 
-**Prioritize the images.** Perform OCR mentally, read all visible English/Chinese text, describe important visual content, and connect insights to any typed message the student provided.
+Your mission is NOT simply to give answers.
+Your mission is to help students understand why an answer is correct while keeping the explanation concise and easy to read.
 
-**Do NOT** output pronunciationScores or pronunciationFocus. Do not invent how the student "spoke" a word.
+The student attached **one or more homework images**. Perform OCR mentally, read all visible English/Chinese text, and connect insights to any typed message they provided.
 
-Return ONLY one JSON object (no markdown fences). Use Traditional Chinese (繁體中文) for tutor-facing strings where specified.
+========================
+StudySignal Teaching Mode
+========================
+Before giving the final answer, determine whether the student is asking for **learning** or simply asking for **answers**.
+- If the student appears to be **learning**: put brief **hints first** in homeworkReport.hintsFirst, then answers in answerOverview, then explanations in keyExplanations.
+- Never encourage copying homework without understanding.
+- Always teach before giving the final explanation whenever appropriate.
 
-Required keys:
-- imageInsights: object with
-  - ocrText: 繁體中文 — transcribe or summarize text you see in the images (if none, say so clearly)
-  - visualSummaryZh: 繁體中文 — explain what the images show and what is relevant for learning
-- grammar, vocabulary, fluency: same shapes as text-only (scores + 繁體中文 bullets), grounded in image content and any typed text. **Each whyNot100 bullet MUST use the three-part teacher style in one string:** 【學生】…【改寫】…【說明】… = (1) fragment from learner text or OCR-relevant English, (2) corrected English, (3) one 繁體 sentence why better. **FORBIDDEN** vague「還可以更好」alone.
-- expression: OPTIONAL - same object shape as grammar; focus on communication, tone, and clarity in context of images/text. Same three-part whyNot100 rule. Omit if redundant with fluency.
-- tutorModelAnswer: object with "studentVersion", "betterVersion", "nativeLikeVersion" — three English versions of the same intent suggested by the task in the images (student-like / clearer / native-like); optional short 繁體 gloss in parentheses.
-- learningSummary: object with "strengths", "weaknesses", "whatToPracticeNext" — each an array of 2–4 bullets 繁體中文 grounded in the images and text.
-- tutorComment: same three-string object 繁體中文, referencing what is visible in the images and/or their text
+========================
+OUTPUT FORMAT (homework photos)
+========================
+Return ONLY one JSON object (no markdown fences outside JSON). **Always answer in the same language the student uses** (typed message or dominant language on the worksheet). If unclear, use Traditional Chinese (繁體中文) for explanations and English for worksheet answers.
 
-Omit pronunciationScores and pronunciationFocus entirely.`;
+Required top-level key **imageInsights** with:
+- ocrText: brief OCR / text summary from the image(s)
+- visualSummaryZh: short note on what the images show (繁體中文 OK)
+- homeworkReport: object with ALL of the following:
+
+**STEP 1 — Homework Summary** (also mirror in formattedReport):
+- homeworkType: e.g. "fill-in-the-blank", "multiple choice", "translation"
+- questionCount: number or string count of questions you can see
+- imageQuality: exactly one of "Good" | "Fair" | "Poor"
+- questionRecognitionIssues: REQUIRED array. After checking every numbered question on the image(s), list ONLY questions where you could NOT reliably read the question text, student handwriting, or answer area due to real image/OCR/vision limits (e.g. blur, glare, reflection, crop, too small, obscured). Each item: { "questionLabel": "Question 5", "issue": "Text is blurry" } — use short English issue labels like the examples. Return [] when ALL questions are clearly readable. FORBIDDEN: vague whole-homework warnings (e.g. "some answers may need verification", "部分答案可能需要驗證"); do NOT list a question if you successfully read it; do NOT warn because an answer was inferred or you are uncertain about correctness — only warn when text/visual recognition actually failed.
+
+**Recognition display rules (formattedReport 📸 section and questionRecognitionIssues must agree):**
+- If questionRecognitionIssues is empty: show exactly "✅ All questions were recognized successfully."
+- If not empty: show "⚠️ Image quality issue" then each questionLabel with bullet issue (one issue per question).
+- Never include lowOcrNote or any vague verification disclaimer.
+
+**STEP 2 — Answer Overview**:
+- hintsFirst: optional string — hints only when student seems to be learning (before answers)
+- answerOverview: REQUIRED numbered answers for **every** question from 1 through questionCount. Format one line per question: "1. ...\\n2. ...\\n3. ..." through N. **Never skip a question number.** If one answer truly cannot be read from the image, use exactly two lines for that item: "Question X" then "status: unreadable" — do NOT omit X.
+
+**STEP 3 — Key Explanations**:
+- keyExplanations: array — **DO NOT explain every question**. Only items involving grammar, confusing vocabulary, verb tense, collocations, prepositions, or common mistakes.
+  Each item: { "questionLabel": "Question X", "correctAnswer": "...", "why": "simple explanation for junior/high school students, under 80 words", "example": "optional short example" }
+
+**STEP 4 — Pronunciation Focus**:
+- pronunciationFocus: array of **3 to 5** items from the homework: { "word": "...", "ipa": "/.../", "tip": "simple pronunciation tip" }
+
+**STEP 5 — Today's Learning Signal**:
+- learningSignal: array of bullet strings summarizing what was learned today (e.g. "✅ Third-person singular verbs"). **Do NOT invent numeric scores.**
+
+**formattedReport**: REQUIRED string — full student-facing report with these exact section titles and emoji:
+📸 Homework analyzed
+✅ Answer Overview
+🔍 Key Explanations
+🔊 Pronunciation Practice
+📈 Today's Learning Signal
+
+In the 📸 Homework analyzed section include homework type, question count, and image quality only — the app renders question recognition status separately from questionRecognitionIssues; do not duplicate recognition warnings inside formattedReport.
+
+Use clean formatting, headings, short bullets. Avoid long paragraphs. Avoid repeating the same explanation. Sound like a friendly English tutor, not an encyclopedia. Do not include chain-of-thought.
+
+Also include (for app compatibility):
+- tutorComment: { "whatWentWell", "biggestImprovementOpportunity", "whatToTryNextTime" } — same language as student, brief, grounded in the homework
+- learningSummary: optional { "strengths", "weaknesses", "whatToPracticeNext" } — 2–4 bullets each, no invented scores
+
+**Omit** pronunciationScores, pronunciationFocus (top-level), grammar, vocabulary, and fluency keys entirely unless you cannot avoid them — the homework report is the primary output.
+
+Do NOT invent how the student "spoke" a word.`;
 
 type ImagePart = {
   type: "image_url";
   image_url: { url: string };
 };
+
+type VisionUserPart = { type: "text"; text: string } | ImagePart;
+
+type LossLayer = "OpenAI" | "JSON Parse" | "Parser" | "UI" | "none";
+
+type HomeworkTraceSnapshot = {
+  ocrQuestionCount: number;
+  declaredQuestionCount: number | null;
+  answerOverviewEntryCount: number;
+  answerOverviewCharLength: number;
+};
+
+/** Extract a JSON string value by key from raw text without JSON.parse (trace only). */
+function extractRawJsonStringField(raw: string, key: string): string {
+  const marker = `"${key}"`;
+  const idx = raw.indexOf(marker);
+  if (idx < 0) return "";
+  const colon = raw.indexOf(":", idx + marker.length);
+  if (colon < 0) return "";
+  let i = colon + 1;
+  while (i < raw.length && /\s/.test(raw[i]!)) i++;
+  if (raw[i] !== '"') return "";
+  i++;
+  let out = "";
+  let escaped = false;
+  for (; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (escaped) {
+      out += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') break;
+    out += ch;
+  }
+  return out
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\");
+}
+
+function extractRawQuestionCount(raw: string): unknown {
+  const m =
+    /"questionCount"\s*:\s*("([^"]*)"|(\d+))/.exec(raw) ??
+    /"question_count"\s*:\s*("([^"]*)"|(\d+))/.exec(raw);
+  if (!m) return null;
+  if (m[3] != null) return Number(m[3]);
+  if (m[2] != null) return m[2];
+  return null;
+}
+
+function readHomeworkFieldsFromParsed(parsed: unknown): {
+  ocrText: string;
+  questionCount: unknown;
+  answerOverview: string;
+  formattedReport: string;
+} {
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      ocrText: "",
+      questionCount: null,
+      answerOverview: "",
+      formattedReport: "",
+    };
+  }
+  const root = parsed as Record<string, unknown>;
+  const insights =
+    root.imageInsights && typeof root.imageInsights === "object"
+      ? (root.imageInsights as Record<string, unknown>)
+      : null;
+  const hr =
+    insights?.homeworkReport && typeof insights.homeworkReport === "object"
+      ? (insights.homeworkReport as Record<string, unknown>)
+      : null;
+
+  return {
+    ocrText: String(insights?.ocrText ?? insights?.ocr_text ?? ""),
+    questionCount:
+      hr?.questionCount ??
+      hr?.question_count ??
+      root.questionCount ??
+      root.question_count ??
+      null,
+    answerOverview: String(
+      hr?.answerOverview ??
+        hr?.answer_overview ??
+        root.answerOverview ??
+        root.answer_overview ??
+        "",
+    ),
+    formattedReport: String(
+      root.formattedReport ?? root.formatted_report ?? "",
+    ),
+  };
+}
+
+function snapshotFromHomeworkFields(fields: {
+  ocrText: string;
+  questionCount: unknown;
+  answerOverview: string;
+  formattedReport: string;
+}): HomeworkTraceSnapshot {
+  const ocrQuestionCount = countOcrQuestionNumbers(fields.ocrText);
+  const declaredQuestionCount = parseDeclaredQuestionCount(
+    typeof fields.questionCount === "number" ||
+      typeof fields.questionCount === "string"
+      ? fields.questionCount
+      : undefined,
+  );
+  const overviewSource =
+    fields.answerOverview ||
+    (fields.formattedReport
+      ? extractAnswerOverviewFromFormattedReport(fields.formattedReport)
+      : "");
+  return {
+    ocrQuestionCount,
+    declaredQuestionCount,
+    answerOverviewEntryCount: countAnswerOverviewEntries(overviewSource),
+    answerOverviewCharLength: overviewSource.length,
+  };
+}
+
+function promptRequiresCompleteAnswerOverview(systemPrompt: string): boolean {
+  return (
+    systemPrompt.includes("every** question from 1 through questionCount") ||
+    systemPrompt.includes("Never skip a question number")
+  );
+}
+
+function inferLossLayer(
+  step1: HomeworkTraceSnapshot,
+  step3: HomeworkTraceSnapshot,
+  step4: HomeworkTraceSnapshot,
+  step5: HomeworkTraceSnapshot,
+  step6: HomeworkTraceSnapshot,
+): LossLayer {
+  const baseline =
+    step1.ocrQuestionCount > 0
+      ? step1.ocrQuestionCount
+      : step1.declaredQuestionCount ?? 0;
+  if (baseline <= 0) return "none";
+
+  if (step3.answerOverviewEntryCount < baseline) return "OpenAI";
+  if (step4.answerOverviewEntryCount < step3.answerOverviewEntryCount) {
+    return "JSON Parse";
+  }
+  if (step5.answerOverviewEntryCount < step4.answerOverviewEntryCount) {
+    return "Parser";
+  }
+  if (step6.answerOverviewEntryCount < step5.answerOverviewEntryCount) {
+    return "UI";
+  }
+  return "none";
+}
 
 function parseRequestBody(body: unknown): {
   text: string;
@@ -155,6 +391,29 @@ function parseRequestBody(body: unknown): {
   return { text, includePronunciation, images };
 }
 
+function buildVisionUserContent(
+  text: string,
+  images: { mimeType: string; dataBase64: string }[],
+): VisionUserPart[] {
+  const parts: VisionUserPart[] = [
+    {
+      type: "text",
+      text:
+        `Student typed message (may be empty):\n${text || "（無）"}\n\n` +
+        "Analyze the attached English homework image(s). Follow StudySignal homework steps in imageInsights.homeworkReport and formattedReport. Return JSON exactly as specified.",
+    },
+  ];
+  for (const img of images) {
+    parts.push({
+      type: "image_url",
+      image_url: {
+        url: `data:${img.mimeType};base64,${img.dataBase64}`,
+      },
+    });
+  }
+  return parts;
+}
+
 export async function POST(request: Request) {
   await logAnalyzeIncomingImageDebug(request);
 
@@ -162,7 +421,7 @@ export async function POST(request: Request) {
   if (!apiKey) {
     return NextResponse.json(
       { error: "尚未設定 OPENAI_API_KEY。" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -177,87 +436,61 @@ export async function POST(request: Request) {
   if (!parsedBody) {
     return NextResponse.json(
       { error: "請使用有效的 JSON 物件。" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const { text, includePronunciation, images } = parsedBody;
   const hasImages = images.length > 0;
 
-  console.log("[image upload debug] api /api/analyze JSON images received", {
-    imageCount: images.length,
-    images: images.map((im, i) => ({
-      index: i,
-      "image MIME type": im.mimeType,
-      dataBase64Length: im.dataBase64.length,
-      "image.size (base64 chars)": im.dataBase64.length,
-    })),
-  });
-
-  analyzeLog("1_request_body_summary", {
-    textLength: text.length,
-    textPreview: text.slice(0, 500),
-    includePronunciation,
-    imageCount: images.length,
-    perImage: images.map((im, i) => ({
-      index: i,
-      mimeType: im.mimeType,
-      base64Length: im.dataBase64.length,
-      base64Prefix: im.dataBase64.slice(0, 48),
-    })),
-  });
-
   if (!text && !hasImages) {
     return NextResponse.json(
       { error: "請提供文字或至少一張圖片。" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  /** Speech-based pronunciation only when client requests it and there are no images. */
   const requireSpeechPronunciation =
     includePronunciation === true && !hasImages;
 
-  analyzeLog("1b_route_mode", {
-    hasImages,
-    requireSpeechPronunciation,
-    branch: hasImages
-      ? "vision"
-      : requireSpeechPronunciation
-        ? "speech_pronunciation"
-        : "text_no_pronunciation",
-  });
-
   let systemPrompt: string;
-  let userContent:
-    | string
-    | ({ type: "text"; text: string } | ImagePart)[];
+  let userContent: string | VisionUserPart[];
 
   if (hasImages) {
     systemPrompt = TUTOR_VISION_IMAGES_PROMPT;
-    const parts: ({ type: "text"; text: string } | ImagePart)[] = [
-      {
-        type: "text",
-        text:
-          `Student typed message (may be empty):\n${text || "（無）"}\n\n` +
-          "Analyze the attached image(s). Return JSON exactly as specified.",
-      },
-    ];
-    for (const img of images) {
-      parts.push({
-        type: "image_url",
-        image_url: {
-          url: `data:${img.mimeType};base64,${img.dataBase64}`,
-        },
-      });
-    }
-    userContent = parts;
+    userContent = buildVisionUserContent(text, images);
   } else if (requireSpeechPronunciation) {
     systemPrompt = TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT;
     userContent = `Student transcript from speech audio:\n\n${text}\n\nReturn the JSON object exactly as specified.`;
   } else {
     systemPrompt = TUTOR_TEXT_OR_IMAGE_NO_PRONUNCIATION_PROMPT;
     userContent = `Student typed text (no speech audio):\n\n${text}\n\nReturn the JSON object exactly as specified — **without** pronunciationScores or pronunciationFocus keys.`;
+  }
+
+  if (hasImages) {
+    analyzeLog("STEP1_ocr_question_count", {
+      ocrQuestionCount: null,
+      note: "OCR is produced inside the LLM response (imageInsights.ocrText). Counted after OpenAI returns — see STEP3/STEP4.",
+    });
+
+    const userTextPart =
+      typeof userContent !== "string"
+        ? (userContent.find((p) => p.type === "text") as
+            | { type: "text"; text: string }
+            | undefined)
+        : undefined;
+
+    analyzeLog("STEP2_llm_prompt", {
+      systemPromptLength: systemPrompt.length,
+      systemPrompt,
+      userText: typeof userContent === "string" ? userContent : userTextPart?.text,
+      promptQuestionCount: null,
+      promptQuestionCountNote:
+        "Prompt asks model to set homeworkReport.questionCount from visible worksheet; no fixed N sent.",
+      requiresCompleteAnswerOverview:
+        promptRequiresCompleteAnswerOverview(systemPrompt),
+      imageCount: images.length,
+    });
   }
 
   const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -282,93 +515,221 @@ export async function POST(request: Request) {
     const detail = await openaiRes.text();
     return NextResponse.json(
       { error: "分析服務暫時失敗，請稍後再試。", detail },
-      { status: 502 }
+      { status: 502 },
     );
   }
 
   const data = (await openaiRes.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
   };
-  const choice0 = data.choices?.[0] as
-    | { message?: { content?: string }; finish_reason?: string }
-    | undefined;
+  const choice0 = data.choices?.[0];
   const rawContent = choice0?.message?.content?.trim() ?? "";
+  const finishReason = choice0?.finish_reason ?? null;
 
-  analyzeLog("2_openai_message_meta", {
-    choiceCount: data.choices?.length ?? 0,
-    finishReason: choice0?.finish_reason,
-    rawContentLength: rawContent.length,
-    rawContentIsEmpty: rawContent.length === 0,
-  });
-  analyzeLog("2_openai_raw_content_length", rawContent.length);
-  analyzeLog("2_openai_raw_content_full", rawContent);
+  let step3Snapshot: HomeworkTraceSnapshot | null = null;
+  let step4Snapshot: HomeworkTraceSnapshot | null = null;
+  let step5Snapshot: HomeworkTraceSnapshot | null = null;
+  let step6Snapshot: HomeworkTraceSnapshot | null = null;
+  let step1Snapshot: HomeworkTraceSnapshot | null = null;
+
+  if (hasImages) {
+    const ocrTextRaw = extractRawJsonStringField(rawContent, "ocrText");
+    const answerOverviewRaw =
+      extractRawJsonStringField(rawContent, "answerOverview") ||
+      extractRawJsonStringField(rawContent, "answer_overview");
+    const formattedReportRaw =
+      extractRawJsonStringField(rawContent, "formattedReport") ||
+      extractRawJsonStringField(rawContent, "formatted_report");
+    const questionCountRaw = extractRawQuestionCount(rawContent);
+
+    step3Snapshot = snapshotFromHomeworkFields({
+      ocrText: ocrTextRaw,
+      questionCount: questionCountRaw,
+      answerOverview: answerOverviewRaw,
+      formattedReport: formattedReportRaw,
+    });
+
+    step1Snapshot = step3Snapshot;
+
+    analyzeLog("STEP1_ocr_question_count", {
+      ocrQuestionCount: step1Snapshot.ocrQuestionCount,
+      ocrTextSnippet: ocrTextRaw.slice(0, 400),
+      source: "imageInsights.ocrText from raw OpenAI response (string extract, no JSON.parse)",
+    });
+
+    analyzeLog("STEP3_openai_raw_before_json_parse", {
+      responseLength: rawContent.length,
+      finishReason,
+      questionCount: questionCountRaw,
+      answerOverviewRaw,
+      answerOverviewRawLength: answerOverviewRaw.length,
+      formattedReportRaw,
+      formattedReportRawLength: formattedReportRaw.length,
+      answerOverviewEntryCount: step3Snapshot.answerOverviewEntryCount,
+    });
+  }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawContent) as unknown;
   } catch (e) {
-    analyzeLog("2_json_parse_failed", {
+    analyzeLog("STEP4_json_parse_failed", {
       error: e instanceof Error ? e.message : String(e),
       rawContentPrefix: rawContent.slice(0, 2000),
-      rawContentSuffix: rawContent.slice(-2000),
     });
     return NextResponse.json(
       { error: "分析結果格式異常，請再試一次。" },
-      { status: 502 }
+      { status: 502 },
     );
   }
 
-  analyzeLog("3_parsed_json_keys", {
-    keys:
-      parsed && typeof parsed === "object"
-        ? Object.keys(parsed as object)
-        : [],
+  if (hasImages) {
+    const fields4 = readHomeworkFieldsFromParsed(parsed);
+    step4Snapshot = snapshotFromHomeworkFields(fields4);
+
+    analyzeLog("STEP4_after_json_parse", {
+      questionCount: fields4.questionCount,
+      answerOverviewLength: fields4.answerOverview.length,
+      formattedReportLength: fields4.formattedReport.length,
+      answerOverviewEntryCount: step4Snapshot.answerOverviewEntryCount,
+      ocrQuestionCount: step4Snapshot.ocrQuestionCount,
+    });
+  }
+
+  // Schema Mapping Layer runs before Parser — do not add provider logic below.
+  const schemaMapping = mapProviderResponseToInternalHomeworkSchema(parsed, {
+    provider: hasImages ? "openai" : undefined,
+    traceLog: (layer, payload) => analyzeLog(layer, payload),
   });
-  analyzeLog("3_parsed_json_full", JSON.stringify(parsed, null, 2));
+  parsed = schemaMapping.normalized;
+
+  if (hasImages) {
+    const fieldsMapped = readHomeworkFieldsFromParsed(parsed);
+    analyzeLog("schema_mapping:pipeline_step", {
+      step: "Provider Raw → Schema Mapping → Internal HomeworkReport (pre-parser)",
+      rulesApplied: schemaMapping.rulesApplied,
+      internalAnswerOverviewLength: fieldsMapped.answerOverview.length,
+      internalFormattedReportLength: fieldsMapped.formattedReport.length,
+      internalAnswerOverviewEntryCount: countAnswerOverviewEntries(
+        fieldsMapped.answerOverview ||
+          extractAnswerOverviewFromFormattedReport(fieldsMapped.formattedReport),
+      ),
+    });
+  }
 
   const parseLog = (label: string, payload?: unknown) =>
     analyzeLog(`parse_step:${label}`, payload);
 
+  const hasStudentCorpus = hasStudentSubmissionCorpus(
+    text,
+    requireSpeechPronunciation,
+  );
+
   const feedback = parseAnalyzeApiData(
     parsed,
     requireSpeechPronunciation,
-    parseLog
+    parseLog,
+    { hasStudentCorpus },
   );
 
-  analyzeLog("4_parseAnalyzeApiData_result", {
-    isNull: feedback === null,
-    hasImageInsights: Boolean(feedback?.imageInsights),
-    imageInsights: feedback?.imageInsights ?? null,
-    ocrText: feedback?.imageInsights?.ocrText ?? null,
-    visualSummaryZh: feedback?.imageInsights?.visualSummaryZh ?? null,
-    hasPronunciationScores: Boolean(feedback?.pronunciationScores),
-    pronunciationFocusLength: feedback?.pronunciationFocus?.length ?? null,
-  });
-
   if (!feedback) {
-    analyzeLog("4_UI_MESSAGE", {
-      userSees: "分析結果不完整，請再試一次。",
-      reason: "parseAnalyzeApiData returned null — see parse_step:* logs above",
-    });
     return NextResponse.json(
       { error: "分析結果不完整，請再試一次。" },
-      { status: 502 }
+      { status: 502 },
     );
   }
 
   if (hasImages && !feedback.imageInsights) {
-    analyzeLog("5_fail_missing_image_insights_after_parse", {
-      userSees: "分析結果缺少圖片辨識內容，請再試一次。",
-      hasImages,
-      feedbackKeys: Object.keys(feedback),
-    });
     return NextResponse.json(
       { error: "分析結果缺少圖片辨識內容，請再試一次。" },
-      { status: 502 }
+      { status: 502 },
     );
   }
 
-  analyzeLog("6_response_to_client_full", JSON.stringify(feedback, null, 2));
+  if (hasImages && feedback.imageInsights?.homeworkReport) {
+    const report = feedback.imageInsights.homeworkReport;
+    const parserOverview = report.answerOverview;
+    step5Snapshot = {
+      ocrQuestionCount: countOcrQuestionNumbers(
+        feedback.imageInsights.ocrText,
+      ),
+      declaredQuestionCount: parseDeclaredQuestionCount(report.questionCount),
+      answerOverviewEntryCount: countHomeworkUiAnswerEntries(report),
+      answerOverviewCharLength: report.formattedReport
+        ? report.formattedReport.length
+        : parserOverview.length,
+    };
+
+    analyzeLog("STEP5_after_parser", {
+      parserAnswerCount: step5Snapshot.answerOverviewEntryCount,
+      parserAnswerOverviewFieldCount: countAnswerOverviewEntries(parserOverview),
+      parserFormattedReportLength: report.formattedReport?.length ?? 0,
+      parserFormattedReportAnswerCount: report.formattedReport
+        ? countAnswerOverviewEntries(
+            extractAnswerOverviewFromFormattedReport(report.formattedReport),
+          )
+        : 0,
+      answerOverviewFieldLength: parserOverview.length,
+      questionCount: report.questionCount,
+      hasFormattedReport: Boolean(report.formattedReport),
+    });
+
+    analyzeLog("schema_mapping:pipeline_step", {
+      step: "Internal HomeworkReport → Parser → UI (pre-render)",
+      rulesAppliedBeforeParser: schemaMapping.rulesApplied,
+    });
+
+    step6Snapshot = {
+      ocrQuestionCount: step5Snapshot.ocrQuestionCount,
+      declaredQuestionCount: step5Snapshot.declaredQuestionCount,
+      answerOverviewEntryCount: countHomeworkUiAnswerEntries(report),
+      answerOverviewCharLength: report.formattedReport
+        ? report.formattedReport.length
+        : parserOverview.length,
+    };
+
+    analyzeLog("STEP6_before_ui_render", {
+      uiAnswerCount: step6Snapshot.answerOverviewEntryCount,
+      uiUsesFormattedReport: Boolean(report.formattedReport),
+      formattedReportLength: report.formattedReport?.length ?? 0,
+    });
+
+    const lossLayer = inferLossLayer(
+      step1Snapshot!,
+      step3Snapshot!,
+      step4Snapshot!,
+      step5Snapshot,
+      step6Snapshot,
+    );
+
+    analyzeLog("LOSS_LAYER", {
+      lossLayer,
+      baselineQuestionCount:
+        step1Snapshot!.ocrQuestionCount > 0
+          ? step1Snapshot!.ocrQuestionCount
+          : step1Snapshot!.declaredQuestionCount,
+      trace: {
+        STEP1_ocrQuestionCount: step1Snapshot!.ocrQuestionCount,
+        STEP2_promptRequiresComplete: promptRequiresCompleteAnswerOverview(
+          systemPrompt,
+        ),
+        STEP3_llmRawAnswerCount: step3Snapshot!.answerOverviewEntryCount,
+        STEP4_parsedAnswerCount: step4Snapshot!.answerOverviewEntryCount,
+        STEP5_parserAnswerCount: step5Snapshot.answerOverviewEntryCount,
+        STEP6_uiAnswerCount: step6Snapshot.answerOverviewEntryCount,
+      },
+      flow:
+        lossLayer === "OpenAI"
+          ? "OCR → LLM (incomplete Answer Overview) → …"
+          : lossLayer === "JSON Parse"
+            ? "OCR → LLM → JSON Parse (field loss) → …"
+            : lossLayer === "Parser"
+              ? "OCR → LLM → JSON Parse → Parser (field loss) → …"
+              : lossLayer === "UI"
+                ? "OCR → LLM → JSON Parse → Parser → UI (display path loss) → …"
+                : "OCR → LLM → JSON Parse → Parser → UI (no loss detected)",
+    });
+  }
 
   return NextResponse.json(feedback);
 }

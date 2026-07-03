@@ -47,11 +47,119 @@ export type PronunciationScoresBlock = {
   feedback: string;
 };
 
-/** OCR + visual explanation (Traditional Chinese) when analysis used attached images. */
+/** OCR + visual explanation when analysis used attached images. */
+export type HomeworkKeyExplanation = {
+  questionLabel: string;
+  correctAnswer: string;
+  why: string;
+  example?: string;
+};
+
+export type HomeworkPronunciationRow = {
+  word: string;
+  ipa: string;
+  tip: string;
+};
+
+/** Per-question OCR / vision failure — only questions that could not be read clearly. */
+export type HomeworkQuestionRecognitionIssue = {
+  questionLabel: string;
+  issue: string;
+};
+
+export type HomeworkReport = {
+  homeworkType: string;
+  questionCount: string | number;
+  imageQuality: string;
+  /** Questions with real OCR/vision/image-quality failures only. Empty = all recognized. */
+  questionRecognitionIssues?: HomeworkQuestionRecognitionIssue[];
+  hintsFirst?: string;
+  answerOverview: string;
+  keyExplanations: HomeworkKeyExplanation[];
+  pronunciationFocus: HomeworkPronunciationRow[];
+  learningSignal: string[];
+  studentIntent?: string;
+  /** Full markdown report with emoji section headers for UI display. */
+  formattedReport?: string;
+};
+
 export type ImageInsights = {
   ocrText: string;
   visualSummaryZh: string;
+  homeworkReport?: HomeworkReport;
 };
+
+/** Which analysis sections the client may render for this request. */
+export type AnalysisCapabilities = {
+  imageAnalysis: boolean;
+  learningSummary: boolean;
+  grammar: boolean;
+  vocabulary: boolean;
+  fluency: boolean;
+  pronunciation: boolean;
+  tutorModelAnswer: boolean;
+  tutorComment: boolean;
+};
+
+export type AnalysisCapabilitiesInput = {
+  hasStudentCorpus: boolean;
+  hasImageInsights: boolean;
+  requireSpeechPronunciation: boolean;
+};
+
+export function buildAnalysisCapabilities(
+  input: AnalysisCapabilitiesInput,
+): AnalysisCapabilities {
+  const { hasStudentCorpus, hasImageInsights, requireSpeechPronunciation } =
+    input;
+  const studentRubric = hasStudentCorpus;
+  return {
+    imageAnalysis: hasImageInsights,
+    learningSummary: studentRubric,
+    grammar: studentRubric,
+    vocabulary: studentRubric,
+    fluency: studentRubric,
+    pronunciation:
+      studentRubric && (requireSpeechPronunciation || !hasImageInsights),
+    tutorModelAnswer: studentRubric,
+    tutorComment: studentRubric,
+  };
+}
+
+/** Fallback for stored feedback created before capabilities were added. */
+export function resolveAnalysisCapabilities(
+  feedback: AnalyzeFeedback,
+): AnalysisCapabilities {
+  if (!feedback) {
+    return buildAnalysisCapabilities({
+      hasStudentCorpus: false,
+      hasImageInsights: false,
+      requireSpeechPronunciation: false,
+    });
+  }
+  if (feedback.analysisCapabilities) {
+    return feedback.analysisCapabilities;
+  }
+  const hasImage = Boolean(feedback.imageInsights);
+  const tutorComment = feedback.tutorComment;
+  const grammar = feedback.grammar;
+  const hasStudentContent =
+    Boolean(feedback.learningSummary) ||
+    Boolean(feedback.tutorModelAnswer) ||
+    Boolean(feedback.pronunciationScores) ||
+    (tutorComment?.whatWentWell?.trim().length ?? 0) > 0 ||
+    (tutorComment?.biggestImprovementOpportunity?.trim().length ?? 0) > 0 ||
+    (grammar?.strengths?.some(
+      (s) => s.length > 0 && !s.startsWith("See homework"),
+    ) ??
+      false) ||
+    (grammar?.score ?? 0) > 0;
+  return buildAnalysisCapabilities({
+    hasStudentCorpus: hasStudentContent,
+    hasImageInsights: hasImage,
+    requireSpeechPronunciation: Boolean(feedback.pronunciationScores),
+  });
+}
 
 export type AnalyzeFeedback = {
   /** Present only when speech audio was used for pronunciation analysis. */
@@ -70,7 +178,88 @@ export type AnalyzeFeedback = {
   tutorModelAnswer?: TutorModelAnswerBlock;
   /** Optional: strengths / gaps / next practice. */
   learningSummary?: LearningSummaryBlock;
+  /** Which sections the UI may render for this analysis. */
+  analysisCapabilities?: AnalysisCapabilities;
 };
+
+const IMAGE_ONLY_SCORE_STUB: ScoreCategoryFeedback = {
+  score: 0,
+  strengths: [],
+  whyNot100: [],
+  improvementExamples: [],
+};
+
+const IMAGE_ONLY_TUTOR_COMMENT_STUB: TutorPersonalizedComment = {
+  whatWentWell: "",
+  biggestImprovementOpportunity: "",
+  whatToTryNextTime: "",
+};
+
+export type ParseAnalyzeOptions = {
+  /** Student typed text, speech transcript, or aggregated chat corpus was submitted. */
+  hasStudentCorpus: boolean;
+};
+
+export function hasStudentSubmissionCorpus(
+  text: string,
+  requireSpeechPronunciation: boolean,
+): boolean {
+  return text.trim().length > 0 || requireSpeechPronunciation;
+}
+
+/** Count numbered blanks like (1), (2) in OCR text. */
+export function countOcrQuestionNumbers(ocrText: string): number {
+  const nums = new Set<number>();
+  for (const m of ocrText.matchAll(/\((\d+)\)/g)) {
+    const n = parseInt(m[1]!, 10);
+    if (Number.isFinite(n) && n > 0) nums.add(n);
+  }
+  return nums.size;
+}
+
+/** Count numbered answer lines in answerOverview or formattedReport excerpt. */
+export function countAnswerOverviewEntries(text: string): number {
+  if (!text || text === "—") return 0;
+  let n = 0;
+  for (const line of text.split(/\n/)) {
+    const t = line.trim();
+    if (/^\d+[.)]\s+\S/.test(t)) n++;
+    else if (/^Question\s+\d+/i.test(t)) n++;
+  }
+  return n;
+}
+
+export function parseDeclaredQuestionCount(
+  value: string | number | undefined,
+): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.round(value);
+  }
+  if (typeof value === "string") {
+    const m = /(\d+)/.exec(value.trim());
+    if (m) return parseInt(m[1]!, 10);
+  }
+  return null;
+}
+
+/** Answer Overview entry count as shown in HomeworkReport UI path. */
+export function countHomeworkUiAnswerEntries(report: HomeworkReport): number {
+  if (report.formattedReport) {
+    const extracted = extractAnswerOverviewFromFormattedReport(
+      report.formattedReport,
+    );
+    const fromFormatted = countAnswerOverviewEntries(extracted);
+    if (fromFormatted > 0) return fromFormatted;
+  }
+  return countAnswerOverviewEntries(report.answerOverview);
+}
+
+export function logHomeworkQuestionCountTrace(
+  layer: string,
+  payload: Record<string, unknown>,
+): void {
+  homeworkTrace(`question_count:${layer}`, payload);
+}
 
 function clampScore(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 0;
@@ -316,9 +505,58 @@ function firstNonEmptyString(
   return "";
 }
 
+/** TEMPORARY: homework Answer Overview trace (disable after debugging). */
+const HOMEWORK_TRACE_DEBUG = true;
+
+function homeworkTrace(layer: string, payload?: unknown) {
+  if (!HOMEWORK_TRACE_DEBUG) return;
+  if (payload !== undefined) {
+    console.log(`[homework trace] ${layer}`, payload);
+  } else {
+    console.log(`[homework trace] ${layer}`);
+  }
+}
+
+export function extractAnswerOverviewFromFormattedReport(formatted: string): string {
+  const match =
+    /✅\s*Answer Overview\s*\n([\s\S]*?)(?=\n\s*(?:🔍|📈|🔊|💡)|$)/.exec(
+      formatted,
+    );
+  return match?.[1]?.trim() ?? "";
+}
+
+function parseNumberedAnswerLines(text: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const line of text.split(/\n/)) {
+    const m = /^\s*(\d+)[.)]\s*(.+)$/.exec(line.trim());
+    if (!m) continue;
+    const answer = m[2]!.trim();
+    if (!answer || /\(not visible\)/i.test(answer)) continue;
+    map.set(m[1]!, answer);
+  }
+  return map;
+}
+
+function patchNotVisibleAnswersInFormattedReport(
+  formattedReport: string,
+  answerOverview: string,
+): string {
+  if (!/\(not visible\)/i.test(formattedReport)) return formattedReport;
+  const answers = parseNumberedAnswerLines(answerOverview);
+  if (answers.size === 0) return formattedReport;
+  let out = formattedReport;
+  for (const [num, ans] of answers) {
+    out = out.replace(
+      new RegExp(`(^|\\n)(\\s*${num}[.)]\\s*)\\(not visible\\)`, "gi"),
+      `$1$2${ans}`,
+    );
+  }
+  return out;
+}
+
 /** Accept camelCase / snake_case from model JSON. */
 function extractImageInsightsContainer(
-  root: Record<string, unknown>
+  root: Record<string, unknown>,
 ): unknown {
   const nested = root.imageInsights ?? root.image_insights;
   if (nested !== undefined && nested !== null) return nested;
@@ -336,9 +574,256 @@ function extractImageInsightsContainer(
   return undefined;
 }
 
+function normalizeHomeworkKeyExplanation(raw: unknown): HomeworkKeyExplanation | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const questionLabel = toTrimmedDisplayString(
+    o.questionLabel ?? o.question ?? o.label,
+  );
+  const correctAnswer = toTrimmedDisplayString(
+    o.correctAnswer ?? o.answer ?? o.correct_answer,
+  );
+  const why = toTrimmedDisplayString(o.why ?? o.explanation);
+  if (!questionLabel && !correctAnswer && !why) return null;
+  const example = toTrimmedDisplayString(o.example);
+  return {
+    questionLabel: questionLabel || "Question",
+    correctAnswer: correctAnswer || "—",
+    why: why || "—",
+    ...(example ? { example } : {}),
+  };
+}
+
+function normalizeHomeworkPronunciationRow(raw: unknown): HomeworkPronunciationRow | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const word = toTrimmedDisplayString(o.word);
+  const ipa = toTrimmedDisplayString(o.ipa ?? o.ipaUs ?? o.ipaUk);
+  const tip = toTrimmedDisplayString(o.tip ?? o.pronunciationTip);
+  if (!word) return null;
+  return { word, ipa: ipa || "—", tip: tip || "—" };
+}
+
+function formatHomeworkQuestionLabel(raw: string): string {
+  const t = raw.trim();
+  if (!t) return "Question";
+  if (/^question\s/i.test(t)) return t;
+  if (/^q\.?\s*\d+/i.test(t)) return t.replace(/^q\.?\s*/i, "Question ");
+  if (/^\d+$/.test(t)) return `Question ${t}`;
+  return t;
+}
+
+const VAGUE_RECOGNITION_ISSUE =
+  /may need verification|可能需要驗證|部分答案|uncertain answer|answer inference|推論答案|無法確認答案/i;
+
+function isVagueRecognitionIssue(issue: string): boolean {
+  return VAGUE_RECOGNITION_ISSUE.test(issue);
+}
+
+function normalizeHomeworkQuestionRecognitionIssue(
+  raw: unknown,
+): HomeworkQuestionRecognitionIssue | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const questionLabel = formatHomeworkQuestionLabel(
+    toTrimmedDisplayString(
+      o.questionLabel ??
+        o.question_label ??
+        o.question ??
+        o.questionNumber ??
+        o.question_number ??
+        o.number,
+    ),
+  );
+  const issue = toTrimmedDisplayString(
+    o.issue ?? o.reason ?? o.problem ?? o.note ?? o.description,
+  );
+  if (!questionLabel || questionLabel === "Question" || !issue) return null;
+  if (isVagueRecognitionIssue(issue)) return null;
+  return { questionLabel, issue };
+}
+
+const VAGUE_HOMEWORK_WARNING_PATTERNS = [
+  /部分答案可能需要驗證[。.]?\s*/g,
+  /some answers may need verification[.]?\s*/gi,
+  /low ocr confidence[^.\n]*[.]?\s*/gi,
+];
+
+function sanitizeHomeworkFormattedReport(text: string): string {
+  let out = text;
+  for (const pattern of VAGUE_HOMEWORK_WARNING_PATTERNS) {
+    out = out.replace(pattern, "");
+  }
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// =====================================================
+// Architecture Rule
+//
+// Provider response
+//          ↓
+// Schema Mapping Layer  (homeworkSchemaMapping.ts)
+//          ↓
+// Internal Homework Schema
+//          ↓
+// Parser  (this function and parseAnalyzeApiData)
+//          ↓
+// UI
+//
+// Parser must never branch on Provider.
+// Parser must only consume Internal Schema.
+// Provider differences belong only in the Mapping Layer.
+// =====================================================
+
+function normalizeHomeworkReport(raw: unknown): HomeworkReport | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  homeworkTrace("homework_parser_input", {
+    homeworkType: o.homeworkType ?? o.homework_type ?? o.type,
+    answerOverview: o.answerOverview ?? o.answer_overview ?? o.answers,
+    formattedReportLength:
+      typeof o.formattedReport === "string"
+        ? o.formattedReport.length
+        : typeof o.formatted_report === "string"
+          ? o.formatted_report.length
+          : 0,
+    formattedReportAnswerOverviewSnippet: extractAnswerOverviewFromFormattedReport(
+      toTrimmedDisplayString(
+        o.formattedReport ?? o.formatted_report ?? o.reportMarkdown,
+      ),
+    ).slice(0, 400),
+  });
+  const formattedReport = toTrimmedDisplayString(
+    o.formattedReport ?? o.formatted_report ?? o.reportMarkdown,
+  );
+  const homeworkType = toTrimmedDisplayString(
+    o.homeworkType ?? o.homework_type ?? o.type,
+  );
+  const answerOverview = toTrimmedDisplayString(
+    o.answerOverview ?? o.answer_overview ?? o.answers,
+  );
+  const keyRaw = o.keyExplanations ?? o.key_explanations ?? o.explanations;
+  const keyExplanations = Array.isArray(keyRaw)
+    ? keyRaw
+        .map(normalizeHomeworkKeyExplanation)
+        .filter((x): x is HomeworkKeyExplanation => x != null)
+    : [];
+  const pronRaw =
+    o.pronunciationFocus ?? o.pronunciation_focus ?? o.pronunciation;
+  const pronunciationFocus = Array.isArray(pronRaw)
+    ? pronRaw
+        .map(normalizeHomeworkPronunciationRow)
+        .filter((x): x is HomeworkPronunciationRow => x != null)
+        .slice(0, 5)
+    : [];
+  const learnRaw = o.learningSignal ?? o.learning_signal ?? o.todayLearned;
+  const learningSignal = Array.isArray(learnRaw)
+    ? learnRaw
+        .map((x) => toTrimmedDisplayString(x))
+        .filter((s) => s.length > 0)
+    : [];
+  const questionCountRaw = o.questionCount ?? o.question_count ?? o.questions;
+  const questionCount =
+    typeof questionCountRaw === "number" && Number.isFinite(questionCountRaw)
+      ? questionCountRaw
+      : toTrimmedDisplayString(questionCountRaw) || "—";
+  const imageQuality = toTrimmedDisplayString(
+    o.imageQuality ?? o.image_quality ?? o.quality,
+  );
+  const recognitionRaw =
+    o.questionRecognitionIssues ??
+    o.question_recognition_issues ??
+    o.recognitionIssues ??
+    o.recognition_issues;
+  const questionRecognitionIssues = Array.isArray(recognitionRaw)
+    ? recognitionRaw
+        .map(normalizeHomeworkQuestionRecognitionIssue)
+        .filter((x): x is HomeworkQuestionRecognitionIssue => x != null)
+    : [];
+  if (
+    !formattedReport &&
+    !homeworkType &&
+    !answerOverview &&
+    keyExplanations.length === 0
+  ) {
+    return null;
+  }
+  const answerOverviewFinal = answerOverview || "—";
+  const formattedReportFinal = formattedReport
+    ? patchNotVisibleAnswersInFormattedReport(
+        sanitizeHomeworkFormattedReport(formattedReport),
+        answerOverviewFinal,
+      )
+    : undefined;
+  const report: HomeworkReport = {
+    homeworkType: homeworkType || "English worksheet",
+    questionCount,
+    imageQuality: imageQuality || "Fair",
+    ...(questionRecognitionIssues.length > 0
+      ? { questionRecognitionIssues }
+      : { questionRecognitionIssues: [] }),
+    ...(toTrimmedDisplayString(o.hintsFirst ?? o.hints_first)
+      ? { hintsFirst: toTrimmedDisplayString(o.hintsFirst ?? o.hints_first) }
+      : {}),
+    answerOverview: answerOverviewFinal,
+    keyExplanations,
+    pronunciationFocus,
+    learningSignal,
+    ...(toTrimmedDisplayString(o.studentIntent ?? o.student_intent)
+      ? {
+          studentIntent: toTrimmedDisplayString(
+            o.studentIntent ?? o.student_intent,
+          ),
+        }
+      : {}),
+    ...(formattedReportFinal ? { formattedReport: formattedReportFinal } : {}),
+  };
+  const parserAnswerCount = countAnswerOverviewEntries(report.answerOverview);
+  const uiDisplayCount = countHomeworkUiAnswerEntries(report);
+  const declaredCount = parseDeclaredQuestionCount(report.questionCount);
+  logHomeworkQuestionCountTrace("parser_output", {
+    declaredQuestionCount: declaredCount,
+    parserAnswerOverviewCount: parserAnswerCount,
+    uiDisplayAnswerCount: uiDisplayCount,
+    hasFormattedReport: Boolean(report.formattedReport),
+  });
+  homeworkTrace("homework_parser_output", {
+    answerOverview: report.answerOverview,
+    formattedReportAnswerOverviewSnippet: report.formattedReport
+      ? extractAnswerOverviewFromFormattedReport(report.formattedReport).slice(
+          0,
+          400,
+        )
+      : null,
+    hasFormattedReport: Boolean(report.formattedReport),
+    parserAnswerOverviewCount: parserAnswerCount,
+    uiDisplayAnswerCount: uiDisplayCount,
+  });
+  return report;
+}
+
 function normalizeImageInsights(raw: unknown): ImageInsights | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
+  homeworkTrace("image_insights_input", {
+    ocrTextSnippet: firstNonEmptyString(o, [
+      "ocrText",
+      "ocr_text",
+      "ocr",
+      "textInImage",
+      "text_in_image",
+    ]).slice(0, 400),
+    homeworkReportAnswerOverview:
+      o.homeworkReport &&
+      typeof o.homeworkReport === "object" &&
+      !Array.isArray(o.homeworkReport)
+        ? (o.homeworkReport as Record<string, unknown>).answerOverview ??
+          (o.homeworkReport as Record<string, unknown>).answer_overview
+        : null,
+  });
+  const homeworkReport = normalizeHomeworkReport(
+    o.homeworkReport ?? o.homework_report ?? o.homework,
+  );
   const ocrText = firstNonEmptyString(o, [
     "ocrText",
     "ocr_text",
@@ -356,15 +841,44 @@ function normalizeImageInsights(raw: unknown): ImageInsights | null {
     "descriptionZh",
     "description_zh",
   ]);
-  if (!ocrText && !visualSummaryZh) return null;
-  return {
-    ocrText: ocrText || "（未偵測到可讀文字）",
-    visualSummaryZh: visualSummaryZh || "—",
+  if (!homeworkReport && !ocrText && !visualSummaryZh) return null;
+  const result: ImageInsights = {
+    ocrText: ocrText || homeworkReport?.homeworkType || "（未偵測到可讀文字）",
+    visualSummaryZh: visualSummaryZh || homeworkReport?.answerOverview || "—",
+    ...(homeworkReport ? { homeworkReport } : {}),
   };
+  homeworkTrace("image_insights_output", {
+    ocrTextSnippet: result.ocrText.slice(0, 400),
+    answerOverview: result.homeworkReport?.answerOverview ?? null,
+    formattedReportAnswerOverviewSnippet: result.homeworkReport?.formattedReport
+      ? extractAnswerOverviewFromFormattedReport(
+          result.homeworkReport.formattedReport,
+        ).slice(0, 400)
+      : null,
+  });
+  return result;
 }
 
 /** Optional logger for temporary analyze debugging (server or browser console). */
 export type AnalyzeParseLog = (label: string, payload?: unknown) => void;
+
+// =====================================================
+// Architecture Rule
+//
+// Provider response
+//          ↓
+// Schema Mapping Layer  (homeworkSchemaMapping.ts)
+//          ↓
+// Internal Homework Schema
+//          ↓
+// Parser  (parseAnalyzeApiData — entry point)
+//          ↓
+// UI
+//
+// Parser must never branch on Provider.
+// Parser must only consume Internal Schema.
+// Provider differences belong only in the Mapping Layer.
+// =====================================================
 
 /**
  * Parse successful `/api/analyze` JSON body into `AnalyzeFeedback`.
@@ -379,13 +893,76 @@ export type AnalyzeParseLog = (label: string, payload?: unknown) => void;
 export function parseAnalyzeApiData(
   data: unknown,
   requireSpeechPronunciation: boolean,
-  log?: AnalyzeParseLog
+  log?: AnalyzeParseLog,
+  options?: ParseAnalyzeOptions,
 ): AnalyzeFeedback | null {
   if (!data || typeof data !== "object") {
     log?.("parse_fail_root_not_object", { typeofData: typeof data });
     return null;
   }
   const o = data as Record<string, unknown>;
+
+  homeworkTrace("llm_parsed_root", {
+    topLevelKeys: Object.keys(o),
+    topLevelFormattedReportPresent: Boolean(
+      o.formattedReport ?? o.formatted_report,
+    ),
+    topLevelAnswerOverview:
+      o.answerOverview ?? o.answer_overview ?? o.answers ?? null,
+    imageInsightsHomeworkAnswerOverview:
+      o.imageInsights &&
+      typeof o.imageInsights === "object" &&
+      !Array.isArray(o.imageInsights) &&
+      (o.imageInsights as Record<string, unknown>).homeworkReport &&
+      typeof (o.imageInsights as Record<string, unknown>).homeworkReport ===
+        "object"
+        ? (
+            (o.imageInsights as Record<string, unknown>)
+              .homeworkReport as Record<string, unknown>
+          ).answerOverview
+        : null,
+    ocrTextSnippet:
+      o.imageInsights &&
+      typeof o.imageInsights === "object" &&
+      !Array.isArray(o.imageInsights)
+        ? firstNonEmptyString(o.imageInsights as Record<string, unknown>, [
+            "ocrText",
+            "ocr_text",
+          ]).slice(0, 400)
+        : firstNonEmptyString(o, ["ocrText", "ocr_text"]).slice(0, 400),
+  });
+
+  const imageInsightsRaw = extractImageInsightsContainer(o);
+  const imageInsights = normalizeImageInsights(imageInsightsRaw);
+  const hasHomeworkReport = Boolean(imageInsights?.homeworkReport);
+  const studentCorpusPresent = options?.hasStudentCorpus ?? true;
+  const visionMode = Boolean(imageInsights);
+
+  const analysisCapabilities = buildAnalysisCapabilities({
+    hasStudentCorpus: studentCorpusPresent,
+    hasImageInsights: visionMode,
+    requireSpeechPronunciation,
+  });
+
+  if (visionMode && !studentCorpusPresent) {
+    if (!imageInsights) {
+      log?.("parse_fail_image_only_no_insights");
+      return null;
+    }
+    log?.("parse_ok_image_only_homework", {
+      analysisCapabilities,
+      hasHomeworkReport,
+    });
+    return {
+      grammar: IMAGE_ONLY_SCORE_STUB,
+      vocabulary: IMAGE_ONLY_SCORE_STUB,
+      fluency: IMAGE_ONLY_SCORE_STUB,
+      pronunciationFocus: [],
+      tutorComment: IMAGE_ONLY_TUTOR_COMMENT_STUB,
+      imageInsights,
+      analysisCapabilities,
+    };
+  }
 
   const gapFallback = "（此處應有對照例：請重試分析或請老師補充具體寫法。）";
   const grammar = normalizeScoreCategory(
@@ -409,16 +986,29 @@ export function parseAnalyzeApiData(
     "（此處暫無範例，建議多閱讀例句）"
   );
   if (!grammar || !vocabulary || !fluency) {
-    log?.("parse_fail_score_category", {
-      grammarOk: Boolean(grammar),
-      vocabularyOk: Boolean(vocabulary),
-      fluencyOk: Boolean(fluency),
-      rawGrammar: o.grammar,
-      rawVocabulary: o.vocabulary,
-      rawFluency: o.fluency,
-    });
-    return null;
+    if (!hasHomeworkReport) {
+      log?.("parse_fail_score_category", {
+        grammarOk: Boolean(grammar),
+        vocabularyOk: Boolean(vocabulary),
+        fluencyOk: Boolean(fluency),
+        rawGrammar: o.grammar,
+        rawVocabulary: o.vocabulary,
+        rawFluency: o.fluency,
+      });
+      return null;
+    }
   }
+
+  const homeworkScoreFallback: ScoreCategoryFeedback = {
+    score: 0,
+    strengths: ["See homework report sections above."],
+    whyNot100: ["See 🔍 Key Explanations in the homework report."],
+    improvementExamples: ["See 📈 Today's Learning Signal."],
+  };
+
+  const grammarFinal = grammar ?? homeworkScoreFallback;
+  const vocabularyFinal = vocabulary ?? homeworkScoreFallback;
+  const fluencyFinal = fluency ?? homeworkScoreFallback;
 
   const tutorComment = normalizeTutorComment(o.tutorComment);
   log?.("parse_tutor_comment_normalized", {
@@ -426,11 +1016,8 @@ export function parseAnalyzeApiData(
     mapped: tutorComment,
   });
 
-  const imageInsightsRaw = extractImageInsightsContainer(o);
-  const imageInsights = normalizeImageInsights(imageInsightsRaw);
   const tutorModelAnswer = normalizeTutorModelAnswer(o.tutorModelAnswer);
   const learningSummary = normalizeLearningSummary(o.learningSummary);
-  const visionMode = Boolean(imageInsights);
   log?.("parse_image_insights_step", {
     extractedContainer: imageInsightsRaw,
     normalized: imageInsights,
@@ -461,15 +1048,16 @@ export function parseAnalyzeApiData(
     });
     return {
       pronunciationScores,
-      grammar,
-      vocabulary,
-      fluency,
+      grammar: grammarFinal,
+      vocabulary: vocabularyFinal,
+      fluency: fluencyFinal,
       ...(expression ? { expression } : {}),
       pronunciationFocus: pronunciationFocusStrict,
       tutorComment,
       ...(tutorModelAnswer ? { tutorModelAnswer } : {}),
       ...(learningSummary ? { learningSummary } : {}),
       ...(imageInsights ? { imageInsights } : {}),
+      analysisCapabilities,
     };
   }
 
@@ -488,14 +1076,15 @@ export function parseAnalyzeApiData(
     ? []
     : normalizePronunciationFocusFromModel(o.pronunciationFocus);
   return {
-    grammar,
-    vocabulary,
-    fluency,
+    grammar: grammarFinal,
+    vocabulary: vocabularyFinal,
+    fluency: fluencyFinal,
     ...(expression ? { expression } : {}),
     pronunciationFocus: pronunciationFocusNonSpeech,
     tutorComment,
     ...(tutorModelAnswer ? { tutorModelAnswer } : {}),
     ...(learningSummary ? { learningSummary } : {}),
     ...(imageInsights ? { imageInsights } : {}),
+    analysisCapabilities,
   };
 }

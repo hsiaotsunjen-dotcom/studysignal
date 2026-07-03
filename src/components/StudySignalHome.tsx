@@ -46,6 +46,7 @@ import { StudySignalChatThread } from "@/components/StudySignalChatThread";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
   parseAnalyzeApiData,
+  hasStudentSubmissionCorpus,
   type AnalyzeFeedback,
 } from "@/lib/analyzeFeedback";
 import {
@@ -550,6 +551,12 @@ async function postAnalyzeApi(
     data,
     payload.includePronunciation,
     parseDbg,
+    {
+      hasStudentCorpus: hasStudentSubmissionCorpus(
+        payload.text,
+        payload.includePronunciation,
+      ),
+    },
   );
 
   if (!parsed) {
@@ -1708,6 +1715,14 @@ export function StudySignalHome({
       homeworkPipelineLog("7_tutor_chat_start", {
         afterHomeworkAnalysis: true,
         hasSignalsEntry: homeworkAnalysis !== null,
+        homeworkReportForwarded: Boolean(
+          homeworkAnalysis?.imageInsights?.homeworkReport,
+        ),
+        answerOverviewPresent: Boolean(
+          homeworkAnalysis?.imageInsights?.homeworkReport?.answerOverview &&
+            homeworkAnalysis.imageInsights.homeworkReport.answerOverview !==
+              "—",
+        ),
       });
     }
 
@@ -1721,11 +1736,22 @@ export function StudySignalHome({
           "image MIME type": im.mimeType,
           dataBase64Length: im.dataBase64.length,
         })),
+        homeworkReportForwarded: Boolean(
+          homeworkAnalysis?.imageInsights?.homeworkReport,
+        ),
       });
       const res = await fetch("/api/tutor-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: requestMessages }),
+        body: JSON.stringify({
+          messages: requestMessages,
+          homeworkContextExpected: hasImages,
+          ...(homeworkAnalysis?.imageInsights?.homeworkReport
+            ? {
+                homeworkReport: homeworkAnalysis.imageInsights.homeworkReport,
+              }
+            : {}),
+        }),
       });
       const data: unknown = await res.json().catch(() => ({}));
       const errMsg =

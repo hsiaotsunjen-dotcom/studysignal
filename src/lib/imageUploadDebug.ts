@@ -347,7 +347,7 @@ export function logSendTutorMessageTrace(
     step,
     ...detail,
   };
-  console.error(`[sendTutorMessage trace] ${step}`, payload);
+  console.debug(`[sendTutorMessage trace] ${step}`, payload);
   if (ANDROID_IMAGE_DEBUG && isAndroidClient()) {
     androidImageDebugLog(`sendTutorMessage trace: ${step}`, payload);
   }
@@ -369,7 +369,7 @@ export function logSendTutorMessageCaughtError(
     "error.message": error instanceof Error ? error.message : String(error),
     "error.stack": error instanceof Error ? error.stack : null,
   };
-  console.error("[sendTutorMessage caught error]", payload);
+  console.debug("[sendTutorMessage caught error]", payload);
   if (ANDROID_IMAGE_DEBUG && isAndroidClient()) {
     androidImageDebugLog("sendTutorMessage caught error", payload);
   }
