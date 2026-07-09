@@ -6,10 +6,15 @@ export const ANDROID_IMAGE_DEBUG = true;
 
 const DEBUG_IMAGE_LOG_API = "/api/debug-image-log";
 
+/** Mirrors `/api/analyze` JSON body — kept local to avoid client bundler cycles with analyzeApiRequest. */
 export type ImageUploadDebugPayload = {
-  text: string;
-  includePronunciation: boolean;
+  submissionKind: string;
+  includePronunciation?: boolean;
   images?: { mimeType: string; dataBase64: string }[];
+  homeworkQuestion?: string;
+  speechTranscript?: string;
+  typedText?: string;
+  learningReviewCorpus?: string;
 };
 
 /** Minimal attachment shape for Android debug snapshots. */
@@ -523,31 +528,14 @@ export function logImageFileDebug(label: string, file: File) {
 }
 
 export function logPreAnalyzeApiPayload(payload: ImageUploadDebugPayload) {
-  const formData = new FormData();
-  formData.append("text", payload.text);
-  formData.append(
-    "includePronunciation",
-    String(payload.includePronunciation),
-  );
-  payload.images?.forEach((im, i) => {
-    formData.append(`images[${i}].mimeType`, im.mimeType);
-    formData.append(
-      `images[${i}].dataBase64Length`,
-      String(im.dataBase64.length),
-    );
-  });
-  const formDataKeys =
-    typeof formData.keys === "function"
-      ? Array.from(formData.keys())
-      : [];
   imageUploadDebugLog("before /api/analyze", {
     transport: "application/json (images are base64 in JSON, not multipart)",
-    "FormData keys (debug mirror only, not sent)": formDataKeys,
-    "JSON body keys": [
-      "text",
-      "includePronunciation",
-      ...(payload.images?.length ? ["images"] : []),
-    ],
+    submissionKind: payload.submissionKind,
+    homeworkQuestionLength: payload.homeworkQuestion?.length ?? 0,
+    speechTranscriptLength: payload.speechTranscript?.length ?? 0,
+    typedTextLength: payload.typedText?.length ?? 0,
+    learningReviewCorpusLength: payload.learningReviewCorpus?.length ?? 0,
+    includePronunciation: payload.includePronunciation ?? false,
     imageCount: payload.images?.length ?? 0,
     images: payload.images?.map((im, i) => ({
       index: i,

@@ -23,8 +23,8 @@
 *.pem
 /certificates/
 
-# debug
-npm-debug.log*
+# debug artifacts (Q1 handwriting investigation)
+/debug/
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*

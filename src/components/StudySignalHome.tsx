@@ -45,8 +45,17 @@ import {
 import { StudySignalChatThread } from "@/components/StudySignalChatThread";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
+  buildComposerAnalyzeRequest,
+  buildHomeworkAnalyzeRequest,
+  resolveHasStudentCorpusForParser,
+  resolveHomeworkQuestionAtSubmit,
+  type AnalyzeApiRequestBody,
+  type AnalyzeImagePayload,
+  type ComposerTextSource,
+} from "@/lib/analyzeApiRequest";
+import {
+  isParsedAnalyzeFeedbackResponse,
   parseAnalyzeApiData,
-  hasStudentSubmissionCorpus,
   type AnalyzeFeedback,
 } from "@/lib/analyzeFeedback";
 import {
@@ -112,14 +121,6 @@ function homeworkPipelineLog(step: string, payload?: unknown) {
     console.log(`[homework pipeline] ${step}`);
   }
 }
-
-type AnalyzeImagePayload = { mimeType: string; dataBase64: string };
-
-type AnalyzeApiPayload = {
-  text: string;
-  includePronunciation: boolean;
-  images?: AnalyzeImagePayload[];
-};
 
 type SchoolLevel = "elementary" | "junior" | "senior";
 
@@ -499,14 +500,41 @@ async function loadAnalyzeImagesFromAttachments(
 }
 
 async function postAnalyzeApi(
-  payload: AnalyzeApiPayload,
+  payload: AnalyzeApiRequestBody,
+  guard?: {
+    microphoneRecording?: boolean;
+    composerTextSource?: ComposerTextSource;
+    source?: string;
+  },
 ): Promise<
   { ok: true; feedback: AnalyzeFeedback } | { ok: false; error: string }
 > {
+  if (HOMEWORK_PIPELINE_DEBUG) {
+    console.log("[signals pipeline guard]", {
+      "Signals started":
+        payload.submissionKind === "homework_image" ||
+        payload.submissionKind === "homework_image_with_question",
+      source: guard?.source ?? "postAnalyzeApi",
+      submissionKind: payload.submissionKind,
+      composerTextSource: guard?.composerTextSource ?? "unknown",
+      "Microphone started?": guard?.microphoneRecording ?? false,
+      "Whisper called?": false,
+      homeworkQuestionLength: payload.homeworkQuestion?.length ?? 0,
+      speechTranscriptLength: payload.speechTranscript?.length ?? 0,
+      typedTextLength: payload.typedText?.length ?? 0,
+      imageCount: payload.images?.length ?? 0,
+      includePronunciation: payload.includePronunciation ?? false,
+      promptPayload: payload,
+    });
+  }
+
   homeworkPipelineLog("homework_analysis_request", {
-    textLength: payload.text.length,
+    submissionKind: payload.submissionKind,
+    homeworkQuestionLength: payload.homeworkQuestion?.length ?? 0,
+    speechTranscriptLength: payload.speechTranscript?.length ?? 0,
+    typedTextLength: payload.typedText?.length ?? 0,
     imageCount: payload.images?.length ?? 0,
-    includePronunciation: payload.includePronunciation,
+    includePronunciation: payload.includePronunciation ?? false,
   });
 
   logPreAnalyzeApiPayload(payload);
@@ -542,20 +570,42 @@ async function postAnalyzeApi(
       "imageInsights" in data,
   });
 
+  const isHomeworkSubmission =
+    payload.submissionKind === "homework_image" ||
+    payload.submissionKind === "homework_image_with_question";
+
+  if (isParsedAnalyzeFeedbackResponse(data)) {
+    if (isHomeworkSubmission && !data.imageInsights) {
+      homeworkPipelineLog("homework_analysis_parse_failed", {
+        reason: "server_response_missing_imageInsights",
+      });
+      return { ok: false, error: "分析結果不完整，請再試一次。" };
+    }
+    homeworkPipelineLog("homework_analysis_parsed", {
+      trustedServerParse: true,
+      hasImageInsights: Boolean(data.imageInsights),
+    });
+    return { ok: true, feedback: data };
+  }
+
   const parseDbg = HOMEWORK_PIPELINE_DEBUG
     ? (label: string, detail?: unknown) =>
         homeworkPipelineLog(`parse:${label}`, detail)
     : undefined;
 
+  const requireSpeechPronunciation =
+    payload.submissionKind === "speech_transcript" &&
+    payload.includePronunciation === true;
+  const hasStudentCorpus = resolveHasStudentCorpusForParser(
+    payload.submissionKind,
+  );
+
   const parsed = parseAnalyzeApiData(
     data,
-    payload.includePronunciation,
+    requireSpeechPronunciation,
     parseDbg,
     {
-      hasStudentCorpus: hasStudentSubmissionCorpus(
-        payload.text,
-        payload.includePronunciation,
-      ),
+      hasStudentCorpus,
     },
   );
 
@@ -915,6 +965,7 @@ export function StudySignalHome({
   >([]);
   const [chatSendError, setChatSendError] = useState<string | null>(null);
   const chatSendInFlightRef = useRef(false);
+  const analyzeInFlightRef = useRef(false);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const [clearSaveDialogOpen, setClearSaveDialogOpen] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
@@ -951,6 +1002,8 @@ export function StudySignalHome({
    * until the user edits the textarea or starts a new dictation / clear.
    */
   const pronunciationFromSpeechRef = useRef(false);
+  /** Tracks whether composer text came from dictation vs intentional typing. */
+  const composerTextSourceRef = useRef<ComposerTextSource>("empty");
   const dictationMediaSessionGenRef = useRef(0);
   const dictationIntentRef = useRef(0);
   const dictationMicStreamRef = useRef<MediaStream | null>(null);
@@ -963,6 +1016,23 @@ export function StudySignalHome({
   const dictationSpeechRecoRef = useRef<BrowserSpeechRecognizer | null>(null);
   /** Final transcript segments from SpeechRecognition (excluding trailing interim). */
   const dictationSpeechFinalRef = useRef("");
+  /** When set, invoked after Whisper/transcribe settles (Analyze → dictation bridge). */
+  const dictationAfterTranscribeRef = useRef<(() => void) | null>(null);
+  const dictationTranscribeWaitersRef = useRef<Array<() => void>>([]);
+  const dictationUiStatusRef = useRef<DictationUiStatus>("idle");
+  const runAnalyzeRef = useRef<() => Promise<boolean>>(async () => false);
+  const settleDictationTranscribeRef = useRef<(success: boolean) => void>(() => {});
+
+  const settleDictationTranscribe = useCallback((success: boolean) => {
+    const waiters = dictationTranscribeWaitersRef.current;
+    dictationTranscribeWaitersRef.current = [];
+    waiters.forEach((w) => w());
+    const cb = dictationAfterTranscribeRef.current;
+    dictationAfterTranscribeRef.current = null;
+    if (success && cb) void cb();
+  }, []);
+
+  settleDictationTranscribeRef.current = settleDictationTranscribe;
 
   const recordDictationTranscribeError = useCallback(
     (
@@ -986,18 +1056,40 @@ export function StudySignalHome({
   useEffect(() => {
     attachmentsRef.current = attachments;
     if (attachments.length > 0) {
-      pronunciationFromSpeechRef.current = false;
       homeworkPipelineLog("image_upload_attached", {
         count: attachments.length,
         names: attachments.map((a) => a.name),
+        composerTextSource: composerTextSourceRef.current,
       });
       logAndroidAttachmentsSnapshot("attachments state updated", attachments);
     }
   }, [attachments]);
 
+  const commitAttachments = useCallback((next: UploadedImage[]) => {
+    if (next.length > attachmentsRef.current.length) {
+      dictationAfterTranscribeRef.current = null;
+    }
+    attachmentsRef.current = next;
+    setAttachments(next);
+  }, []);
+
+  const updateAttachments = useCallback(
+    (updater: (prev: UploadedImage[]) => UploadedImage[]) => {
+      const next = updater(attachmentsRef.current);
+      attachmentsRef.current = next;
+      setAttachments(next);
+      return next;
+    },
+    [],
+  );
+
   useEffect(() => {
     messageRef.current = message;
   }, [message]);
+
+  useEffect(() => {
+    dictationUiStatusRef.current = dictationUiStatus;
+  }, [dictationUiStatus]);
 
   const syncMessageTextareaHeight = useCallback(() => {
     const el = messageTextareaRef.current;
@@ -1248,16 +1340,14 @@ export function StudySignalHome({
       }
       if (!added.length) return;
 
-      setAttachments((p) => {
-        const next = [...p, ...added];
-        console.log("[Attachments Count]", next.length);
-        return next;
-      });
+      const next = [...attachmentsRef.current, ...added].slice(0, MAX_IMAGES);
+      console.log("[Attachments Count]", next.length);
+      commitAttachments(next);
     })();
   };
 
   const removeImageById = (id: string) => {
-    setAttachments((prev) => {
+    updateAttachments((prev) => {
       const found = prev.find((a) => a.id === id);
       if (found) URL.revokeObjectURL(found.url);
       return prev.filter((a) => a.id !== id);
@@ -1340,6 +1430,7 @@ export function StudySignalHome({
         });
         setAttachments((prev) => {
           if (prev.length >= MAX_IMAGES) return prev;
+          dictationAfterTranscribeRef.current = null;
           const next: UploadedImage[] = [
             ...prev,
             {
@@ -1350,6 +1441,7 @@ export function StudySignalHome({
               ...(analyzePayload ? { analyzePayload } : {}),
             },
           ];
+          attachmentsRef.current = next;
           if (next.length >= MAX_IMAGES) {
             queueMicrotask(() => setCameraModalOpen(false));
           }
@@ -1409,6 +1501,7 @@ export function StudySignalHome({
     dictationBaseRef.current = "";
     setMessage("");
     messageRef.current = "";
+    composerTextSourceRef.current = "empty";
     pronunciationFromSpeechRef.current = false;
     setSpeechListening(false);
     setDictationUiStatus("idle");
@@ -1458,11 +1551,18 @@ export function StudySignalHome({
     const raw =
       messageTextareaRef.current?.value ?? messageRef.current;
     const text = raw.trim();
+    const composerTextSource = composerTextSourceRef.current;
+    const homeworkQuestion = resolveHomeworkQuestionAtSubmit(
+      text,
+      composerTextSource,
+    );
     const currentAttachments = attachmentsRef.current;
     const hasImages = currentAttachments.length > 0;
     logSendTutorMessageTrace("sendTutorMessage after read state", {
       hasImages,
       attachmentsCount: currentAttachments.length,
+      composerTextSource,
+      homeworkQuestionLength: homeworkQuestion?.length ?? 0,
     });
     setChatSendError(null);
     if (!text && !hasImages) {
@@ -1474,6 +1574,7 @@ export function StudySignalHome({
 
     const studentId = newAttachmentId();
     const voiceBlob =
+      !hasImages &&
       pronunciationFromSpeechRef.current &&
       lastVoiceRecordingRef.current != null
         ? lastVoiceRecordingRef.current
@@ -1483,6 +1584,7 @@ export function StudySignalHome({
 
     setMessage("");
     messageRef.current = "";
+    composerTextSourceRef.current = "empty";
     queueMicrotask(() => {
       syncMessageTextareaHeight();
     });
@@ -1494,7 +1596,8 @@ export function StudySignalHome({
       logSendTutorMessageTrace("sendTutorMessage hasImages block entry");
       homeworkPipelineLog("1_image_upload_detected", {
         attachmentCount: currentAttachments.length,
-        hasTypedText: text.length > 0,
+        hasHomeworkQuestion: Boolean(homeworkQuestion),
+        composerTextSource,
       });
       logSendTutorMessageTrace(
         "sendTutorMessage after homeworkPipelineLog, before logAndroidAttachmentsSnapshot",
@@ -1542,8 +1645,8 @@ export function StudySignalHome({
 
       const nImgAnalyze = analyzeImages.length;
       const homeworkDisplayBody =
-        text && hasImages
-          ? `${text}\n\n（作業圖片 ${nImgAnalyze} 張，分析中…）`
+        homeworkQuestion && hasImages
+          ? `${homeworkQuestion}\n\n（作業圖片 ${nImgAnalyze} 張，分析中…）`
           : `（作業圖片 ${nImgAnalyze} 張，分析中…）`;
 
       setAnalyzeLoading(true);
@@ -1560,10 +1663,17 @@ export function StudySignalHome({
         },
       ]);
 
-      const analyzeResult = await postAnalyzeApi({
-        text,
-        includePronunciation: false,
+      const analyzeRequest = buildHomeworkAnalyzeRequest({
         images: analyzeImages,
+        composerText: text,
+        composerTextSource,
+      });
+
+      const analyzeResult = await postAnalyzeApi(analyzeRequest, {
+        source: "sendTutorMessage/homework_chat",
+        microphoneRecording:
+          dictationMediaRecorderRef.current?.state === "recording",
+        composerTextSource,
       });
 
       if (!analyzeResult.ok) {
@@ -1594,8 +1704,8 @@ export function StudySignalHome({
       saveAnalysis(studentId, homeworkAnalysis, "homework_chat");
 
       const analyzedDisplayBody =
-        text && hasImages
-          ? `${text}\n\n（作業圖片 ${nImgAnalyze} 張，已分析）`
+        homeworkQuestion && hasImages
+          ? `${homeworkQuestion}\n\n（作業圖片 ${nImgAnalyze} 張，已分析）`
           : `（作業圖片 ${nImgAnalyze} 張，已分析）`;
 
       setChatItems((prev) =>
@@ -1649,8 +1759,8 @@ export function StudySignalHome({
 
     const nImg = images.length;
     const displayBody =
-      text && hasImages
-        ? `${text}\n\n(${nImg} image${nImg === 1 ? "" : "s"} attached.)`
+      homeworkQuestion && hasImages
+        ? `${homeworkQuestion}\n\n(${nImg} image${nImg === 1 ? "" : "s"} attached.)`
         : text
           ? text
           : hasImages
@@ -1658,13 +1768,15 @@ export function StudySignalHome({
             : text;
 
     const modelUserText =
-      text && hasImages
-        ? `${text}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
-        : text
-          ? text
-          : hasImages
-            ? `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`
-            : text;
+      homeworkQuestion && hasImages
+        ? `${homeworkQuestion}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
+        : text && hasImages
+          ? `${text}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
+          : text
+            ? text
+            : hasImages
+              ? `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`
+              : text;
 
     const tutorId = newAttachmentId();
     const baseMessages = buildTutorChatOpenAIMessages(chatItems, modelUserText);
@@ -1797,12 +1909,7 @@ export function StudySignalHome({
         homeworkPipelineLog("8_tutor_chat_complete");
       }
       if (images.length > 0) {
-        setAttachments((prev) => {
-          for (const a of prev) {
-            URL.revokeObjectURL(a.url);
-          }
-          return [];
-        });
+        commitAttachments([]);
       }
     } catch (e) {
       setChatItems((prev) =>
@@ -1825,7 +1932,7 @@ export function StudySignalHome({
       logSendTutorMessageCaughtError("sendTutorMessage outer catch", error);
       throw error;
     }
-  }, [chatItems, saveAnalysis, selectedSpeechLang, syncMessageTextareaHeight]);
+  }, [chatItems, saveAnalysis, selectedSpeechLang, syncMessageTextareaHeight, commitAttachments]);
 
   const sendChineseEnglishHelp = useCallback(async (chineseText: string) => {
     if (typeof chineseText !== "string") {
@@ -1900,6 +2007,7 @@ export function StudySignalHome({
       }
       setMessage(reply);
       messageRef.current = reply;
+      composerTextSourceRef.current = "typed";
       composerModeRef.current = "chat";
       queueMicrotask(() => {
         syncMessageTextareaHeight();
@@ -1941,22 +2049,22 @@ export function StudySignalHome({
   );
 
   const runAnalyze = useCallback(async (): Promise<boolean> => {
+    if (analyzeInFlightRef.current) return false;
+
     setAnalyzeError(null);
     setTranscribeError(null);
     setChatSendError(null);
     const composerText = (
       messageTextareaRef.current?.value ?? messageRef.current
     ).trim();
+    const composerTextSource = composerTextSourceRef.current;
     const currentAttachments = attachmentsRef.current;
-    const hasImages = currentAttachments.length > 0;
+    /** Image-only homework — must never load chat history or Learning Review. */
+    const imageOnlyMode = currentAttachments.length > 0;
 
     let learningReviewMode = false;
-    let text: string;
-    if (composerText) {
-      text = composerText;
-    } else if (hasImages) {
-      text = "";
-    } else {
+    let learningReviewCorpus: string | undefined;
+    if (!imageOnlyMode && !composerText) {
       const aggregated = buildLearningReviewAnalyzeText(chatItems);
       if (!aggregated.trim()) {
         setAnalyzeError(
@@ -1964,14 +2072,32 @@ export function StudySignalHome({
         );
         return false;
       }
-      text = LEARNING_REVIEW_ANALYZE_PREAMBLE + aggregated;
+      learningReviewCorpus = LEARNING_REVIEW_ANALYZE_PREAMBLE + aggregated;
       learningReviewMode = true;
     }
+
+    analyzeInFlightRef.current = true;
+    console.warn("RUN_ANALYZE_ENTER");
+
+    console.log("[Analyze click]", {
+      "attachmentsRef.current.length": currentAttachments.length,
+      "attachments.state.length": attachments.length,
+      composerTextLength: composerText.length,
+      imageOnlyMode,
+      learningReviewMode,
+    });
+
+    const homeworkQuestion = resolveHomeworkQuestionAtSubmit(
+      composerText,
+      composerTextSource,
+    );
 
     const turnId = newAttachmentId();
     const displayBody = learningReviewMode
       ? "（學習回顧：分析最近對話中的學生回答）"
-      : composerText || (hasImages ? "（已附加圖片，請分析）" : "");
+      : homeworkQuestion && imageOnlyMode
+        ? `${homeworkQuestion}\n\n（已附加圖片，請分析）`
+        : composerText || (imageOnlyMode ? "（已附加圖片，請分析）" : "");
     const voiceBlob =
       !learningReviewMode &&
       pronunciationFromSpeechRef.current &&
@@ -1994,9 +2120,10 @@ export function StudySignalHome({
     ]);
     setAnalyzeLoading(true);
 
-    if (hasImages) {
+    if (imageOnlyMode) {
       homeworkPipelineLog("analyze_button_image_upload_detected", {
         attachmentCount: currentAttachments.length,
+        pipeline: "homework_image_only",
       });
       logAndroidAttachmentsSnapshot(
         "runAnalyze before encode",
@@ -2006,7 +2133,7 @@ export function StudySignalHome({
 
     try {
       let images: AnalyzeImagePayload[] = [];
-      if (hasImages) {
+      if (imageOnlyMode) {
         images = await loadAnalyzeImagesFromAttachments(
           currentAttachments,
           "runAnalyze → loadAnalyzeImagesFromAttachments",
@@ -2041,28 +2168,40 @@ export function StudySignalHome({
         }
       }
 
-      /**
-       * Pronunciation when the composer was last filled from dictation (ref true),
-       * not image-first. Learning-review aggregate text may still be analyzed with
-       * pronunciation when the ref indicates recent speech transcript context.
-       */
-      const includePronunciation =
-        pronunciationFromSpeechRef.current && !hasImages;
+      const requestPayload = buildComposerAnalyzeRequest({
+        composerText,
+        composerTextSource,
+        hasImages: imageOnlyMode,
+        images: images.length > 0 ? images : undefined,
+        learningReviewCorpus: imageOnlyMode ? undefined : learningReviewCorpus,
+        includePronunciationForLearningReview: imageOnlyMode
+          ? false
+          : pronunciationFromSpeechRef.current,
+      });
 
-      const requestPayload: AnalyzeApiPayload = {
-        text,
-        includePronunciation,
-        ...(images.length > 0 ? { images } : {}),
-      };
+      if (!requestPayload) {
+        setAnalyzeError("還沒有可分析的內容，請輸入文字或上傳圖片。");
+        setAnalyzeLoading(false);
+        return false;
+      }
+
+      console.log("[Analyze click → request]", {
+        "attachmentsRef.current.length": currentAttachments.length,
+        "images.length": images.length,
+        submissionKind: requestPayload.submissionKind,
+        learningReviewMode,
+      });
 
       if (ANALYZE_CLIENT_DEBUG) {
         const serialized = JSON.stringify(requestPayload);
         console.log("[analyze client] 1_request_body_sent_summary", {
-          textLength: text.length,
-          text,
-          includePronunciation,
-          imageCount: images.length,
-          perImage: images.map((im, i) => ({
+          submissionKind: requestPayload.submissionKind,
+          homeworkQuestionLength: requestPayload.homeworkQuestion?.length ?? 0,
+          speechTranscriptLength: requestPayload.speechTranscript?.length ?? 0,
+          typedTextLength: requestPayload.typedText?.length ?? 0,
+          includePronunciation: requestPayload.includePronunciation ?? false,
+          imageCount: requestPayload.images?.length ?? 0,
+          perImage: requestPayload.images?.map((im, i) => ({
             index: i,
             mimeType: im.mimeType,
             base64Length: im.dataBase64.length,
@@ -2076,7 +2215,16 @@ export function StudySignalHome({
         );
       }
 
-      const analyzeResult = await postAnalyzeApi(requestPayload);
+      const analyzeResult = await postAnalyzeApi(requestPayload, {
+        source: learningReviewMode
+          ? "runAnalyze/learning_review"
+          : imageOnlyMode
+            ? "runAnalyze/homework_analyze_button"
+            : "runAnalyze/composer_text",
+        microphoneRecording:
+          dictationMediaRecorderRef.current?.state === "recording",
+        composerTextSource,
+      });
 
       if (!analyzeResult.ok) {
         if (ANALYZE_CLIENT_DEBUG) {
@@ -2126,7 +2274,7 @@ export function StudySignalHome({
 
       const saveSource = learningReviewMode
         ? "learning_review"
-        : hasImages
+        : imageOnlyMode
           ? "homework_analyze_button"
           : "composer_analyze";
       saveAnalysis(turnId, parsed, saveSource);
@@ -2148,9 +2296,14 @@ export function StudySignalHome({
       );
       return false;
     } finally {
+      analyzeInFlightRef.current = false;
       setAnalyzeLoading(false);
     }
   }, [chatItems, saveAnalysis]);
+
+  useEffect(() => {
+    runAnalyzeRef.current = runAnalyze;
+  }, [runAnalyze]);
 
   const confirmClearChatAnalyzeAndSave = useCallback(async () => {
     const ok = await runAnalyze();
@@ -2427,6 +2580,7 @@ export function StudySignalHome({
             });
 
             if (sessionGen !== dictationMediaSessionGenRef.current) {
+              settleDictationTranscribeRef.current(false);
               return;
             }
 
@@ -2453,9 +2607,11 @@ export function StudySignalHome({
                 setTranscribeError(null);
                 const next = dictationBaseRef.current + speechFallback;
                 pronunciationFromSpeechRef.current = true;
+                composerTextSourceRef.current = "dictation";
                 setMessage(next);
                 messageRef.current = next;
                 setDictationUiStatus("ready");
+                settleDictationTranscribeRef.current(true);
                 return;
               }
               const resolved = errMsg ?? TRANSCRIBE_FAILURE_FALLBACK_MSG;
@@ -2482,6 +2638,7 @@ export function StudySignalHome({
                 }
               );
               setDictationUiStatus("idle");
+              settleDictationTranscribeRef.current(false);
               return;
             }
 
@@ -2507,9 +2664,11 @@ export function StudySignalHome({
                 ? dictationBaseRef.current + merged
                 : dictationBaseRef.current;
             pronunciationFromSpeechRef.current = true;
+            composerTextSourceRef.current = "dictation";
             setMessage(next);
             messageRef.current = next;
             setDictationUiStatus("ready");
+            settleDictationTranscribeRef.current(true);
           } catch (err) {
             if (sessionGen === dictationMediaSessionGenRef.current) {
               await new Promise((r) => setTimeout(r, 280));
@@ -2525,9 +2684,11 @@ export function StudySignalHome({
                 setTranscribeError(null);
                 const next = dictationBaseRef.current + speechFallback;
                 pronunciationFromSpeechRef.current = true;
+                composerTextSourceRef.current = "dictation";
                 setMessage(next);
                 messageRef.current = next;
                 setDictationUiStatus("ready");
+                settleDictationTranscribeRef.current(true);
                 return;
               }
               recordDictationTranscribeError(
@@ -2539,6 +2700,7 @@ export function StudySignalHome({
                 }
               );
               setDictationUiStatus("idle");
+              settleDictationTranscribeRef.current(false);
             }
           }
         })();
@@ -2611,6 +2773,67 @@ export function StudySignalHome({
     }
     startDictation();
   }, [startDictation, stopDictationRecording]);
+
+  const waitForDictationTranscribeSettled = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      if (dictationUiStatusRef.current !== "transcribing") {
+        resolve();
+        return;
+      }
+      dictationTranscribeWaitersRef.current.push(resolve);
+    });
+  }, []);
+
+  const scheduleRunAnalyzeAfterDictation = useCallback(() => {
+    dictationAfterTranscribeRef.current = () => {
+      void runAnalyzeRef.current();
+    };
+  }, []);
+
+  const handleAnalyzePress = useCallback(async () => {
+    if (analyzeInFlightRef.current) return;
+
+    const composerText = (
+      messageTextareaRef.current?.value ?? messageRef.current
+    ).trim();
+    const hasImages = attachmentsRef.current.length > 0;
+
+    if (hasImages || composerText.length > 0) {
+      await runAnalyze();
+      return;
+    }
+
+    if (buildLearningReviewAnalyzeText(chatItems).trim()) {
+      await runAnalyze();
+      return;
+    }
+
+    const isRecording =
+      dictationMediaRecorderRef.current?.state === "recording";
+    const isTranscribing = dictationUiStatusRef.current === "transcribing";
+
+    if (isRecording) {
+      scheduleRunAnalyzeAfterDictation();
+      stopDictationRecording();
+      return;
+    }
+
+    if (isTranscribing) {
+      scheduleRunAnalyzeAfterDictation();
+      await waitForDictationTranscribeSettled();
+      return;
+    }
+
+    scheduleRunAnalyzeAfterDictation();
+    startDictation();
+  }, [
+    chatItems,
+    runAnalyze,
+    scheduleRunAnalyzeAfterDictation,
+    startDictation,
+    stopDictationRecording,
+    waitForDictationTranscribeSettled,
+  ]);
 
   const onSplitPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -2859,6 +3082,7 @@ export function StudySignalHome({
                       }}
                       onChange={(e) => {
                         pronunciationFromSpeechRef.current = false;
+                        composerTextSourceRef.current = "typed";
                         setChatSendError(null);
                         const next = e.target.value;
                         setMessage(next);
@@ -3086,12 +3310,19 @@ export function StudySignalHome({
                     </button>
                     <button
                       type="button"
-                      onClick={() => void runAnalyze()}
+                      onClick={() => {
+                        void handleAnalyzePress();
+                      }}
                       disabled={analyzeLoading}
-                      className="flex min-h-[48px] flex-1 items-center justify-center rounded-2xl border border-violet-500/35 bg-violet-500/10 px-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:px-4"
-                      aria-label="分析英文（發音／語法）"
+                      className="flex min-h-[48px] flex-1 flex-col items-center justify-center rounded-2xl border-2 border-red-300 bg-red-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation sm:px-4"
+                      aria-label="分析英文（發音／語法）DEBUG BUILD"
                     >
-                      {analyzeLoading ? "分析中…" : "分析"}
+                      <span className="text-[10px] font-bold uppercase leading-tight tracking-wide">
+                        ANALYZE DEBUG BUILD
+                      </span>
+                      <span>
+                        {analyzeLoading ? "分析中… (DEBUG)" : "分析 (DEBUG)"}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -3320,7 +3551,10 @@ export function StudySignalHome({
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
               <button
                 type="button"
-                onClick={() => void confirmClearChatAnalyzeAndSave()}
+                onClick={() => {
+                  console.warn("RUN_ANALYZE_FROM_CLEAR_DIALOG");
+                  void confirmClearChatAnalyzeAndSave();
+                }}
                 disabled={analyzeLoading}
                 className="order-1 w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:order-none sm:w-auto sm:min-w-[10rem]"
               >

@@ -463,7 +463,11 @@ export function SpeechTestClient() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: finalText, includePronunciation: true }),
+        body: JSON.stringify({
+          submissionKind: "speech_transcript",
+          includePronunciation: true,
+          speechTranscript: finalText,
+        }),
       });
       const data: unknown = await res.json().catch(() => ({}));
       const errMsg =

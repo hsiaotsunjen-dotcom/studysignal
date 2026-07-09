@@ -1,5 +1,11 @@
 /** Structured feedback from `/api/analyze` (OpenAI). */
 
+import {
+  applyHomeworkStudentAnswersGuard,
+  homeworkAllowsPerformanceEvaluation,
+  parseStudentAnswersStatus,
+} from "@/lib/homeworkStudentAnswers";
+
 export type ScoreCategoryFeedback = {
   score: number;
   strengths: string[];
@@ -51,8 +57,15 @@ export type PronunciationScoresBlock = {
 export type HomeworkKeyExplanation = {
   questionLabel: string;
   correctAnswer: string;
+  /** 繁體中文 overview / summary for this question. */
   why: string;
   example?: string;
+  grammarExplanation?: string;
+  vocabularyExplanation?: string;
+  whyWrongChoices?: string;
+  commonMistakes?: string;
+  learningTips?: string;
+  learningTakeaway?: string;
 };
 
 export type HomeworkPronunciationRow = {
@@ -71,6 +84,41 @@ export type HomeworkReport = {
   homeworkType: string;
   questionCount: string | number;
   imageQuality: string;
+  /** Whether visible student handwriting / filled answers exist on the worksheet. */
+  studentAnswersStatus?: "detected" | "none" | "unclear" | "insufficient";
+  /** Legacy boolean from model JSON before studentAnswersStatus. */
+  studentAnswersDetected?: boolean;
+  /** Total worksheet questions (evidence; may mirror questionCount). */
+  totalQuestionCount?: number;
+  /** Count of questions with visible student answers. */
+  studentAnsweredQuestions?: number;
+  /** Answer coverage 0–100 (% of questions with student work). */
+  studentAnswerCoveragePercent?: number;
+  /** Shown when studentAnswersStatus is "none". */
+  noStudentAnswersMessage?: string;
+  /** Shown when studentAnswersStatus is "unclear". */
+  unclearPhotoMessage?: string;
+  /** Shown when studentAnswersStatus is "insufficient". */
+  insufficientEvidenceMessage?: string;
+  /** Per-question handwriting audit (answered vs blank). */
+  questionAnswerAudit?: Array<{
+    questionNumber: number;
+    questionLabel?: string;
+    status: "answered" | "blank";
+    reason: string;
+    studentAnswerSnippet?: string;
+    answerAreaOcr?: string;
+    handwritingDetected?: boolean;
+    confidence?: number;
+    handwritingDetection?: {
+      ocrTextInAnswerArea: string;
+      handwritingDetected: boolean;
+      confidence: number;
+      classificationReason: string;
+      rejectedByRule?: string;
+      exactEvidence: string[];
+    };
+  }>;
   /** Questions with real OCR/vision/image-quality failures only. Empty = all recognized. */
   questionRecognitionIssues?: HomeworkQuestionRecognitionIssue[];
   hintsFirst?: string;
@@ -81,6 +129,8 @@ export type HomeworkReport = {
   studentIntent?: string;
   /** Full markdown report with emoji section headers for UI display. */
   formattedReport?: string;
+  /** Worksheet-level recap (not speech rubric). */
+  learningSummary?: LearningSummaryBlock;
 };
 
 export type ImageInsights = {
@@ -105,17 +155,26 @@ export type AnalysisCapabilitiesInput = {
   hasStudentCorpus: boolean;
   hasImageInsights: boolean;
   requireSpeechPronunciation: boolean;
+  /** Homework worksheet: false when no student answers detected. */
+  homeworkPerformanceEvaluation?: boolean;
 };
 
 export function buildAnalysisCapabilities(
   input: AnalysisCapabilitiesInput,
 ): AnalysisCapabilities {
-  const { hasStudentCorpus, hasImageInsights, requireSpeechPronunciation } =
-    input;
-  const studentRubric = hasStudentCorpus;
+  const {
+    hasStudentCorpus,
+    hasImageInsights,
+    requireSpeechPronunciation,
+    homeworkPerformanceEvaluation = true,
+  } = input;
+  /** Image homework (OCR/worksheet) — never use Talk speech rubric sections. */
+  const isHomeworkVision = hasImageInsights && !requireSpeechPronunciation;
+  const studentRubric = hasStudentCorpus && !isHomeworkVision;
+  const homeworkAnalytics = isHomeworkVision && homeworkPerformanceEvaluation;
   return {
     imageAnalysis: hasImageInsights,
-    learningSummary: studentRubric,
+    learningSummary: studentRubric || homeworkAnalytics,
     grammar: studentRubric,
     vocabulary: studentRubric,
     fluency: studentRubric,
@@ -141,6 +200,18 @@ export function resolveAnalysisCapabilities(
     return feedback.analysisCapabilities;
   }
   const hasImage = Boolean(feedback.imageInsights);
+  const isHomeworkVision =
+    hasImage && !feedback.pronunciationScores;
+  if (isHomeworkVision) {
+    return buildAnalysisCapabilities({
+      hasStudentCorpus: false,
+      hasImageInsights: true,
+      requireSpeechPronunciation: false,
+      homeworkPerformanceEvaluation: homeworkAllowsPerformanceEvaluation(
+        feedback.imageInsights?.homeworkReport?.studentAnswersStatus,
+      ),
+    });
+  }
   const tutorComment = feedback.tutorComment;
   const grammar = feedback.grammar;
   const hasStudentContent =
@@ -182,6 +253,27 @@ export type AnalyzeFeedback = {
   analysisCapabilities?: AnalysisCapabilities;
 };
 
+/** True when `/api/analyze` already returned a parsed `AnalyzeFeedback` body. */
+export function isParsedAnalyzeFeedbackResponse(
+  data: unknown,
+): data is AnalyzeFeedback {
+  if (!data || typeof data !== "object") return false;
+  const o = data as Record<string, unknown>;
+  return (
+    o.analysisCapabilities != null &&
+    typeof o.analysisCapabilities === "object" &&
+    o.grammar != null &&
+    typeof o.grammar === "object" &&
+    o.vocabulary != null &&
+    typeof o.vocabulary === "object" &&
+    o.fluency != null &&
+    typeof o.fluency === "object" &&
+    Array.isArray(o.pronunciationFocus) &&
+    o.tutorComment != null &&
+    typeof o.tutorComment === "object"
+  );
+}
+
 const IMAGE_ONLY_SCORE_STUB: ScoreCategoryFeedback = {
   score: 0,
   strengths: [],
@@ -196,10 +288,11 @@ const IMAGE_ONLY_TUTOR_COMMENT_STUB: TutorPersonalizedComment = {
 };
 
 export type ParseAnalyzeOptions = {
-  /** Student typed text, speech transcript, or aggregated chat corpus was submitted. */
+  /** Whether this submission includes student speech/typed/review corpus (never true for homework image submissions). */
   hasStudentCorpus: boolean;
 };
 
+/** @deprecated Use resolveHasStudentCorpusForParser(submissionKind) from analyzeApiRequest. */
 export function hasStudentSubmissionCorpus(
   text: string,
   requireSpeechPronunciation: boolean,
@@ -586,22 +679,40 @@ function normalizeHomeworkKeyExplanation(raw: unknown): HomeworkKeyExplanation |
   const why = toTrimmedDisplayString(o.why ?? o.explanation);
   if (!questionLabel && !correctAnswer && !why) return null;
   const example = toTrimmedDisplayString(o.example);
+  const grammarExplanation = toTrimmedDisplayString(
+    o.grammarExplanation ?? o.grammar_explanation,
+  );
+  const vocabularyExplanation = toTrimmedDisplayString(
+    o.vocabularyExplanation ?? o.vocabulary_explanation,
+  );
+  const whyWrongChoices = toTrimmedDisplayString(
+    o.whyWrongChoices ?? o.why_wrong_choices ?? o.wrongChoices,
+  );
+  const commonMistakes = toTrimmedDisplayString(
+    o.commonMistakes ?? o.common_mistakes,
+  );
+  const learningTips = toTrimmedDisplayString(
+    o.learningTips ?? o.learning_tips ?? o.tips,
+  );
+  const learningTakeaway = toTrimmedDisplayString(
+    o.learningTakeaway ??
+      o.learning_takeaway ??
+      o.takeaway ??
+      o.learningTips ??
+      o.learning_tips,
+  );
   return {
     questionLabel: questionLabel || "Question",
     correctAnswer: correctAnswer || "—",
     why: why || "—",
     ...(example ? { example } : {}),
+    ...(grammarExplanation ? { grammarExplanation } : {}),
+    ...(vocabularyExplanation ? { vocabularyExplanation } : {}),
+    ...(whyWrongChoices ? { whyWrongChoices } : {}),
+    ...(commonMistakes ? { commonMistakes } : {}),
+    ...(learningTips ? { learningTips } : {}),
+    ...(learningTakeaway ? { learningTakeaway } : {}),
   };
-}
-
-function normalizeHomeworkPronunciationRow(raw: unknown): HomeworkPronunciationRow | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
-  const word = toTrimmedDisplayString(o.word);
-  const ipa = toTrimmedDisplayString(o.ipa ?? o.ipaUs ?? o.ipaUk);
-  const tip = toTrimmedDisplayString(o.tip ?? o.pronunciationTip);
-  if (!word) return null;
-  return { word, ipa: ipa || "—", tip: tip || "—" };
 }
 
 function formatHomeworkQuestionLabel(raw: string): string {
@@ -708,14 +819,7 @@ function normalizeHomeworkReport(raw: unknown): HomeworkReport | null {
         .map(normalizeHomeworkKeyExplanation)
         .filter((x): x is HomeworkKeyExplanation => x != null)
     : [];
-  const pronRaw =
-    o.pronunciationFocus ?? o.pronunciation_focus ?? o.pronunciation;
-  const pronunciationFocus = Array.isArray(pronRaw)
-    ? pronRaw
-        .map(normalizeHomeworkPronunciationRow)
-        .filter((x): x is HomeworkPronunciationRow => x != null)
-        .slice(0, 5)
-    : [];
+  const pronunciationFocus: HomeworkPronunciationRow[] = [];
   const learnRaw = o.learningSignal ?? o.learning_signal ?? o.todayLearned;
   const learningSignal = Array.isArray(learnRaw)
     ? learnRaw
@@ -755,10 +859,146 @@ function normalizeHomeworkReport(raw: unknown): HomeworkReport | null {
         answerOverviewFinal,
       )
     : undefined;
+  const learningSummary = normalizeLearningSummary(
+    o.learningSummary ?? o.learning_summary,
+  );
+  const studentAnswersStatus =
+    parseStudentAnswersStatus(
+      o.studentAnswersStatus ?? o.student_answers_status,
+    ) ??
+    (typeof o.studentAnswersDetected === "boolean"
+      ? o.studentAnswersDetected
+        ? "detected"
+        : "none"
+      : typeof o.student_answers_detected === "boolean"
+        ? o.student_answers_detected
+          ? "detected"
+          : "none"
+        : undefined);
+  const noStudentAnswersMessage = toTrimmedDisplayString(
+    o.noStudentAnswersMessage ?? o.no_student_answers_message,
+  );
+  const unclearPhotoMessage = toTrimmedDisplayString(
+    o.unclearPhotoMessage ?? o.unclear_photo_message,
+  );
+  const insufficientEvidenceMessage = toTrimmedDisplayString(
+    o.insufficientEvidenceMessage ?? o.insufficient_evidence_message,
+  );
+  const totalQuestionCount = (() => {
+    const raw =
+      o.totalQuestionCount ??
+      o.total_question_count ??
+      o.studentTotalQuestions;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      return Math.round(raw);
+    }
+    const parsed = parseDeclaredQuestionCount(
+      typeof raw === "string" ? raw : questionCount,
+    );
+    return parsed ?? undefined;
+  })();
+  const studentAnsweredQuestions = (() => {
+    const raw =
+      o.studentAnsweredQuestions ??
+      o.student_answered_questions ??
+      o.answeredQuestionCount ??
+      o.answered_questions;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
+      return Math.round(raw);
+    }
+    const m = toTrimmedDisplayString(raw);
+    const n = m ? parseInt(/(\d+)/.exec(m)?.[1] ?? "", 10) : NaN;
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+  })();
+  const coverageRaw =
+    o.studentAnswerCoveragePercent ??
+    o.student_answer_coverage_percent ??
+    o.answerCoveragePercent ??
+    o.answer_coverage_percent;
+  const studentAnswerCoveragePercent =
+    typeof coverageRaw === "number" && Number.isFinite(coverageRaw)
+      ? Math.round(Math.min(100, Math.max(0, coverageRaw)))
+      : undefined;
+  const questionAnswerAuditRaw =
+    o.questionAnswerAudit ?? o.question_answer_audit ?? o.perQuestionAnswerStatus;
+  const questionAnswerAudit = Array.isArray(questionAnswerAuditRaw)
+    ? questionAnswerAuditRaw
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const row = item as Record<string, unknown>;
+          const questionNumber =
+            typeof row.questionNumber === "number"
+              ? row.questionNumber
+              : typeof row.question_number === "number"
+                ? row.question_number
+                : null;
+          const statusRaw = toTrimmedDisplayString(
+            row.status ?? row.answerStatus ?? row.answer_status,
+          ).toLowerCase();
+          const status =
+            statusRaw === "answered" || statusRaw === "filled" || statusRaw === "handwritten"
+              ? ("answered" as const)
+              : statusRaw === "blank" ||
+                  statusRaw === "empty" ||
+                  statusRaw === "unanswered"
+                ? ("blank" as const)
+                : null;
+          const reason = toTrimmedDisplayString(row.reason ?? row.note);
+          if (!questionNumber || !status || !reason) return null;
+          const snippet = toTrimmedDisplayString(
+            row.studentAnswerSnippet ??
+              row.student_answer_snippet ??
+              row.snippet,
+          );
+          const answerAreaOcr = toTrimmedDisplayString(
+            row.answerAreaOcr ?? row.answer_area_ocr ?? row.ocrInAnswerArea,
+          );
+          const handwritingDetected =
+            row.handwritingDetected === true ||
+            row.handwriting_detected === true;
+          const confidenceRaw =
+            row.confidence ?? row.handwritingConfidence ?? row.handwriting_confidence;
+          const confidence =
+            typeof confidenceRaw === "number" && Number.isFinite(confidenceRaw)
+              ? Math.round(Math.min(100, Math.max(0, confidenceRaw)))
+              : undefined;
+          return {
+            questionNumber,
+            ...(toTrimmedDisplayString(row.questionLabel ?? row.question_label)
+              ? {
+                  questionLabel: toTrimmedDisplayString(
+                    row.questionLabel ?? row.question_label,
+                  ),
+                }
+              : {}),
+            status,
+            reason,
+            ...(snippet ? { studentAnswerSnippet: snippet } : {}),
+            ...(answerAreaOcr ? { answerAreaOcr } : {}),
+            ...(handwritingDetected ? { handwritingDetected: true } : {}),
+            ...(confidence != null ? { confidence } : {}),
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x != null)
+    : undefined;
   const report: HomeworkReport = {
     homeworkType: homeworkType || "English worksheet",
     questionCount,
     imageQuality: imageQuality || "Fair",
+    ...(studentAnswersStatus ? { studentAnswersStatus } : {}),
+    ...(noStudentAnswersMessage ? { noStudentAnswersMessage } : {}),
+    ...(unclearPhotoMessage ? { unclearPhotoMessage } : {}),
+    ...(insufficientEvidenceMessage ? { insufficientEvidenceMessage } : {}),
+    ...(totalQuestionCount != null ? { totalQuestionCount } : {}),
+    ...(studentAnsweredQuestions != null
+      ? { studentAnsweredQuestions }
+      : {}),
+    ...(studentAnswerCoveragePercent != null
+      ? { studentAnswerCoveragePercent }
+      : {}),
+    ...(questionAnswerAudit && questionAnswerAudit.length > 0
+      ? { questionAnswerAudit }
+      : {}),
     ...(questionRecognitionIssues.length > 0
       ? { questionRecognitionIssues }
       : { questionRecognitionIssues: [] }),
@@ -777,6 +1017,7 @@ function normalizeHomeworkReport(raw: unknown): HomeworkReport | null {
         }
       : {}),
     ...(formattedReportFinal ? { formattedReport: formattedReportFinal } : {}),
+    ...(learningSummary ? { learningSummary } : {}),
   };
   const parserAnswerCount = countAnswerOverviewEntries(report.answerOverview);
   const uiDisplayCount = countHomeworkUiAnswerEntries(report);
@@ -862,6 +1103,130 @@ function normalizeImageInsights(raw: unknown): ImageInsights | null {
 /** Optional logger for temporary analyze debugging (server or browser console). */
 export type AnalyzeParseLog = (label: string, payload?: unknown) => void;
 
+/** Homework vision must never surface Talk / Learning Review language. */
+const HOMEWORK_TALK_LEAK_PATTERN =
+  /learning review|學習回顧|recent student (lines|responses|messages|answers)|tutoring conversation|analyze the student'?s recent|whisper transcript|【學生第\s*\d+\s*則】|LEARNING-REVIEW REQUIREMENTS|student lines from an english tutoring|conversation history|talk mode|口說分析|對話紀錄/i;
+
+function homeworkTextLooksLikeTalkLeak(text: string): boolean {
+  return HOMEWORK_TALK_LEAK_PATTERN.test(text);
+}
+
+function sanitizeHomeworkVisionText(text: string): string {
+  if (!text.trim()) return text;
+  const blocks = text.split(/\n{2,}/);
+  const kept = blocks.filter((block) => !homeworkTextLooksLikeTalkLeak(block));
+  let out = kept.join("\n\n").trim();
+  if (!out && text.trim()) {
+    out = text
+      .split("\n")
+      .filter((line) => !homeworkTextLooksLikeTalkLeak(line))
+      .join("\n")
+      .trim();
+  }
+  return out || text;
+}
+
+function sanitizeHomeworkLearningSummary(
+  summary: LearningSummaryBlock,
+): LearningSummaryBlock | null {
+  const filter = (items: string[]) =>
+    items.filter((s) => s.trim().length > 0 && !homeworkTextLooksLikeTalkLeak(s));
+  const strengths = filter(summary.strengths);
+  const weaknesses = filter(summary.weaknesses);
+  const whatToPracticeNext = filter(summary.whatToPracticeNext);
+  if (
+    strengths.length === 0 &&
+    weaknesses.length === 0 &&
+    whatToPracticeNext.length === 0
+  ) {
+    return null;
+  }
+  return { strengths, weaknesses, whatToPracticeNext };
+}
+
+function sanitizeHomeworkKeyExplanation(
+  item: HomeworkKeyExplanation,
+): HomeworkKeyExplanation {
+  const clean = (s: string | undefined) =>
+    s && homeworkTextLooksLikeTalkLeak(s) ? undefined : s;
+  return {
+    ...item,
+    why: sanitizeHomeworkVisionText(item.why),
+    correctAnswer: item.correctAnswer,
+    ...(clean(item.grammarExplanation)
+      ? { grammarExplanation: item.grammarExplanation }
+      : {}),
+    ...(clean(item.vocabularyExplanation)
+      ? { vocabularyExplanation: item.vocabularyExplanation }
+      : {}),
+    ...(clean(item.whyWrongChoices)
+      ? { whyWrongChoices: item.whyWrongChoices }
+      : {}),
+    ...(clean(item.commonMistakes)
+      ? { commonMistakes: item.commonMistakes }
+      : {}),
+    ...(clean(item.learningTips) ? { learningTips: item.learningTips } : {}),
+    ...(clean(item.learningTakeaway)
+      ? { learningTakeaway: item.learningTakeaway }
+      : {}),
+    ...(clean(item.example) ? { example: item.example } : {}),
+  };
+}
+
+/** Homework vision: strip speech-practice rows and Talk/Learning Review leakage. */
+function finalizeHomeworkVisionInsights(
+  insights: ImageInsights,
+): ImageInsights {
+  if (!insights.homeworkReport) {
+    return {
+      ...insights,
+      ocrText: sanitizeHomeworkVisionText(insights.ocrText),
+      visualSummaryZh: sanitizeHomeworkVisionText(insights.visualSummaryZh),
+    };
+  }
+  const guarded = applyHomeworkStudentAnswersGuard({
+    ...insights,
+    ocrText: sanitizeHomeworkVisionText(insights.ocrText),
+    visualSummaryZh: sanitizeHomeworkVisionText(insights.visualSummaryZh),
+  });
+  const report = guarded.homeworkReport!;
+  const learningSummary =
+    report.learningSummary && homeworkAllowsPerformanceEvaluation(report.studentAnswersStatus)
+      ? sanitizeHomeworkLearningSummary(report.learningSummary)
+      : undefined;
+  return {
+    ...guarded,
+    homeworkReport: {
+      ...report,
+      pronunciationFocus: [],
+      hintsFirst: report.hintsFirst
+        ? sanitizeHomeworkVisionText(report.hintsFirst)
+        : undefined,
+      answerOverview: sanitizeHomeworkVisionText(report.answerOverview),
+      formattedReport: report.formattedReport
+        ? sanitizeHomeworkVisionText(report.formattedReport)
+        : undefined,
+      keyExplanations: report.keyExplanations.map(sanitizeHomeworkKeyExplanation),
+      learningSignal: report.learningSignal
+        .map((s) => sanitizeHomeworkVisionText(s))
+        .filter((s) => s.length > 0 && !homeworkTextLooksLikeTalkLeak(s)),
+      ...(learningSummary ? { learningSummary } : {}),
+    },
+  };
+}
+
+function extractHomeworkLearningSummary(
+  imageInsights: ImageInsights | null,
+): LearningSummaryBlock | null {
+  const report = imageInsights?.homeworkReport;
+  if (!report || !homeworkAllowsPerformanceEvaluation(report.studentAnswersStatus)) {
+    return null;
+  }
+  const raw = report.learningSummary ?? null;
+  if (!raw) return null;
+  return sanitizeHomeworkLearningSummary(raw);
+}
+
 // =====================================================
 // Architecture Rule
 //
@@ -933,10 +1298,13 @@ export function parseAnalyzeApiData(
   });
 
   const imageInsightsRaw = extractImageInsightsContainer(o);
-  const imageInsights = normalizeImageInsights(imageInsightsRaw);
+  let imageInsights = normalizeImageInsights(imageInsightsRaw);
   const hasHomeworkReport = Boolean(imageInsights?.homeworkReport);
-  const studentCorpusPresent = options?.hasStudentCorpus ?? true;
   const visionMode = Boolean(imageInsights);
+  const isHomeworkVision = visionMode && !requireSpeechPronunciation;
+  const studentCorpusPresent = isHomeworkVision
+    ? false
+    : (options?.hasStudentCorpus ?? !visionMode);
 
   const analysisCapabilities = buildAnalysisCapabilities({
     hasStudentCorpus: studentCorpusPresent,
@@ -944,14 +1312,26 @@ export function parseAnalyzeApiData(
     requireSpeechPronunciation,
   });
 
-  if (visionMode && !studentCorpusPresent) {
+  if (isHomeworkVision) {
     if (!imageInsights) {
-      log?.("parse_fail_image_only_no_insights");
+      log?.("parse_fail_homework_vision_no_insights");
       return null;
     }
-    log?.("parse_ok_image_only_homework", {
-      analysisCapabilities,
+    imageInsights = finalizeHomeworkVisionInsights(imageInsights);
+    const learningSummary = extractHomeworkLearningSummary(imageInsights);
+    const canEvaluateHomework = homeworkAllowsPerformanceEvaluation(
+      imageInsights.homeworkReport?.studentAnswersStatus,
+    );
+    const homeworkCaps = buildAnalysisCapabilities({
+      hasStudentCorpus: false,
+      hasImageInsights: true,
+      requireSpeechPronunciation: false,
+      homeworkPerformanceEvaluation: canEvaluateHomework,
+    });
+    log?.("parse_ok_homework_vision", {
+      analysisCapabilities: homeworkCaps,
       hasHomeworkReport,
+      hasLearningSummary: Boolean(learningSummary),
     });
     return {
       grammar: IMAGE_ONLY_SCORE_STUB,
@@ -960,7 +1340,8 @@ export function parseAnalyzeApiData(
       pronunciationFocus: [],
       tutorComment: IMAGE_ONLY_TUTOR_COMMENT_STUB,
       imageInsights,
-      analysisCapabilities,
+      ...(learningSummary ? { learningSummary } : {}),
+      analysisCapabilities: homeworkCaps,
     };
   }
 

@@ -305,8 +305,130 @@ function HomeworkQuestionRecognitionSection({
   );
 }
 
+function HandwritingDetectionDebug({ report }: { report: HomeworkReport }) {
+  const q1 = report.questionAnswerAudit?.find((q) => q.questionNumber === 1);
+  const det = q1?.handwritingDetection;
+  if (!q1) return null;
+
+  return (
+    <details className="rounded-lg border border-white/[0.06] bg-black/25 p-2 text-[11px] text-zinc-400">
+      <summary className="cursor-pointer font-medium text-amber-200/90">
+        Q1 handwriting detection evidence
+      </summary>
+      <div className="mt-2 space-y-1 leading-relaxed">
+        <p>
+          <span className="text-zinc-500">Status:</span> {q1.status}
+        </p>
+        {det ? (
+          <>
+            <p>
+              <span className="text-zinc-500">OCR in answer area:</span>{" "}
+              {det.ocrTextInAnswerArea ? `"${det.ocrTextInAnswerArea}"` : "(empty)"}
+            </p>
+            <p>
+              <span className="text-zinc-500">Handwriting detected:</span>{" "}
+              {det.handwritingDetected ? "yes" : "no"}
+            </p>
+            <p>
+              <span className="text-zinc-500">Confidence:</span> {det.confidence}
+            </p>
+            <p>
+              <span className="text-zinc-500">Why:</span> {det.classificationReason}
+            </p>
+            {det.rejectedByRule ? (
+              <p>
+                <span className="text-zinc-500">Rejected by rule:</span>{" "}
+                {det.rejectedByRule}
+              </p>
+            ) : null}
+            {det.exactEvidence.length > 0 ? (
+              <div>
+                <p className="text-zinc-500">Exact evidence:</p>
+                <ul className="mt-0.5 list-inside list-disc">
+                  {det.exactEvidence.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <p>
+            <span className="text-zinc-500">Reason:</span> {q1.reason}
+          </p>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function HomeworkReportSection({ report }: { report: HomeworkReport }) {
   const recognitionIssues = report.questionRecognitionIssues ?? [];
+  const status = report.studentAnswersStatus;
+  const notice =
+    report.insufficientEvidenceMessage?.trim() ||
+    report.noStudentAnswersMessage?.trim() ||
+    report.unclearPhotoMessage?.trim() ||
+    (status === "none" || status === "unclear"
+      ? report.formattedReport
+      : "");
+
+  if (status === "none" || status === "unclear") {
+    return (
+      <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
+        <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <div className="rounded-lg border border-white/[0.06] bg-black/25 p-3">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200/90">
+            {status === "unclear" ? "需要更清楚的照片" : "尚未偵測到學生作答"}
+          </p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+            {notice}
+          </p>
+        </div>
+        {report.hintsFirst ? (
+          <section>
+            <h4 className="text-sm font-semibold text-zinc-100">💡 我可以怎麼幫你</h4>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm text-zinc-100/95">
+              {report.hintsFirst}
+            </p>
+          </section>
+        ) : null}
+        <HandwritingDetectionDebug report={report} />
+      </div>
+    );
+  }
+
+  if (status === "insufficient") {
+    const evidenceLine =
+      report.studentAnsweredQuestions != null &&
+      report.totalQuestionCount != null
+        ? `已作答 ${report.studentAnsweredQuestions} / ${report.totalQuestionCount} 題${
+            report.studentAnswerCoveragePercent != null
+              ? `（${report.studentAnswerCoveragePercent}%）`
+              : ""
+          }`
+        : null;
+    const auditLines = (report.questionAnswerAudit ?? []).map(
+      (q) => `${q.questionLabel ?? `Q${q.questionNumber}`}: ${q.status}`,
+    );
+    return (
+      <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
+        <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        {evidenceLine ? (
+          <p className="text-xs font-medium text-amber-100/90">{evidenceLine}</p>
+        ) : null}
+        {auditLines.length > 0 ? (
+          <pre className="overflow-x-auto rounded-lg border border-white/[0.06] bg-black/25 p-2 text-[11px] leading-relaxed text-zinc-400">
+            {auditLines.join("\n")}
+          </pre>
+        ) : null}
+        <HandwritingDetectionDebug report={report} />
+        <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
+          {report.formattedReport || notice}
+        </div>
+      </div>
+    );
+  }
 
   if (report.formattedReport) {
     return (

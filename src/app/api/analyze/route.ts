@@ -19,11 +19,19 @@
 import { NextResponse } from "next/server";
 
 import {
+  analyzeRequestHasContent,
+  buildLearningReviewUserContent,
+  buildSpeechUserContent,
+  buildTypedTextUserContent,
+  buildVisionUserContent,
+  parseAnalyzeApiRequest,
+  type VisionUserPart,
+} from "@/lib/analyzeApiRequest";
+import {
   countAnswerOverviewEntries,
   countHomeworkUiAnswerEntries,
   countOcrQuestionNumbers,
   extractAnswerOverviewFromFormattedReport,
-  hasStudentSubmissionCorpus,
   parseAnalyzeApiData,
   parseDeclaredQuestionCount,
 } from "@/lib/analyzeFeedback";
@@ -128,81 +136,106 @@ Use exactly these keys (camelCase):
 
 **Omit** pronunciationScores entirely (do not include that key).`;
 
-const TUTOR_VISION_IMAGES_PROMPT = `You are StudySignal, an AI English tutor.
+const TUTOR_VISION_IMAGES_PROMPT = `You are a real English teacher reviewing a student's **worksheet photo**. You are NOT reviewing tutoring chat, speech, or conversation history.
 
-Your mission is NOT simply to give answers.
-Your mission is to help students understand why an answer is correct while keeping the explanation concise and easy to read.
-
-The student attached **one or more homework images**. Perform OCR mentally, read all visible English/Chinese text, and connect insights to any typed message they provided.
+The input is **worksheet image(s) only** — OCR + visible questions and written answers. There is NO Whisper transcript, NO microphone audio, NO Talk chat log, and NO "Learning Review" task.
 
 ========================
-StudySignal Teaching Mode
+STEP 1 — STUDENT ANSWERS & EVIDENCE CHECK (MANDATORY FIRST)
 ========================
-Before giving the final answer, determine whether the student is asking for **learning** or simply asking for **answers**.
-- If the student appears to be **learning**: put brief **hints first** in homeworkReport.hintsFirst, then answers in answerOverview, then explanations in keyExplanations.
-- Never encourage copying homework without understanding.
-- Always teach before giving the final explanation whenever appropriate.
+Count before any learning analytics — **do not guess from model answers or printed question text**:
+
+1. **questionAnswerAudit** (REQUIRED array) — one entry per worksheet question:
+   { "questionNumber": 1, "questionLabel": "Q1", "status": "answered"|"blank", "reason": "why", "studentAnswerSnippet": "only if answered", "answerAreaOcr": "OCR text inside the answer blank only", "handwritingDetected": true|false, "confidence": 0-100 }
+   - **answered** = visible **student handwriting** in the answer blank (not printed question text, not Chinese hints, not answer-key text)
+   - **blank** = empty blank, printed-only, unreadable, or uncertain
+   - **reason** must cite what you saw (e.g. "handwriting: 'in'" or "empty blank")
+   - **answerAreaOcr** = exact text you read inside the answer blank (empty string if blank)
+   - **handwritingDetected** = true only when you see pen/pencil handwriting in the blank
+
+2. Derive counts **only** from questionAnswerAudit (ignore aggregate guesses):
+   - **totalQuestionCount** = audit array length (or questionCount on sheet)
+   - **studentAnsweredQuestions** = count where status = "answered"
+   - **studentAnswerCoveragePercent** = round(answered ÷ total × 100)
+
+Set **homeworkReport.studentAnswersStatus**:
+- **"none"** — studentAnsweredQuestions = 0 (blank / only printed questions)
+- **"unclear"** — cannot confidently tell if handwriting exists (blur, glare, crop)
+- **"insufficient"** — studentAnsweredQuestions > 0 BUT evidence too low: **fewer than 3 answered** OR **coverage below 20%**
+- **"detected"** — at least 3 answered questions AND coverage ≥ 20%
+
+**Never guess student ability from the worksheet alone.**
+
+If **"none"**:
+- Set **noStudentAnswersMessage** (Traditional Chinese + English) as before
+- **DO NOT output** marking, model answers, keyExplanations, learningSignal, learningSummary, strengths, weaknesses, practice recommendations, or ability evaluation
+- **formattedReport** = only the noStudentAnswersMessage
+
+If **"unclear"**:
+- Set **unclearPhotoMessage** — ask for clearer photo (Traditional Chinese + English)
+- Same restrictions as **"none"**
+
+If **"insufficient"**:
+- Set **insufficientEvidenceMessage**:
+  "只偵測到少量作答。尚無足夠證據評估整體學習表現。"
+  "Only a small number of answers were detected. There is not enough evidence to evaluate learning performance yet."
+- Include totalQuestionCount, studentAnsweredQuestions, studentAnswerCoveragePercent
+- **ONLY explain the answered question(s)** in answerOverview / keyExplanations
+- **DO NOT output**: learningSummary, learningSignal, strengths, weaknesses, practice recommendations, or overall ability evaluation
+- **formattedReport** may include Answer Overview + Question Analysis for answered items only — **no Learning Summary section**
+
+Only if **"detected"** (sufficient evidence) proceed to Step 2 full analytics below.
 
 ========================
-OUTPUT FORMAT (homework photos)
+ABSOLUTELY FORBIDDEN (all statuses)
 ========================
-Return ONLY one JSON object (no markdown fences outside JSON). **Always answer in the same language the student uses** (typed message or dominant language on the worksheet). If unclear, use Traditional Chinese (繁體中文) for explanations and English for worksheet answers.
+- Any "Learning Review" section or title
+- Phrases like "analyze the student's recent responses", "recent student lines", "tutoring conversation", "student said in chat"
+- Top-level keys: grammar, vocabulary, fluency, expression, pronunciationScores, pronunciationFocus, tutorModelAnswer, tutorComment
+- Invented spoken sentences, fake dialogue, speech scores, pronunciation practice
+- 【學生】/【改寫】/【說明】 Talk-rubric speaking corrections
+- Summaries of chat messages or tutor-student conversation
+- Inferring student strengths/weaknesses when evidence is none, unclear, or insufficient
 
-Required top-level key **imageInsights** with:
-- ocrText: brief OCR / text summary from the image(s)
-- visualSummaryZh: short note on what the images show (繁體中文 OK)
-- homeworkReport: object with ALL of the following:
+========================
+STEP 2 — FULL MARKING & LEARNING ANALYTICS (only when studentAnswersStatus = "detected")
+========================
+Traditional Chinese (繁體中文) for explanations; English for worksheet answers.
 
-**STEP 1 — Homework Summary** (also mirror in formattedReport):
-- homeworkType: e.g. "fill-in-the-blank", "multiple choice", "translation"
-- questionCount: number or string count of questions you can see
-- imageQuality: exactly one of "Good" | "Fair" | "Poor"
-- questionRecognitionIssues: REQUIRED array. After checking every numbered question on the image(s), list ONLY questions where you could NOT reliably read the question text, student handwriting, or answer area due to real image/OCR/vision limits (e.g. blur, glare, reflection, crop, too small, obscured). Each item: { "questionLabel": "Question 5", "issue": "Text is blurry" } — use short English issue labels like the examples. Return [] when ALL questions are clearly readable. FORBIDDEN: vague whole-homework warnings (e.g. "some answers may need verification", "部分答案可能需要驗證"); do NOT list a question if you successfully read it; do NOT warn because an answer was inferred or you are uncertain about correctness — only warn when text/visual recognition actually failed.
+Required **imageInsights**:
+- ocrText: OCR summary from the sheet
+- visualSummaryZh: what the worksheet shows (worksheet content only — NOT chat)
+- homeworkReport:
+  - studentAnswersStatus: "detected"
+  - totalQuestionCount, studentAnsweredQuestions, studentAnswerCoveragePercent
+  - homeworkType, questionCount, imageQuality
+  - questionRecognitionIssues: [] or list of { questionLabel, issue } for unreadable items only
+  - hintsFirst: optional (learning mode)
+  - answerOverview: numbered answers 1..N — include **student's visible answers** and marking; do not invent answers they did not write
+  - keyExplanations: **one object per worksheet question** with ALL fields:
+    {
+      "questionLabel": "Question 1",
+      "correctAnswer": "English answer",
+      "why": "繁體中文 — why this answer is correct (teacher tone, specific to this item)",
+      "grammarExplanation": "繁體中文 — grammar point for this item",
+      "vocabularyExplanation": "繁體中文 — vocabulary point for this item",
+      "whyWrongChoices": "繁體中文 — why other options are wrong (use 不適用 if not multiple choice)",
+      "commonMistakes": "繁體中文 — common student mistakes on this item",
+      "learningTips": "繁體中文 — practical tip",
+      "learningTakeaway": "繁體中文 — one memorable takeaway from this question",
+      "example": "optional short English example"
+    }
+  - learningSignal: 3–6 bullets of concepts from the **worksheet** (e.g. "✅ Third-person singular")
+  - learningSummary: REQUIRED { "strengths", "weaknesses", "whatToPracticeNext" } — 2–4 bullets each, **only from visible student work** (NOT conversation or speaking)
 
-**Recognition display rules (formattedReport 📸 section and questionRecognitionIssues must agree):**
-- If questionRecognitionIssues is empty: show exactly "✅ All questions were recognized successfully."
-- If not empty: show "⚠️ Image quality issue" then each questionLabel with bullet issue (one issue per question).
-- Never include lowOcrNote or any vague verification disclaimer.
-
-**STEP 2 — Answer Overview**:
-- hintsFirst: optional string — hints only when student seems to be learning (before answers)
-- answerOverview: REQUIRED numbered answers for **every** question from 1 through questionCount. Format one line per question: "1. ...\\n2. ...\\n3. ..." through N. **Never skip a question number.** If one answer truly cannot be read from the image, use exactly two lines for that item: "Question X" then "status: unreadable" — do NOT omit X.
-
-**STEP 3 — Key Explanations**:
-- keyExplanations: array — **DO NOT explain every question**. Only items involving grammar, confusing vocabulary, verb tense, collocations, prepositions, or common mistakes.
-  Each item: { "questionLabel": "Question X", "correctAnswer": "...", "why": "simple explanation for junior/high school students, under 80 words", "example": "optional short example" }
-
-**STEP 4 — Pronunciation Focus**:
-- pronunciationFocus: array of **3 to 5** items from the homework: { "word": "...", "ipa": "/.../", "tip": "simple pronunciation tip" }
-
-**STEP 5 — Today's Learning Signal**:
-- learningSignal: array of bullet strings summarizing what was learned today (e.g. "✅ Third-person singular verbs"). **Do NOT invent numeric scores.**
-
-**formattedReport**: REQUIRED string — full student-facing report with these exact section titles and emoji:
+**formattedReport** (REQUIRED string when detected) — read like a teacher's marked homework:
 📸 Homework analyzed
 ✅ Answer Overview
-🔍 Key Explanations
-🔊 Pronunciation Practice
-📈 Today's Learning Signal
+🔍 Question-by-Question Analysis
+📚 Learning Summary
+   Strengths · Weaknesses · What to practice next (from **student's actual answers only**)
 
-In the 📸 Homework analyzed section include homework type, question count, and image quality only — the app renders question recognition status separately from questionRecognitionIssues; do not duplicate recognition warnings inside formattedReport.
-
-Use clean formatting, headings, short bullets. Avoid long paragraphs. Avoid repeating the same explanation. Sound like a friendly English tutor, not an encyclopedia. Do not include chain-of-thought.
-
-Also include (for app compatibility):
-- tutorComment: { "whatWentWell", "biggestImprovementOpportunity", "whatToTryNextTime" } — same language as student, brief, grounded in the homework
-- learningSummary: optional { "strengths", "weaknesses", "whatToPracticeNext" } — 2–4 bullets each, no invented scores
-
-**Omit** pronunciationScores, pronunciationFocus (top-level), grammar, vocabulary, and fluency keys entirely unless you cannot avoid them — the homework report is the primary output.
-
-Do NOT invent how the student "spoke" a word.`;
-
-type ImagePart = {
-  type: "image_url";
-  image_url: { url: string };
-};
-
-type VisionUserPart = { type: "text"; text: string } | ImagePart;
+Tone: direct, warm, specific — like red-pen feedback on the sheet. No generic AI intros. No mention of chat, speech, or Learning Review.`;
 
 type LossLayer = "OpenAI" | "JSON Parse" | "Parser" | "UI" | "none";
 
@@ -362,58 +395,6 @@ function inferLossLayer(
   return "none";
 }
 
-function parseRequestBody(body: unknown): {
-  text: string;
-  includePronunciation: boolean;
-  images: { mimeType: string; dataBase64: string }[];
-} | null {
-  if (!body || typeof body !== "object") return null;
-  const o = body as Record<string, unknown>;
-  const text = typeof o.text === "string" ? o.text.trim() : "";
-  const includePronunciation = o.includePronunciation === true;
-  const rawImages = o.images;
-  const images: { mimeType: string; dataBase64: string }[] = [];
-  if (Array.isArray(rawImages)) {
-    for (const item of rawImages) {
-      if (!item || typeof item !== "object") continue;
-      const im = item as Record<string, unknown>;
-      const mimeType =
-        typeof im.mimeType === "string" && im.mimeType.startsWith("image/")
-          ? im.mimeType
-          : "image/jpeg";
-      const dataBase64 =
-        typeof im.dataBase64 === "string" ? im.dataBase64.trim() : "";
-      if (dataBase64.length > 0) {
-        images.push({ mimeType, dataBase64 });
-      }
-    }
-  }
-  return { text, includePronunciation, images };
-}
-
-function buildVisionUserContent(
-  text: string,
-  images: { mimeType: string; dataBase64: string }[],
-): VisionUserPart[] {
-  const parts: VisionUserPart[] = [
-    {
-      type: "text",
-      text:
-        `Student typed message (may be empty):\n${text || "（無）"}\n\n` +
-        "Analyze the attached English homework image(s). Follow StudySignal homework steps in imageInsights.homeworkReport and formattedReport. Return JSON exactly as specified.",
-    },
-  ];
-  for (const img of images) {
-    parts.push({
-      type: "image_url",
-      image_url: {
-        url: `data:${img.mimeType};base64,${img.dataBase64}`,
-      },
-    });
-  }
-  return parts;
-}
-
 export async function POST(request: Request) {
   await logAnalyzeIncomingImageDebug(request);
 
@@ -432,39 +413,80 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "請傳送有效的 JSON。" }, { status: 400 });
   }
 
-  const parsedBody = parseRequestBody(body);
-  if (!parsedBody) {
+  const parsedRequest = parseAnalyzeApiRequest(body);
+  if (!parsedRequest) {
     return NextResponse.json(
       { error: "請使用有效的 JSON 物件。" },
       { status: 400 },
     );
   }
 
-  const { text, includePronunciation, images } = parsedBody;
-  const hasImages = images.length > 0;
-
-  if (!text && !hasImages) {
+  if (!analyzeRequestHasContent(parsedRequest)) {
     return NextResponse.json(
       { error: "請提供文字或至少一張圖片。" },
       { status: 400 },
     );
   }
 
-  const requireSpeechPronunciation =
-    includePronunciation === true && !hasImages;
+  const {
+    submissionKind,
+    includePronunciation,
+    images,
+    hasImages,
+    homeworkQuestion,
+    speechTranscript,
+    typedText,
+    learningReviewCorpus,
+    requireSpeechPronunciation,
+    hasStudentCorpus,
+  } = parsedRequest;
+
+  analyzeLog("signals_pipeline_guard", {
+    submissionKind,
+    "Signals started": hasImages,
+    "Microphone started?": false,
+    "Whisper called?": false,
+    homeworkQuestionLength: homeworkQuestion.length,
+    speechTranscriptLength: speechTranscript.length,
+    typedTextLength: typedText.length,
+    learningReviewCorpusLength: learningReviewCorpus.length,
+    imageCount: images.length,
+    includePronunciation,
+    hasStudentCorpus,
+    note: "Homework submissions never accept speechTranscript; legacy text+images is coerced to homework_image.",
+  });
 
   let systemPrompt: string;
   let userContent: string | VisionUserPart[];
 
   if (hasImages) {
+    if (
+      speechTranscript.length > 0 ||
+      learningReviewCorpus.length > 0 ||
+      (typedText.length > 0 && submissionKind.startsWith("homework"))
+    ) {
+      analyzeLog("homework_pipeline_isolation_reject", {
+        submissionKind,
+        speechTranscriptLength: speechTranscript.length,
+        learningReviewCorpusLength: learningReviewCorpus.length,
+        typedTextLength: typedText.length,
+      });
+      return NextResponse.json(
+        { error: "作業圖片分析不可包含對話紀錄或語音轉寫。" },
+        { status: 400 },
+      );
+    }
     systemPrompt = TUTOR_VISION_IMAGES_PROMPT;
-    userContent = buildVisionUserContent(text, images);
+    userContent = buildVisionUserContent(homeworkQuestion, images);
   } else if (requireSpeechPronunciation) {
     systemPrompt = TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT;
-    userContent = `Student transcript from speech audio:\n\n${text}\n\nReturn the JSON object exactly as specified.`;
+    userContent = buildSpeechUserContent(speechTranscript);
+  } else if (submissionKind === "learning_review") {
+    systemPrompt = TUTOR_TEXT_OR_IMAGE_NO_PRONUNCIATION_PROMPT;
+    userContent = buildLearningReviewUserContent(learningReviewCorpus);
   } else {
     systemPrompt = TUTOR_TEXT_OR_IMAGE_NO_PRONUNCIATION_PROMPT;
-    userContent = `Student typed text (no speech audio):\n\n${text}\n\nReturn the JSON object exactly as specified — **without** pronunciationScores or pronunciationFocus keys.`;
+    userContent = buildTypedTextUserContent(typedText);
   }
 
   if (hasImages) {
@@ -484,6 +506,14 @@ export async function POST(request: Request) {
       systemPromptLength: systemPrompt.length,
       systemPrompt,
       userText: typeof userContent === "string" ? userContent : userTextPart?.text,
+      homeworkQuestionLength: homeworkQuestion.length,
+      speechTranscriptLength: speechTranscript.length,
+      promptPayload: {
+        submissionKind,
+        hasImages: true,
+        homeworkQuestionInPrompt: homeworkQuestion.length > 0,
+        imageCount: images.length,
+      },
       promptQuestionCount: null,
       promptQuestionCountNote:
         "Prompt asks model to set homeworkReport.questionCount from visible worksheet; no fixed N sent.",
@@ -553,6 +583,7 @@ export async function POST(request: Request) {
 
     analyzeLog("STEP1_ocr_question_count", {
       ocrQuestionCount: step1Snapshot.ocrQuestionCount,
+      "OCR length": ocrTextRaw.length,
       ocrTextSnippet: ocrTextRaw.slice(0, 400),
       source: "imageInsights.ocrText from raw OpenAI response (string extract, no JSON.parse)",
     });
@@ -619,11 +650,6 @@ export async function POST(request: Request) {
 
   const parseLog = (label: string, payload?: unknown) =>
     analyzeLog(`parse_step:${label}`, payload);
-
-  const hasStudentCorpus = hasStudentSubmissionCorpus(
-    text,
-    requireSpeechPronunciation,
-  );
 
   const feedback = parseAnalyzeApiData(
     parsed,
