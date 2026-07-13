@@ -17,6 +17,8 @@ import type {
   TutorModelAnswerBlock,
 } from "@/lib/analyzeFeedback";
 import { resolveAnalysisCapabilities } from "@/lib/analyzeFeedback";
+import type { QuestionEvidence } from "@/lib/worksheetCapture";
+import { ANALYSIS_CONFIDENCE_UI } from "@/lib/worksheetCapture";
 import { Volume2 } from "@/components/LucideVolume2";
 import { speakWithBrowserTTS } from "@/lib/speechSynthesis";
 
@@ -275,6 +277,59 @@ function TutorModelAnswerSection({
   );
 }
 
+function QuestionEvidenceSource({
+  evidence,
+}: {
+  evidence: QuestionEvidence | undefined;
+}) {
+  if (!evidence) return null;
+  const confLabel =
+    ANALYSIS_CONFIDENCE_UI[evidence.visionConfidence]?.label ??
+    evidence.visionConfidence;
+  return (
+    <div className="mt-2 rounded-md border border-white/[0.06] bg-black/30 px-2.5 py-1.5 text-[11px] leading-relaxed text-zinc-400">
+      <p className="font-medium uppercase tracking-wide text-zinc-500">
+        Evidence Source
+      </p>
+      <p className="mt-0.5 text-zinc-300">
+        第{evidence.questionNumber}題 · 來源：{evidence.sourcePhotoLabel} ·
+        Confidence：
+        {evidence.visionConfidence === "high"
+          ? "High"
+          : evidence.visionConfidence === "medium"
+            ? "Medium"
+            : "Low"}
+        {evidence.isLowConfidence ? " · 此題影像可信度較低" : ""}
+      </p>
+      <p className="text-zinc-500">
+        quality={evidence.quality}
+        {evidence.ocrText ? ` · ocr=${evidence.ocrText.slice(0, 40)}` : ""}
+        {" · "}
+        {confLabel}
+      </p>
+    </div>
+  );
+}
+
+function HomeworkLowConfidenceSection({
+  questionNumbers,
+}: {
+  questionNumbers: number[];
+}) {
+  if (questionNumbers.length === 0) return null;
+  const labels = questionNumbers.map((n) => `第${n}題`).join("、");
+  return (
+    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+      <p className="text-sm font-medium text-amber-100/95">
+        ⚠️ 可信度較低：{labels}
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-amber-100/75">
+        這些題目已納入分析，但照片品質偏低，解讀可能較不準確。
+      </p>
+    </div>
+  );
+}
+
 function HomeworkQuestionRecognitionSection({
   issues,
 }: {
@@ -283,7 +338,7 @@ function HomeworkQuestionRecognitionSection({
   if (issues.length === 0) {
     return (
       <p className="mt-2 text-sm text-emerald-200/95">
-        ✅ All questions were recognized successfully.
+        ✅ 所有題目都已成功辨識。
       </p>
     );
   }
@@ -291,7 +346,7 @@ function HomeworkQuestionRecognitionSection({
   return (
     <div className="mt-2 space-y-2">
       <p className="text-sm font-medium text-amber-200/95">
-        ⚠️ Image quality issue
+        ⚠️ 照片需要調整
       </p>
       <ul className="space-y-2">
         {issues.map((item, i) => (
@@ -305,68 +360,15 @@ function HomeworkQuestionRecognitionSection({
   );
 }
 
-function HandwritingDetectionDebug({ report }: { report: HomeworkReport }) {
-  const q1 = report.questionAnswerAudit?.find((q) => q.questionNumber === 1);
-  const det = q1?.handwritingDetection;
-  if (!q1) return null;
-
-  return (
-    <details className="rounded-lg border border-white/[0.06] bg-black/25 p-2 text-[11px] text-zinc-400">
-      <summary className="cursor-pointer font-medium text-amber-200/90">
-        Q1 handwriting detection evidence
-      </summary>
-      <div className="mt-2 space-y-1 leading-relaxed">
-        <p>
-          <span className="text-zinc-500">Status:</span> {q1.status}
-        </p>
-        {det ? (
-          <>
-            <p>
-              <span className="text-zinc-500">OCR in answer area:</span>{" "}
-              {det.ocrTextInAnswerArea ? `"${det.ocrTextInAnswerArea}"` : "(empty)"}
-            </p>
-            <p>
-              <span className="text-zinc-500">Handwriting detected:</span>{" "}
-              {det.handwritingDetected ? "yes" : "no"}
-            </p>
-            <p>
-              <span className="text-zinc-500">Confidence:</span> {det.confidence}
-            </p>
-            <p>
-              <span className="text-zinc-500">Why:</span> {det.classificationReason}
-            </p>
-            {det.rejectedByRule ? (
-              <p>
-                <span className="text-zinc-500">Rejected by rule:</span>{" "}
-                {det.rejectedByRule}
-              </p>
-            ) : null}
-            {det.exactEvidence.length > 0 ? (
-              <div>
-                <p className="text-zinc-500">Exact evidence:</p>
-                <ul className="mt-0.5 list-inside list-disc">
-                  {det.exactEvidence.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          <p>
-            <span className="text-zinc-500">Reason:</span> {q1.reason}
-          </p>
-        )}
-      </div>
-    </details>
-  );
-}
-
 function HomeworkReportSection({ report }: { report: HomeworkReport }) {
   const recognitionIssues = report.questionRecognitionIssues ?? [];
+  const lowConfidenceQuestions = report.lowConfidenceQuestions ?? [];
+  const evidenceMap = report.questionEvidenceMap ?? {};
+  const evidenceList = Object.values(evidenceMap).sort(
+    (a, b) => a.questionNumber - b.questionNumber,
+  );
   const status = report.studentAnswersStatus;
   const notice =
-    report.insufficientEvidenceMessage?.trim() ||
     report.noStudentAnswersMessage?.trim() ||
     report.unclearPhotoMessage?.trim() ||
     (status === "none" || status === "unclear"
@@ -377,6 +379,7 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
     return (
       <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
         <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <HomeworkLowConfidenceSection questionNumbers={lowConfidenceQuestions} />
         <div className="rounded-lg border border-white/[0.06] bg-black/25 p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200/90">
             {status === "unclear" ? "需要更清楚的照片" : "尚未偵測到學生作答"}
@@ -393,7 +396,6 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
             </p>
           </section>
         ) : null}
-        <HandwritingDetectionDebug report={report} />
       </div>
     );
   }
@@ -408,21 +410,13 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
               : ""
           }`
         : null;
-    const auditLines = (report.questionAnswerAudit ?? []).map(
-      (q) => `${q.questionLabel ?? `Q${q.questionNumber}`}: ${q.status}`,
-    );
     return (
       <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
         <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <HomeworkLowConfidenceSection questionNumbers={lowConfidenceQuestions} />
         {evidenceLine ? (
           <p className="text-xs font-medium text-amber-100/90">{evidenceLine}</p>
         ) : null}
-        {auditLines.length > 0 ? (
-          <pre className="overflow-x-auto rounded-lg border border-white/[0.06] bg-black/25 p-2 text-[11px] leading-relaxed text-zinc-400">
-            {auditLines.join("\n")}
-          </pre>
-        ) : null}
-        <HandwritingDetectionDebug report={report} />
         <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
           {report.formattedReport || notice}
         </div>
@@ -434,9 +428,20 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
     return (
       <div className="mb-4 space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
         <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <HomeworkLowConfidenceSection questionNumbers={lowConfidenceQuestions} />
         <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100/95">
           {report.formattedReport}
         </div>
+        {evidenceList.length > 0 ? (
+          <div className="space-y-1.5 border-t border-white/[0.06] pt-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+              Evidence Source（Debug）
+            </p>
+            {evidenceList.map((ev) => (
+              <QuestionEvidenceSource key={ev.questionNumber} evidence={ev} />
+            ))}
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -444,18 +449,19 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
   return (
     <div className="mb-4 space-y-4 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 ring-1 ring-amber-500/10">
       <section>
-        <h4 className="text-sm font-semibold text-amber-100">📸 Homework analyzed</h4>
+        <h4 className="text-sm font-semibold text-amber-100">📸 作業分析完成</h4>
         <ul className="mt-2 list-none space-y-1 text-sm text-zinc-100/95">
-          <li>• Homework type: {report.homeworkType}</li>
-          <li>• Number of questions: {report.questionCount}</li>
-          <li>• Image quality: {report.imageQuality}</li>
+          <li>• 作業類型：{report.homeworkType}</li>
+          <li>• 題數：{report.questionCount}</li>
+          <li>• 照片品質：{report.imageQuality}</li>
         </ul>
         <HomeworkQuestionRecognitionSection issues={recognitionIssues} />
+        <HomeworkLowConfidenceSection questionNumbers={lowConfidenceQuestions} />
       </section>
 
       {report.hintsFirst ? (
         <section>
-          <h4 className="text-sm font-semibold text-zinc-100">💡 Hints</h4>
+          <h4 className="text-sm font-semibold text-zinc-100">💡 提示</h4>
           <p className="mt-1.5 whitespace-pre-wrap text-sm text-zinc-100/95">
             {report.hintsFirst}
           </p>
@@ -463,7 +469,7 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
       ) : null}
 
       <section>
-        <h4 className="text-sm font-semibold text-emerald-100">✅ Answer Overview</h4>
+        <h4 className="text-sm font-semibold text-emerald-100">✅ 作答總覽</h4>
         <p className="mt-1.5 whitespace-pre-wrap text-sm text-zinc-100/95">
           {report.answerOverview}
         </p>
@@ -471,30 +477,48 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
 
       {report.keyExplanations.length > 0 ? (
         <section>
-          <h4 className="text-sm font-semibold text-sky-100">🔍 Key Explanations</h4>
+          <h4 className="text-sm font-semibold text-sky-100">🔍 重點解析</h4>
           <ul className="mt-2 space-y-3">
-            {report.keyExplanations.map((item, i) => (
+            {report.keyExplanations.map((item, i) => {
+              const qMatch = item.questionLabel.match(/(\d{1,3})/);
+              const qNum = qMatch ? Number(qMatch[1]) : NaN;
+              const isLowConfidence =
+                Number.isFinite(qNum) &&
+                lowConfidenceQuestions.includes(qNum);
+              const evidence = Number.isFinite(qNum)
+                ? evidenceMap[String(qNum)]
+                : undefined;
+              return (
               <li
                 key={i}
                 className="rounded-lg border border-white/[0.06] bg-black/25 p-3 text-sm"
               >
-                <p className="font-semibold text-white">{item.questionLabel}</p>
+                <p className="font-semibold text-white">
+                  {item.questionLabel}
+                  {isLowConfidence ? (
+                    <span className="ml-2 text-xs font-medium text-amber-300/95">
+                      可信度較低
+                    </span>
+                  ) : null}
+                </p>
                 <p className="mt-1 text-zinc-300">
-                  <span className="text-zinc-500">Correct answer: </span>
+                  <span className="text-zinc-500">正確答案：</span>
                   {item.correctAnswer}
                 </p>
                 <p className="mt-1 text-zinc-200/95">
-                  <span className="text-zinc-500">Why? </span>
+                  <span className="text-zinc-500">說明：</span>
                   {item.why}
                 </p>
                 {item.example ? (
                   <p className="mt-1 text-zinc-400">
-                    <span className="text-zinc-500">Example: </span>
+                    <span className="text-zinc-500">例句：</span>
                     {item.example}
                   </p>
                 ) : null}
+                <QuestionEvidenceSource evidence={evidence} />
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
       ) : null}
@@ -502,7 +526,7 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
       {report.pronunciationFocus.length > 0 ? (
         <section>
           <h4 className="text-sm font-semibold text-violet-100">
-            🔊 Pronunciation Practice
+            🔊 發音練習
           </h4>
           <ul className="mt-2 space-y-2">
             {report.pronunciationFocus.map((row, i) => (
@@ -522,7 +546,7 @@ function HomeworkReportSection({ report }: { report: HomeworkReport }) {
       {report.learningSignal.length > 0 ? (
         <section>
           <h4 className="text-sm font-semibold text-teal-100">
-            📈 Today&apos;s Learning Signal
+            📈 今日學習重點
           </h4>
           <ul className="mt-2 list-none space-y-1 text-sm text-zinc-100/95">
             {report.learningSignal.map((line, i) => (
@@ -737,7 +761,7 @@ export function AnalyzeFeedbackPanel({
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                      Reason
+                      練習原因
                     </p>
                     <p className="mt-0.5 text-zinc-200/95">
                       {typeof item.reasonToPractice === "string"
@@ -745,7 +769,7 @@ export function AnalyzeFeedbackPanel({
                         : String(item.reasonToPractice ?? "")}
                     </p>
                     <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                      Tip
+                      提示
                     </p>
                     <p className="mt-0.5 text-zinc-200/95">
                       {typeof item.pronunciationTip === "string"

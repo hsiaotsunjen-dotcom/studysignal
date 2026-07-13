@@ -1,0 +1,42 @@
+{
+  "id": "007_multiple_choice",
+  "description": "Multiple-choice worksheet — parser must keep option labels distinct from student choice.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "high",
+  "estimatedTotalQuestions": 3,
+  "coveredQuestions": [1, 2, 3],
+  "missingQuestions": [],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "studentAnswer": "B",
+      "expectedAnswer": "B",
+      "notes": "MCQ — student selected B",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "incorrect",
+      "studentAnswer": "A",
+      "expectedAnswer": "C",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "blank",
+      "studentAnswer": null,
+      "expectedAnswer": "D",
+      "sourcePhoto": "photo1.jpg"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 2,
+      "mustInclude": ["C"],
+      "mustNotInclude": ["選項文字當作成績"]
+    }
+  ]
+}

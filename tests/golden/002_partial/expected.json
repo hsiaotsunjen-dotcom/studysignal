@@ -1,0 +1,64 @@
+{
+  "id": "002_partial",
+  "description": "Coverage 3/5 — missing Q4–Q5. Partial scope; may analyze covered only.",
+  "photos": ["photo1.jpg", "photo2.jpg"],
+  "analysisScope": "partial",
+  "analysisConfidence": "low",
+  "estimatedTotalQuestions": 5,
+  "coveredQuestions": [1, 2, 3],
+  "missingQuestions": [4, 5],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "studentAnswer": "red",
+      "expectedAnswer": "red",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "correct",
+      "studentAnswer": "blue",
+      "expectedAnswer": "blue",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "incorrect",
+      "studentAnswer": "green",
+      "expectedAnswer": "yellow",
+      "sourcePhoto": "photo2.jpg"
+    },
+    {
+      "questionNumber": 4,
+      "verdict": "unevidenced",
+      "studentAnswer": null,
+      "expectedAnswer": null,
+      "notes": "No QuestionEvidence — must not invent"
+    },
+    {
+      "questionNumber": 5,
+      "verdict": "unevidenced",
+      "studentAnswer": null,
+      "expectedAnswer": null,
+      "notes": "No QuestionEvidence — must not invent"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 4,
+      "tone": "unavailable",
+      "mustInclude": ["目前沒有收到第", "無法分析"]
+    },
+    {
+      "questionNumber": 5,
+      "tone": "unavailable",
+      "mustInclude": ["目前沒有收到第", "無法分析"]
+    }
+  ],
+  "promptGuards": {
+    "mustNotAnalyzeQuestions": [4, 5],
+    "mustNotContain": ["整份作業", "全部題目", "第5題"]
+  }
+}

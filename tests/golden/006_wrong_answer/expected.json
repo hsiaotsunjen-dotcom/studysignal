@@ -1,0 +1,42 @@
+{
+  "id": "006_wrong_answer",
+  "description": "Student answered incorrectly — must mark incorrect with expected answer.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "high",
+  "estimatedTotalQuestions": 3,
+  "coveredQuestions": [1, 2, 3],
+  "missingQuestions": [],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "incorrect",
+      "studentAnswer": "goed",
+      "expectedAnswer": "went",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "incorrect",
+      "studentAnswer": "sheeps",
+      "expectedAnswer": "sheep",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "correct",
+      "studentAnswer": "children",
+      "expectedAnswer": "children",
+      "sourcePhoto": "photo1.jpg"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 1,
+      "tone": "confident",
+      "mustInclude": ["went"],
+      "mustNotInclude": ["無法分析"]
+    }
+  ]
+}

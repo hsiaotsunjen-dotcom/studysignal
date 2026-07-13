@@ -1,0 +1,47 @@
+{
+  "id": "004_cross_page",
+  "description": "Questions split across two photos; evidence must map Q→source photo.",
+  "photos": ["photo1.jpg", "photo2.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "high",
+  "estimatedTotalQuestions": 6,
+  "coveredQuestions": [1, 2, 3, 4, 5, 6],
+  "missingQuestions": [],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "correct",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "correct",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 4,
+      "verdict": "correct",
+      "sourcePhoto": "photo2.jpg"
+    },
+    {
+      "questionNumber": 5,
+      "verdict": "incorrect",
+      "sourcePhoto": "photo2.jpg"
+    },
+    {
+      "questionNumber": 6,
+      "verdict": "correct",
+      "sourcePhoto": "photo2.jpg"
+    }
+  ],
+  "promptGuards": {
+    "mustNotAnalyzeQuestions": [],
+    "mustContain": ["questionEvidenceMap"]
+  }
+}

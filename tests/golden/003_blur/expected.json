@@ -1,0 +1,50 @@
+{
+  "id": "003_blur",
+  "description": "All questions covered but some are blurry — full scope, medium confidence.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "medium",
+  "estimatedTotalQuestions": 4,
+  "coveredQuestions": [1, 2, 3, 4],
+  "missingQuestions": [],
+  "lowQualityQuestions": [2, 3],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "isLowConfidence": false,
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "uncertain",
+      "isLowConfidence": true,
+      "sourcePhoto": "photo1.jpg",
+      "notes": "Blur — hedge language required"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "uncertain",
+      "isLowConfidence": true,
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 4,
+      "verdict": "correct",
+      "isLowConfidence": false,
+      "sourcePhoto": "photo1.jpg"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 2,
+      "tone": "hedged",
+      "mustInclude": ["可信度較低"],
+      "mustNotInclude": ["確定是"]
+    }
+  ],
+  "promptGuards": {
+    "mustContain": ["此題影像可信度較低"],
+    "mustNotAnalyzeQuestions": []
+  }
+}

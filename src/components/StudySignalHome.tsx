@@ -6,6 +6,7 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -26,7 +27,9 @@ import Trash2 from "lucide-react/dist/esm/icons/trash-2.js";
 import Upload from "lucide-react/dist/esm/icons/upload.js";
 import X from "lucide-react/dist/esm/icons/x.js";
 
-import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
+import { AttachmentPhotoLightbox } from "@/components/AttachmentPhotoLightbox";
+import { playCameraShutterSound } from "@/lib/cameraCaptureFeedback";
+import { WorksheetCaptureGuide } from "@/components/WorksheetCaptureGuide";
 import {
   StudySignalMicDebugDiagnosticsButton,
   StudySignalMicDebugModal,
@@ -46,13 +49,19 @@ import { StudySignalChatThread } from "@/components/StudySignalChatThread";
 import type { ChatListItem } from "@/types/chatListItem";
 import {
   buildComposerAnalyzeRequest,
-  buildHomeworkAnalyzeRequest,
   resolveHasStudentCorpusForParser,
   resolveHomeworkQuestionAtSubmit,
   type AnalyzeApiRequestBody,
   type AnalyzeImagePayload,
   type ComposerTextSource,
 } from "@/lib/analyzeApiRequest";
+import { postPhotoQualityCheck } from "@/lib/photoQualityApi";
+import {
+  buildWorksheetCaptureContext,
+  mergeWorksheetCaptureSession,
+  type WorksheetCaptureContext,
+  type WorksheetPhotoEntry,
+} from "@/lib/worksheetCapture";
 import {
   isParsedAnalyzeFeedbackResponse,
   parseAnalyzeApiData,
@@ -931,6 +940,23 @@ export function StudySignalHome({
   const messageRef = useRef(message);
   const [attachments, setAttachments] = useState<UploadedImage[]>([]);
   const attachmentsRef = useRef<UploadedImage[]>([]);
+  type PhotoQualityState = {
+    status: WorksheetPhotoEntry["qualityStatus"];
+    result?: WorksheetPhotoEntry["quality"];
+    error?: string;
+  };
+  const [photoQualityById, setPhotoQualityById] = useState<
+    Record<string, PhotoQualityState>
+  >({});
+  const photoQualityByIdRef = useRef(photoQualityById);
+  const [captureChecking, setCaptureChecking] = useState(false);
+  const [photoLightboxId, setPhotoLightboxId] = useState<string | null>(null);
+  const [cameraFlashActive, setCameraFlashActive] = useState(false);
+  const [cameraCaptureToast, setCameraCaptureToast] = useState<string | null>(
+    null,
+  );
+  const cameraFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cameraToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dictationBaseRef = useRef("");
   const [speechListening, setSpeechListening] = useState(false);
   const [selectedSpeechLang, setSelectedSpeechLang] =
@@ -1085,6 +1111,13 @@ export function StudySignalHome({
 
   useEffect(() => {
     messageRef.current = message;
+    if (process.env.NODE_ENV === "development") {
+      console.log("[runtime-debug] setMessage → message state updated", {
+        composerModeRef: composerModeRef.current,
+        messageLength: message.length,
+        messagePreview: message.slice(0, 120),
+      });
+    }
   }, [message]);
 
   useEffect(() => {
@@ -1352,11 +1385,263 @@ export function StudySignalHome({
       if (found) URL.revokeObjectURL(found.url);
       return prev.filter((a) => a.id !== id);
     });
+    setPhotoQualityById((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
+
+  useEffect(() => {
+    photoQualityByIdRef.current = photoQualityById;
+  }, [photoQualityById]);
+
+  const worksheetPhotoEntries = useMemo((): WorksheetPhotoEntry[] => {
+    return attachments.map((a) => {
+      const q = photoQualityById[a.id];
+      return {
+        id: a.id,
+        name: a.name,
+        qualityStatus: q?.status ?? "pending",
+        quality: q?.result,
+        qualityError: q?.error,
+      };
+    });
+  }, [attachments, photoQualityById]);
+
+  const worksheetCaptureSession = useMemo(
+    () => mergeWorksheetCaptureSession(worksheetPhotoEntries),
+    [worksheetPhotoEntries],
+  );
+
+  const checkWorksheetPhotoQuality = useCallback(
+    async (attachment: UploadedImage, photoIndex: number) => {
+      console.log(
+        `[photo-quality-client] ENTER index=${photoIndex} photoId=${attachment.id}`,
+      );
+      const existing = photoQualityByIdRef.current[attachment.id];
+      console.log("[photo-quality-client] existing 狀態", {
+        index: photoIndex,
+        photoId: attachment.id,
+        "existing?.status": existing?.status ?? null,
+        "existing?.result": existing?.result
+          ? {
+              estimatedTotalQuestions:
+                existing.result.estimatedTotalQuestions,
+              questionsClearlyVisible:
+                existing.result.questionsClearlyVisible,
+            }
+          : null,
+      });
+      if (existing?.status === "checking" || existing?.result) {
+        const reason = existing?.status === "checking" ? "checking" : "result";
+        console.log(
+          `[photo-quality-client] SKIP index=${photoIndex} reason=${reason}`,
+        );
+        console.log(`[photo-quality-client] END index=${photoIndex}`);
+        return;
+      }
+
+      setPhotoQualityById((prev) => {
+        const next = {
+          ...prev,
+          [attachment.id]: { status: "checking" as const },
+        };
+        photoQualityByIdRef.current = next;
+        return next;
+      });
+
+      const payload = await attachmentToImagePayload(
+        attachment,
+        `worksheet-capture-${attachment.id}`,
+      );
+      if (!payload) {
+        setPhotoQualityById((prev) => {
+          const next = {
+            ...prev,
+            [attachment.id]: {
+              status: "error" as const,
+              error: "無法讀取照片",
+            },
+          };
+          photoQualityByIdRef.current = next;
+          return next;
+        });
+        console.log(`[photo-quality-client] END index=${photoIndex}`);
+        return;
+      }
+
+      const existingCoverage = attachmentsRef.current
+        .filter((a) => a.id !== attachment.id)
+        .map((a) => {
+          const idx = attachmentsRef.current.findIndex((x) => x.id === a.id);
+          const result = photoQualityByIdRef.current[a.id]?.result;
+          if (!result || idx < 0) return null;
+          return {
+            photoIndex: idx,
+            questionsClearlyVisible: result.questionsClearlyVisible,
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x != null);
+
+      console.log(`[photo-quality-client] FETCH index=${photoIndex}`);
+      const check = await postPhotoQualityCheck({
+        image: payload,
+        photoId: attachment.id,
+        photoIndex,
+        ...(existingCoverage.length > 0 ? { existingCoverage } : {}),
+      });
+
+      if (!check.ok) {
+        setPhotoQualityById((prev) => {
+          const next = {
+            ...prev,
+            [attachment.id]: {
+              status: "error" as const,
+              error: check.error,
+            },
+          };
+          photoQualityByIdRef.current = next;
+          return next;
+        });
+        console.log(`[photo-quality-client] END index=${photoIndex}`);
+        return;
+      }
+
+      const status: PhotoQualityState["status"] = check.result.readyForAnalysis
+        ? "ok"
+        : "needs_improvement";
+      setPhotoQualityById((prev) => {
+        const next = {
+          ...prev,
+          [attachment.id]: {
+            status,
+            result: check.result,
+          },
+        };
+        photoQualityByIdRef.current = next;
+        return next;
+      });
+      console.log(`[photo-quality-client] END index=${photoIndex}`);
+    },
+    [],
+  );
+
+  const ensureWorksheetPhotosChecked = useCallback(async () => {
+    const list = attachmentsRef.current;
+    if (list.length === 0) {
+      return mergeWorksheetCaptureSession([]);
+    }
+    setCaptureChecking(true);
+    try {
+      for (let i = 0; i < list.length; i++) {
+        await checkWorksheetPhotoQuality(list[i]!, i);
+      }
+    } finally {
+      setCaptureChecking(false);
+    }
+    const entries: WorksheetPhotoEntry[] = list.map((a) => {
+      const q = photoQualityByIdRef.current[a.id];
+      return {
+        id: a.id,
+        name: a.name,
+        qualityStatus: q?.status ?? "pending",
+        quality: q?.result,
+        qualityError: q?.error,
+      };
+    });
+    return mergeWorksheetCaptureSession(entries);
+  }, [checkWorksheetPhotoQuality]);
+
+  const pushCaptureTutorGuidance = useCallback((text: string) => {
+    setChatItems((prev) => [
+      ...prev,
+      {
+        id: newAttachmentId(),
+        role: "tutor",
+        body: text,
+      },
+    ]);
+  }, []);
+
+  useEffect(() => {
+    if (attachments.length === 0) {
+      setPhotoQualityById({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const list = attachmentsRef.current;
+      for (let i = 0; i < list.length; i++) {
+        if (cancelled) return;
+        const att = list[i]!;
+        const st = photoQualityByIdRef.current[att.id];
+        if (!st || st.status === "pending") {
+          await checkWorksheetPhotoQuality(att, i);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [attachments, checkWorksheetPhotoQuality]);
 
   const imageCount = attachments.length;
   const hasImages = imageCount > 0;
   const atImageLimit = imageCount >= MAX_IMAGES;
+
+  const cameraPhotoAnalyzing = useMemo(() => {
+    if (captureChecking) return true;
+    if (attachments.length === 0) return false;
+    return attachments.some((att) => {
+      const st = photoQualityById[att.id];
+      return !st || st.status === "pending" || st.status === "checking";
+    });
+  }, [attachments, photoQualityById, captureChecking]);
+
+  const photoLightboxIndex = useMemo(() => {
+    if (!photoLightboxId) return -1;
+    return attachments.findIndex((item) => item.id === photoLightboxId);
+  }, [attachments, photoLightboxId]);
+
+  useEffect(() => {
+    if (photoLightboxId && photoLightboxIndex < 0) {
+      setPhotoLightboxId(null);
+    }
+  }, [photoLightboxId, photoLightboxIndex]);
+
+  const triggerCameraFlash = useCallback(() => {
+    setCameraFlashActive(true);
+    if (cameraFlashTimerRef.current) {
+      clearTimeout(cameraFlashTimerRef.current);
+    }
+    cameraFlashTimerRef.current = window.setTimeout(() => {
+      setCameraFlashActive(false);
+      cameraFlashTimerRef.current = null;
+    }, 130);
+  }, []);
+
+  const showCameraCaptureToast = useCallback(() => {
+    setCameraCaptureToast("📷 已拍攝，正在分析...");
+    if (cameraToastTimerRef.current) {
+      clearTimeout(cameraToastTimerRef.current);
+    }
+    cameraToastTimerRef.current = window.setTimeout(() => {
+      setCameraCaptureToast(null);
+      cameraToastTimerRef.current = null;
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (cameraFlashTimerRef.current) {
+        clearTimeout(cameraFlashTimerRef.current);
+      }
+      if (cameraToastTimerRef.current) {
+        clearTimeout(cameraToastTimerRef.current);
+      }
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const shell = splitShellRef.current;
@@ -1394,7 +1679,7 @@ export function StudySignalHome({
   };
 
   const openCameraModal = () => {
-    if (atImageLimit) return;
+    if (atImageLimit || cameraPhotoAnalyzing) return;
     setCameraModalOpen(true);
   };
 
@@ -1413,6 +1698,10 @@ export function StudySignalHome({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
+
+    playCameraShutterSound();
+    triggerCameraFlash();
+    showCameraCaptureToast();
 
     canvas.toBlob(
       (blob) => {
@@ -1590,7 +1879,6 @@ export function StudySignalHome({
     });
 
     const images: { mimeType: string; dataBase64: string }[] = [];
-    let homeworkAnalysis: AnalyzeFeedback | null = null;
 
     if (hasImages) {
       logSendTutorMessageTrace("sendTutorMessage hasImages block entry");
@@ -1599,132 +1887,26 @@ export function StudySignalHome({
         hasHomeworkQuestion: Boolean(homeworkQuestion),
         composerTextSource,
       });
-      logSendTutorMessageTrace(
-        "sendTutorMessage after homeworkPipelineLog, before logAndroidAttachmentsSnapshot",
-      );
-      logAndroidAttachmentsSnapshot(
-        "sendTutorMessage before encode",
-        currentAttachments,
-      );
-      logSendTutorMessageTrace(
-        "sendTutorMessage after logAndroidAttachmentsSnapshot, before loadAnalyzeImagesFromAttachments",
-        { attachmentsCount: currentAttachments.length },
-      );
 
-      let analyzeImages: AnalyzeImagePayload[];
-      try {
-        analyzeImages = await loadAnalyzeImagesFromAttachments(
-          currentAttachments,
-          "sendTutorMessage → loadAnalyzeImagesFromAttachments",
-        );
-      } catch (error) {
-        logSendTutorMessageCaughtError(
-          "sendTutorMessage: await loadAnalyzeImagesFromAttachments",
-          error,
-        );
-        throw error;
-      }
-      logSendTutorMessageTrace(
-        "sendTutorMessage after loadAnalyzeImagesFromAttachments",
-        { analyzeImagesLength: analyzeImages.length },
-      );
-      if (analyzeImages.length === 0) {
-        logEncodeErrorReturn(
-          "sendTutorMessage",
-          "StudySignalHome.tsx sendTutorMessage: if (analyzeImages.length === 0)",
-          {
-            analyzeImagesLength: analyzeImages.length,
-            attachmentsCount: currentAttachments.length,
-          },
-        );
-        const msg = "無法讀取已附加的圖片，請移除後重新上傳再試。";
-        setChatSendError(msg);
-        chatSendInFlightRef.current = false;
-        return;
-      }
-
-      const nImgAnalyze = analyzeImages.length;
-      const homeworkDisplayBody =
+      const nImg = currentAttachments.length;
+      const studentBody =
         homeworkQuestion && hasImages
-          ? `${homeworkQuestion}\n\n（作業圖片 ${nImgAnalyze} 張，分析中…）`
-          : `（作業圖片 ${nImgAnalyze} 張，分析中…）`;
+          ? `${homeworkQuestion}\n\n（作業照片 ${nImg} 張）`
+          : text
+            ? `${text}\n\n（作業照片 ${nImg} 張）`
+            : `（作業照片 ${nImg} 張）`;
 
-      setAnalyzeLoading(true);
       setChatItems((prev) => [
         ...prev,
         {
           id: studentId,
           role: "student",
-          body: homeworkDisplayBody,
-          analyzeLoading: true,
+          body: studentBody,
           ...(voiceRecordingObjectUrl != null
             ? { voiceRecordingObjectUrl }
             : {}),
         },
       ]);
-
-      const analyzeRequest = buildHomeworkAnalyzeRequest({
-        images: analyzeImages,
-        composerText: text,
-        composerTextSource,
-      });
-
-      const analyzeResult = await postAnalyzeApi(analyzeRequest, {
-        source: "sendTutorMessage/homework_chat",
-        microphoneRecording:
-          dictationMediaRecorderRef.current?.state === "recording",
-        composerTextSource,
-      });
-
-      if (!analyzeResult.ok) {
-        homeworkPipelineLog("pipeline_stopped_before_tutor", {
-          reason: "homework_analysis_failed",
-          error: analyzeResult.error,
-        });
-        setAnalyzeError(analyzeResult.error);
-        setAnalyzeLoading(false);
-        setChatItems((prev) =>
-          prev.map((m) =>
-            m.id === studentId && m.role === "student"
-              ? {
-                  ...m,
-                  body: homeworkDisplayBody.replace("分析中…", "分析失敗"),
-                  analyzeLoading: false,
-                  analyzeError: analyzeResult.error,
-                  analysis: null,
-                }
-              : m,
-          ),
-        );
-        chatSendInFlightRef.current = false;
-        return;
-      }
-
-      homeworkAnalysis = analyzeResult.feedback;
-      saveAnalysis(studentId, homeworkAnalysis, "homework_chat");
-
-      const analyzedDisplayBody =
-        homeworkQuestion && hasImages
-          ? `${homeworkQuestion}\n\n（作業圖片 ${nImgAnalyze} 張，已分析）`
-          : `（作業圖片 ${nImgAnalyze} 張，已分析）`;
-
-      setChatItems((prev) =>
-        prev.map((m) =>
-          m.id === studentId && m.role === "student"
-            ? {
-                ...m,
-                body: analyzedDisplayBody,
-                analyzeLoading: false,
-                analyzeError: null,
-                analysis: homeworkAnalysis,
-              }
-            : m,
-        ),
-      );
-      setAnalyzeLoading(false);
-      homeworkPipelineLog("6_signals_ui_ready", {
-        message: "Signals state updated; open Signals tab to view",
-      });
 
       for (const att of currentAttachments) {
         const part = await attachmentToTutorChatImagePayload(
@@ -1739,15 +1921,6 @@ export function StudySignalHome({
         images.length,
       );
       if (images.length === 0) {
-        logEncodeErrorReturn(
-          "sendTutorMessage",
-          "StudySignalHome.tsx sendTutorMessage: if (images.length === 0) after attachmentToTutorChatImagePayload loop",
-          {
-            imagesLength: images.length,
-            attachmentsCount: currentAttachments.length,
-            analyzeImagesLength: analyzeImages.length,
-          },
-        );
         const msg = "無法讀取已附加的圖片，請移除後重新上傳再試。";
         setChatSendError(msg);
         chatSendInFlightRef.current = false;
@@ -1757,25 +1930,24 @@ export function StudySignalHome({
       homeworkPipelineLog("skip_homework_pipeline", { reason: "no_images" });
     }
 
-    const nImg = images.length;
     const displayBody =
       homeworkQuestion && hasImages
-        ? `${homeworkQuestion}\n\n(${nImg} image${nImg === 1 ? "" : "s"} attached.)`
+        ? `${homeworkQuestion}\n\n（作業照片 ${images.length} 張）`
         : text
           ? text
           : hasImages
-            ? `(Sent ${nImg} image${nImg === 1 ? "" : "s"} — please read and help with my homework.)`
+            ? `（作業照片 ${images.length} 張）`
             : text;
 
     const modelUserText =
       homeworkQuestion && hasImages
-        ? `${homeworkQuestion}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
+        ? homeworkQuestion
         : text && hasImages
-          ? `${text}\n\nThe student attached ${nImg} image(s). Read the image(s) carefully (homework, worksheet, or diagram), answer their question in English, and continue as a normal tutoring conversation.`
+          ? text
           : text
             ? text
             : hasImages
-              ? `The student sent ${nImg} image(s) with no additional typed text. Read the image(s), infer the homework question or problem, help them in English, and ask what they want to do next.`
+              ? "請看我附上的作業照片，幫我檢查最明顯的那一題。"
               : text;
 
     const tutorId = newAttachmentId();
@@ -1825,16 +1997,8 @@ export function StudySignalHome({
 
     if (hasImages) {
       homeworkPipelineLog("7_tutor_chat_start", {
-        afterHomeworkAnalysis: true,
-        hasSignalsEntry: homeworkAnalysis !== null,
-        homeworkReportForwarded: Boolean(
-          homeworkAnalysis?.imageInsights?.homeworkReport,
-        ),
-        answerOverviewPresent: Boolean(
-          homeworkAnalysis?.imageInsights?.homeworkReport?.answerOverview &&
-            homeworkAnalysis.imageInsights.homeworkReport.answerOverview !==
-              "—",
-        ),
+        mode: "photo_tutor_direct",
+        visionImageCount: images.length,
       });
     }
 
@@ -1848,21 +2012,14 @@ export function StudySignalHome({
           "image MIME type": im.mimeType,
           dataBase64Length: im.dataBase64.length,
         })),
-        homeworkReportForwarded: Boolean(
-          homeworkAnalysis?.imageInsights?.homeworkReport,
-        ),
+        mode: "photo_tutor_direct",
       });
       const res = await fetch("/api/tutor-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: requestMessages,
-          homeworkContextExpected: hasImages,
-          ...(homeworkAnalysis?.imageInsights?.homeworkReport
-            ? {
-                homeworkReport: homeworkAnalysis.imageInsights.homeworkReport,
-              }
-            : {}),
+          homeworkContextExpected: false,
         }),
       });
       const data: unknown = await res.json().catch(() => ({}));
@@ -1935,6 +2092,14 @@ export function StudySignalHome({
   }, [chatItems, saveAnalysis, selectedSpeechLang, syncMessageTextareaHeight, commitAttachments]);
 
   const sendChineseEnglishHelp = useCallback(async (chineseText: string) => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[runtime-debug] sendChineseEnglishHelp() called", {
+        chineseTextLength:
+          typeof chineseText === "string" ? chineseText.length : null,
+        composerModeRef: composerModeRef.current,
+      });
+      console.trace("[runtime-debug] sendChineseEnglishHelp trace");
+    }
     if (typeof chineseText !== "string") {
       if (process.env.NODE_ENV === "development") {
         console.warn(
@@ -1949,20 +2114,36 @@ export function StudySignalHome({
     // (avoids React 19 dev "onUnhandledRejection" / [object Event] overlay).
     await Promise.resolve();
     setChatSendError(null);
-    if (!text) {
+    const currentAttachments = attachmentsRef.current;
+    const hasImages = currentAttachments.length > 0;
+    if (!text && !hasImages) {
       setChatSendError(
         "請在輸入框輸入中文語意後，再按「幫我找英文」。",
       );
       return;
     }
-    if (attachmentsRef.current.length > 0) {
-      setChatSendError(
-        "「幫我找英文」僅使用文字，請先移除附加圖片。",
-      );
-      return;
-    }
     if (chatSendInFlightRef.current) return;
     chatSendInFlightRef.current = true;
+
+    const images: { mimeType: string; dataBase64: string }[] = [];
+    if (hasImages) {
+      for (const att of currentAttachments) {
+        const part = await attachmentToTutorChatImagePayload(
+          att,
+          "sendChineseEnglishHelp → attachmentToTutorChatImagePayload",
+        );
+        if (part) images.push(part);
+      }
+      if (images.length === 0) {
+        setChatSendError("無法讀取已附加的圖片，請移除後重新上傳再試。");
+        chatSendInFlightRef.current = false;
+        return;
+      }
+    }
+
+    const modelUserText =
+      text ||
+      "請根據附圖作業，幫我把想表達的意思翻成一句可對話的英文。";
 
     const requestMessages = [
       {
@@ -1970,10 +2151,23 @@ export function StudySignalHome({
         content:
           "You translate Chinese into natural conversational English for a student learning English. Return exactly ONE English sentence they could say aloud in a tutoring conversation. Output only the English text—no labels, numbered options, Chinese, markdown, or explanation.",
       },
-      {
-        role: "user" as const,
-        content: text,
-      },
+      images.length > 0
+        ? {
+            role: "user" as const,
+            content: [
+              { type: "text" as const, text: modelUserText },
+              ...images.map((im) => ({
+                type: "image_url" as const,
+                image_url: {
+                  url: `data:${im.mimeType};base64,${im.dataBase64}`,
+                },
+              })),
+            ],
+          }
+        : {
+            role: "user" as const,
+            content: modelUserText,
+          },
     ];
 
     try {
@@ -2032,6 +2226,15 @@ export function StudySignalHome({
 
   const submitTranslateFromComposer = useCallback(
     (textOverride?: string) => {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[runtime-debug] submitTranslateFromComposer() called", {
+          textOverrideLength:
+            typeof textOverride === "string" ? textOverride.length : null,
+          composerModeRefBefore: composerModeRef.current,
+          messageFromRef: messageRef.current.slice(0, 120),
+        });
+        console.trace("[runtime-debug] submitTranslateFromComposer trace");
+      }
       composerModeRef.current = "translate";
       const chineseText = (textOverride ?? readComposerText()).trim();
       queueMicrotask(() => {
@@ -2048,7 +2251,9 @@ export function StudySignalHome({
     [readComposerText, sendChineseEnglishHelp],
   );
 
-  const runAnalyze = useCallback(async (): Promise<boolean> => {
+  const runAnalyze = useCallback(async (options?: {
+    worksheetCaptureContext?: WorksheetCaptureContext;
+  }): Promise<boolean> => {
     if (analyzeInFlightRef.current) return false;
 
     setAnalyzeError(null);
@@ -2177,6 +2382,7 @@ export function StudySignalHome({
         includePronunciationForLearningReview: imageOnlyMode
           ? false
           : pronunciationFromSpeechRef.current,
+        worksheetCaptureContext: options?.worksheetCaptureContext,
       });
 
       if (!requestPayload) {
@@ -2798,7 +3004,19 @@ export function StudySignalHome({
     ).trim();
     const hasImages = attachmentsRef.current.length > 0;
 
-    if (hasImages || composerText.length > 0) {
+    if (hasImages) {
+      const session = await ensureWorksheetPhotosChecked();
+      if (!session.analysis.canAnalyzeCurrent) {
+        pushCaptureTutorGuidance(session.tutorMessage);
+        return;
+      }
+      await runAnalyze({
+        worksheetCaptureContext: buildWorksheetCaptureContext(session),
+      });
+      return;
+    }
+
+    if (composerText.length > 0) {
       await runAnalyze();
       return;
     }
@@ -2828,6 +3046,8 @@ export function StudySignalHome({
     startDictation();
   }, [
     chatItems,
+    ensureWorksheetPhotosChecked,
+    pushCaptureTutorGuidance,
     runAnalyze,
     scheduleRunAnalyzeAfterDictation,
     startDictation,
@@ -3089,6 +3309,18 @@ export function StudySignalHome({
                         messageRef.current = next;
                       }}
                       onKeyDown={(e) => {
+                        if (process.env.NODE_ENV === "development") {
+                          console.log("[runtime-debug] textarea onKeyDown", {
+                            key: e.key,
+                            composerModeRef: composerModeRef.current,
+                            message: messageRef.current,
+                            attachmentsLength: attachmentsRef.current.length,
+                            shiftKey: e.shiftKey,
+                            isComposing: e.nativeEvent.isComposing,
+                            composerIsComposingRef:
+                              composerIsComposingRef.current,
+                          });
+                        }
                         if (
                           e.key !== "Enter" ||
                           e.shiftKey ||
@@ -3102,7 +3334,7 @@ export function StudySignalHome({
                         }
                         e.preventDefault();
                         const raw = e.currentTarget.value.trim();
-                        if (!raw || attachmentsRef.current.length > 0) return;
+                        if (!raw && attachmentsRef.current.length === 0) return;
                         submitTranslateFromComposer(raw);
                       }}
                       placeholder="英文與家教對話，或輸入中文語意再按「幫我找英文」…"
@@ -3122,12 +3354,32 @@ export function StudySignalHome({
                   <div
                     id={previewRegionId}
                     role="region"
-                    aria-label={`Selected images, ${imageCount} of ${MAX_IMAGES}`}
+                    aria-label={`已選擇的作業照片，${imageCount} / ${MAX_IMAGES} 張`}
                     className="border-t border-white/[0.06] bg-black/15 px-3 py-2.5 sm:px-4 sm:py-3"
                   >
+                    <WorksheetCaptureGuide
+                      session={worksheetCaptureSession}
+                      checking={captureChecking}
+                      canAddPhoto={!atImageLimit && !cameraPhotoAnalyzing}
+                      onAddPhoto={openCameraModal}
+                      analyzeBusy={analyzeLoading}
+                      onAnalyzeCurrent={() => {
+                        void (async () => {
+                          const session = await ensureWorksheetPhotosChecked();
+                          if (!session.analysis.canAnalyzeCurrent) {
+                            pushCaptureTutorGuidance(session.tutorMessage);
+                            return;
+                          }
+                          await runAnalyze({
+                            worksheetCaptureContext:
+                              buildWorksheetCaptureContext(session),
+                          });
+                        })();
+                      }}
+                    />
                     <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
                       <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                        Photos & worksheets
+                        作業照片
                       </span>
                       <span
                         className="tabular-nums text-xs font-medium text-zinc-400"
@@ -3146,12 +3398,17 @@ export function StudySignalHome({
                           className="relative h-[4.5rem] w-[4.5rem] shrink-0 snap-start sm:h-24 sm:w-24"
                           role="listitem"
                         >
-                          <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40">
+                          <button
+                            type="button"
+                            onClick={() => setPhotoLightboxId(item.id)}
+                            className="relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 ring-1 ring-black/40 transition-colors hover:ring-violet-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                            aria-label={`放大預覽 ${item.name}`}
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element -- blob: URLs for local preview */}
                             <img
                               src={item.url}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
+                              alt=""
+                              className="pointer-events-none h-full w-full object-cover"
                               decoding="async"
                               loading="lazy"
                               onLoad={(e) => {
@@ -3165,7 +3422,7 @@ export function StudySignalHome({
                                 logAndroidComposerImgEvent("error", item);
                               }}
                             />
-                          </div>
+                          </button>
                           <button
                             type="button"
                             onClick={() => removeImageById(item.id)}
@@ -3211,21 +3468,25 @@ export function StudySignalHome({
                   <button
                     type="button"
                     onClick={openCameraModal}
-                    disabled={atImageLimit}
+                    disabled={atImageLimit || cameraPhotoAnalyzing}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors touch-manipulation sm:h-11 sm:w-11 sm:rounded-2xl ${
-                      atImageLimit
+                      atImageLimit || cameraPhotoAnalyzing
                         ? "cursor-not-allowed text-zinc-600"
                         : "cursor-pointer text-zinc-400 hover:bg-white/5 hover:text-white active:scale-95"
                     }`}
                     title={
                       atImageLimit
                         ? `Maximum ${MAX_IMAGES} images`
-                        : "Take photo with camera"
+                        : cameraPhotoAnalyzing
+                          ? "正在分析照片…"
+                          : "Take photo with camera"
                     }
                     aria-label={
                       atImageLimit
                         ? `Image limit reached (${MAX_IMAGES} of ${MAX_IMAGES})`
-                        : "Open camera"
+                        : cameraPhotoAnalyzing
+                          ? "Camera unavailable while photo is being analyzed"
+                          : "Open camera"
                     }
                   >
                     <Camera className="h-5 w-5" aria-hidden />
@@ -3288,7 +3549,7 @@ export function StudySignalHome({
                   >
                     <button
                       type="button"
-                      disabled={attachments.length > 0}
+                      disabled={!message.trim() && attachments.length === 0}
                       onClick={() => {
                         submitTranslateFromComposer();
                       }}
@@ -3311,17 +3572,28 @@ export function StudySignalHome({
                     <button
                       type="button"
                       onClick={() => {
+                        console.log("CHECK BUTTON CLICKED");
                         void handleAnalyzePress();
                       }}
                       disabled={analyzeLoading}
                       className="flex min-h-[48px] flex-1 flex-col items-center justify-center rounded-2xl border-2 border-red-300 bg-red-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation sm:px-4"
-                      aria-label="分析英文（發音／語法）DEBUG BUILD"
+                      aria-label="分析英文（發音／語法）"
                     >
-                      <span className="text-[10px] font-bold uppercase leading-tight tracking-wide">
-                        ANALYZE DEBUG BUILD
-                      </span>
                       <span>
-                        {analyzeLoading ? "分析中… (DEBUG)" : "分析 (DEBUG)"}
+                        {analyzeLoading
+                          ? "分析中…"
+                          : hasImages &&
+                              !worksheetCaptureSession.analysis.canAnalyzeCurrent
+                            ? "檢查照片"
+                            : hasImages &&
+                                worksheetCaptureSession.analysis
+                                  .recommendedAction === "analyze-low-confidence"
+                              ? "分析（低可信度）"
+                              : hasImages &&
+                                  worksheetCaptureSession.analysis
+                                    .recommendedAction === "retake-missing"
+                                ? "分析已辨識題目"
+                                : "分析"}
                       </span>
                     </button>
                   </div>
@@ -3332,10 +3604,10 @@ export function StudySignalHome({
                     aria-live="polite"
                   >
                     {dictationUiStatus === "recording"
-                      ? "🔴 Recording..."
+                      ? "🔴 錄音中…"
                       : dictationUiStatus === "transcribing"
-                        ? "⏳ Transcribing..."
-                        : "✅ Ready"}
+                        ? "⏳ 轉寫中…"
+                        : "✅ 就緒"}
                   </p>
                 ) : null}
                 <div className="space-y-2 border-t border-white/[0.05] px-3 py-2 sm:space-y-2 sm:px-4 sm:py-2">
@@ -3542,11 +3814,10 @@ export function StudySignalHome({
               id={clearSaveDialogTitleId}
               className="text-lg font-semibold tracking-tight text-white"
             >
-              Save learning progress?
+              要儲存學習進度嗎？
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Would you like to analyze and save this conversation before
-              clearing it?
+              清除對話前，是否要先分析並儲存這次對話？
             </p>
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
               <button
@@ -3558,7 +3829,7 @@ export function StudySignalHome({
                 disabled={analyzeLoading}
                 className="order-1 w-full rounded-2xl border border-violet-500/35 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/18 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:order-none sm:w-auto sm:min-w-[10rem]"
               >
-                {analyzeLoading ? "Analyzing…" : "Analyze & Save"}
+                {analyzeLoading ? "分析中…" : "分析並儲存"}
               </button>
               <button
                 type="button"
@@ -3566,14 +3837,14 @@ export function StudySignalHome({
                 disabled={analyzeLoading}
                 className="w-full rounded-2xl border border-white/10 bg-zinc-800/80 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-700/90 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:w-auto"
               >
-                Clear Anyway
+                仍要清除
               </button>
               <button
                 type="button"
                 onClick={() => setClearSaveDialogOpen(false)}
                 className="w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/5 touch-manipulation sm:w-auto"
               >
-                Cancel
+                取消
               </button>
             </div>
           </div>
@@ -3656,18 +3927,51 @@ export function StudySignalHome({
                   onClick={takeCameraPhoto}
                   disabled={
                     atImageLimit ||
+                    cameraPhotoAnalyzing ||
                     !cameraReady ||
                     cameraStarting ||
                     Boolean(cameraError)
                   }
                   className="flex-1 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-zinc-950 shadow-lg transition-opacity disabled:cursor-not-allowed disabled:opacity-40 touch-manipulation sm:flex-none sm:px-6"
                 >
-                  Capture
+                  {cameraPhotoAnalyzing ? "分析中…" : "Capture"}
                 </button>
               </div>
             </div>
           </div>
         </div>
+      ) : null}
+
+      {cameraFlashActive ? (
+        <div
+          className="pointer-events-none fixed inset-0 z-[120] bg-white opacity-95"
+          aria-hidden
+        />
+      ) : null}
+      {cameraCaptureToast ? (
+        <div
+          className="pointer-events-none fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 z-[110] max-w-[min(100vw-2rem,20rem)] -translate-x-1/2 rounded-full border border-white/15 bg-zinc-900/95 px-4 py-2 text-center text-sm text-zinc-100 shadow-lg ring-1 ring-white/10 backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+        >
+          {cameraCaptureToast}
+        </div>
+      ) : null}
+
+      {photoLightboxIndex >= 0 ? (
+        <AttachmentPhotoLightbox
+          photos={attachments.map((item) => ({
+            id: item.id,
+            url: item.url,
+            name: item.name,
+          }))}
+          index={photoLightboxIndex}
+          onClose={() => setPhotoLightboxId(null)}
+          onIndexChange={(nextIndex) => {
+            const nextPhoto = attachments[nextIndex];
+            setPhotoLightboxId(nextPhoto?.id ?? null);
+          }}
+        />
       ) : null}
 
       <StudySignalMicDebugModal

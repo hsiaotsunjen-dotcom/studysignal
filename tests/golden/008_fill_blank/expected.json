@@ -1,0 +1,41 @@
+{
+  "id": "008_fill_blank",
+  "description": "Fill-in-the-blank items — evaluate only the blank span, not printed stem.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "high",
+  "estimatedTotalQuestions": 4,
+  "coveredQuestions": [1, 2, 3, 4],
+  "missingQuestions": [],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "studentAnswer": "am",
+      "expectedAnswer": "am",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "incorrect",
+      "studentAnswer": "is",
+      "expectedAnswer": "are",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "correct",
+      "studentAnswer": "was",
+      "expectedAnswer": "was",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 4,
+      "verdict": "blank",
+      "studentAnswer": null,
+      "expectedAnswer": "were",
+      "sourcePhoto": "photo1.jpg"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import {
   homeworkAllowsPerformanceEvaluation,
   parseStudentAnswersStatus,
 } from "@/lib/homeworkStudentAnswers";
+import type { QuestionEvidenceMap } from "@/lib/worksheetCapture";
 
 export type ScoreCategoryFeedback = {
   score: number;
@@ -121,6 +122,13 @@ export type HomeworkReport = {
   }>;
   /** Questions with real OCR/vision/image-quality failures only. Empty = all recognized. */
   questionRecognitionIssues?: HomeworkQuestionRecognitionIssue[];
+  /**
+   * Question numbers from capture quality check that were found but not clearly
+   * readable — analysis still runs; UI should mark lower confidence.
+   */
+  lowConfidenceQuestions?: number[];
+  /** Evidence Layer echoed from capture — for UI debug / source labels. */
+  questionEvidenceMap?: QuestionEvidenceMap;
   hintsFirst?: string;
   answerOverview: string;
   keyExplanations: HomeworkKeyExplanation[];
@@ -1002,6 +1010,40 @@ function normalizeHomeworkReport(raw: unknown): HomeworkReport | null {
     ...(questionRecognitionIssues.length > 0
       ? { questionRecognitionIssues }
       : { questionRecognitionIssues: [] }),
+    ...(Array.isArray(o.lowConfidenceQuestions) ||
+    Array.isArray(o.low_confidence_questions)
+      ? {
+          lowConfidenceQuestions: [
+            ...new Set(
+              (
+                (o.lowConfidenceQuestions ??
+                  o.low_confidence_questions) as unknown[]
+              )
+                .map((n) =>
+                  typeof n === "number" && Number.isFinite(n)
+                    ? Math.round(n)
+                    : 0,
+                )
+                .filter((n) => n > 0),
+            ),
+          ].sort((a, b) => a - b),
+        }
+      : {}),
+    ...(o.questionEvidenceMap &&
+    typeof o.questionEvidenceMap === "object" &&
+    !Array.isArray(o.questionEvidenceMap)
+      ? {
+          questionEvidenceMap:
+            o.questionEvidenceMap as HomeworkReport["questionEvidenceMap"],
+        }
+      : o.question_evidence_map &&
+          typeof o.question_evidence_map === "object" &&
+          !Array.isArray(o.question_evidence_map)
+        ? {
+            questionEvidenceMap:
+              o.question_evidence_map as HomeworkReport["questionEvidenceMap"],
+          }
+        : {}),
     ...(toTrimmedDisplayString(o.hintsFirst ?? o.hints_first)
       ? { hintsFirst: toTrimmedDisplayString(o.hintsFirst ?? o.hints_first) }
       : {}),

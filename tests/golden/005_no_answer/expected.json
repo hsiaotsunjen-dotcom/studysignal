@@ -1,0 +1,43 @@
+{
+  "id": "005_no_answer",
+  "description": "Questions evidenced but student left blanks — blank verdicts, no false correctness.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "high",
+  "estimatedTotalQuestions": 3,
+  "coveredQuestions": [1, 2, 3],
+  "missingQuestions": [],
+  "lowQualityQuestions": [],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "blank",
+      "studentAnswer": null,
+      "expectedAnswer": "run",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "blank",
+      "studentAnswer": null,
+      "expectedAnswer": "jump",
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "blank",
+      "studentAnswer": null,
+      "expectedAnswer": "swim",
+      "sourcePhoto": "photo1.jpg"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 1,
+      "mustNotInclude": ["答對了", "正確答案是你寫的"]
+    }
+  ],
+  "promptGuards": {
+    "mustNotAnalyzeQuestions": []
+  }
+}

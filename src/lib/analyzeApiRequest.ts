@@ -9,6 +9,11 @@
  */
 
 import { LEARNING_REVIEW_ANALYZE_PREAMBLE } from "@/lib/learningReviewAnalyzeText";
+import type {
+  QuestionEvidence,
+  QuestionEvidenceMap,
+  WorksheetCaptureContext,
+} from "@/lib/worksheetCapture";
 
 export type AnalyzeImagePayload = {
   mimeType: string;
@@ -34,6 +39,8 @@ export type AnalyzeApiRequestBody = {
   speechTranscript?: string;
   typedText?: string;
   learningReviewCorpus?: string;
+  /** Multi-photo worksheet capture metadata (post quality-check). */
+  worksheetCaptureContext?: WorksheetCaptureContext;
 };
 
 export type ParsedAnalyzeApiRequest = {
@@ -49,6 +56,7 @@ export type ParsedAnalyzeApiRequest = {
   promptText: string;
   requireSpeechPronunciation: boolean;
   hasStudentCorpus: boolean;
+  worksheetCaptureContext?: WorksheetCaptureContext;
 };
 
 function trimmed(value: unknown): string {
@@ -125,6 +133,7 @@ export function buildHomeworkAnalyzeRequest(input: {
   images: AnalyzeImagePayload[];
   composerText: string;
   composerTextSource: ComposerTextSource;
+  worksheetCaptureContext?: WorksheetCaptureContext;
 }): AnalyzeApiRequestBody {
   const homeworkQuestion = resolveHomeworkQuestionAtSubmit(
     input.composerText,
@@ -137,6 +146,9 @@ export function buildHomeworkAnalyzeRequest(input: {
     includePronunciation: false,
     images: input.images,
     ...(homeworkQuestion ? { homeworkQuestion } : {}),
+    ...(input.worksheetCaptureContext
+      ? { worksheetCaptureContext: input.worksheetCaptureContext }
+      : {}),
   };
 }
 
@@ -179,6 +191,7 @@ export function buildComposerAnalyzeRequest(input: {
   images?: AnalyzeImagePayload[];
   learningReviewCorpus?: string;
   includePronunciationForLearningReview?: boolean;
+  worksheetCaptureContext?: WorksheetCaptureContext;
 }): AnalyzeApiRequestBody | null {
   /** Homework pipeline — images must never fall through to Talk / Learning Review. */
   if (input.hasImages) {
@@ -187,6 +200,7 @@ export function buildComposerAnalyzeRequest(input: {
       images: input.images,
       composerText: input.composerText,
       composerTextSource: input.composerTextSource,
+      worksheetCaptureContext: input.worksheetCaptureContext,
     });
   }
 
@@ -290,6 +304,219 @@ function normalizeFromLegacyBody(
   return buildTypedTextAnalyzeRequest({ typedText: legacyText });
 }
 
+function parseWorksheetCaptureContext(
+  raw: unknown,
+): WorksheetCaptureContext | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const o = raw as Record<string, unknown>;
+  const estimatedTotalQuestions =
+    typeof o.estimatedTotalQuestions === "number" &&
+    Number.isFinite(o.estimatedTotalQuestions)
+      ? Math.round(o.estimatedTotalQuestions)
+      : 0;
+  const photos = Array.isArray(o.photos)
+    ? o.photos
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const row = item as Record<string, unknown>;
+          const photoIndex =
+            typeof row.photoIndex === "number" ? Math.round(row.photoIndex) : -1;
+          const photoLabel =
+            typeof row.photoLabel === "string" ? row.photoLabel.trim() : "";
+          const covers = Array.isArray(row.coversQuestions)
+            ? row.coversQuestions
+                .map((n) =>
+                  typeof n === "number" && Number.isFinite(n) ? Math.round(n) : 0,
+                )
+                .filter((n) => n > 0)
+            : [];
+          if (photoIndex < 0 || !photoLabel || covers.length === 0) return null;
+          return { photoIndex, photoLabel, coversQuestions: covers };
+        })
+        .filter((x): x is NonNullable<typeof x> => x != null)
+    : [];
+  if (photos.length === 0) return undefined;
+  const parseNumList = (raw: unknown): number[] =>
+    Array.isArray(raw)
+      ? [
+          ...new Set(
+            raw
+              .map((n) =>
+                typeof n === "number" && Number.isFinite(n) ? Math.round(n) : 0,
+              )
+              .filter((n) => n > 0),
+          ),
+        ].sort((a, b) => a - b)
+      : [];
+  const lowQualityQuestions = parseNumList(
+    o.lowQualityQuestions ?? o.low_quality_questions,
+  );
+  const coveredQuestions = parseNumList(
+    o.coveredQuestions ?? o.covered_questions,
+  );
+  const missingQuestions = parseNumList(
+    o.missingQuestions ?? o.missing_questions,
+  );
+  const scopeRaw =
+    o.analysisScope ??
+    o.analysis_scope ??
+    o.analyzeScope ??
+    o.analyze_scope;
+  const analysisScope = normalizeAnalysisScope(
+    scopeRaw,
+    estimatedTotalQuestions,
+    o.captureComplete === true,
+    missingQuestions,
+    coveredQuestions.length > 0
+      ? coveredQuestions
+      : uniqueSortedFromPhotos(photos),
+  );
+  const confidenceRaw =
+    o.analysisConfidence ?? o.analysis_confidence;
+  const analysisConfidence =
+    confidenceRaw === "high" ||
+    confidenceRaw === "medium" ||
+    confidenceRaw === "low"
+      ? confidenceRaw
+      : analysisScope === "partial" || lowQualityQuestions.length >= 3
+        ? "low"
+        : analysisScope === "full" && lowQualityQuestions.length === 0
+          ? "high"
+          : "medium";
+  const coveredResolved =
+    coveredQuestions.length > 0
+      ? coveredQuestions
+      : uniqueSortedFromPhotos(photos);
+  const questionEvidenceMap = parseQuestionEvidenceMap(
+    o.questionEvidenceMap ?? o.question_evidence_map,
+    coveredResolved,
+  );
+  return {
+    photos,
+    estimatedTotalQuestions,
+    captureComplete: analysisScope === "full",
+    coveredQuestions: coveredResolved,
+    missingQuestions,
+    analysisScope,
+    analysisConfidence,
+    lowQualityQuestions,
+    questionEvidenceMap,
+  };
+}
+
+function parseQuestionEvidenceMap(
+  raw: unknown,
+  coveredFallback: number[],
+): QuestionEvidenceMap {
+  const out: QuestionEvidenceMap = {};
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [key, value] of Object.entries(
+      raw as Record<string, unknown>,
+    )) {
+      if (!value || typeof value !== "object") continue;
+      const row = value as Record<string, unknown>;
+      const questionNumber =
+        typeof row.questionNumber === "number" &&
+        Number.isFinite(row.questionNumber)
+          ? Math.round(row.questionNumber)
+          : Number.parseInt(key, 10);
+      if (!Number.isFinite(questionNumber) || questionNumber <= 0) continue;
+      const visionConfidence =
+        row.visionConfidence === "high" ||
+        row.visionConfidence === "medium" ||
+        row.visionConfidence === "low"
+          ? row.visionConfidence
+          : "medium";
+      const quality =
+        typeof row.quality === "string" && row.quality.trim()
+          ? (row.quality as QuestionEvidence["quality"])
+          : "clear";
+      out[String(questionNumber)] = {
+        questionNumber,
+        sourcePhotoId:
+          typeof row.sourcePhotoId === "string" ? row.sourcePhotoId : "",
+        sourcePhotoIndex:
+          typeof row.sourcePhotoIndex === "number"
+            ? Math.round(row.sourcePhotoIndex)
+            : -1,
+        sourcePhotoLabel:
+          typeof row.sourcePhotoLabel === "string" && row.sourcePhotoLabel.trim()
+            ? row.sourcePhotoLabel.trim()
+            : `Photo${
+                typeof row.sourcePhotoIndex === "number"
+                  ? Math.round(row.sourcePhotoIndex) + 1
+                  : "?"
+              }`,
+        ocrText: typeof row.ocrText === "string" ? row.ocrText : "",
+        visionConfidence,
+        quality,
+        isLowConfidence: row.isLowConfidence === true,
+        ...(row.boundingBox &&
+        typeof row.boundingBox === "object" &&
+        !Array.isArray(row.boundingBox)
+          ? {
+              boundingBox: row.boundingBox as {
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+              },
+            }
+          : {}),
+      };
+    }
+  }
+  if (Object.keys(out).length > 0) return out;
+  for (const n of coveredFallback) {
+    out[String(n)] = {
+      questionNumber: n,
+      sourcePhotoId: "",
+      sourcePhotoIndex: -1,
+      sourcePhotoLabel: "Photo?",
+      ocrText: "",
+      visionConfidence: "medium",
+      quality: "clear",
+      isLowConfidence: false,
+    };
+  }
+  return out;
+}
+
+function normalizeAnalysisScope(
+  scopeRaw: unknown,
+  estimatedTotalQuestions: number,
+  captureComplete: boolean,
+  missingQuestions: number[],
+  coveredQuestions: number[],
+): "full" | "partial" | "unknown" {
+  if (scopeRaw === "full" || scopeRaw === "partial" || scopeRaw === "unknown") {
+    return scopeRaw;
+  }
+  // Legacy values from earlier analyzeScope naming
+  if (scopeRaw === "full-worksheet") return "full";
+  if (scopeRaw === "partial-covered-only") return "partial";
+  if (scopeRaw === "unknown-total") return "unknown";
+
+  if (estimatedTotalQuestions === 0) return "unknown";
+  if (captureComplete) return "full";
+  if (missingQuestions.length > 0) return "partial";
+  if (
+    coveredQuestions.length > 0 &&
+    coveredQuestions.length >= estimatedTotalQuestions
+  ) {
+    return "full";
+  }
+  return coveredQuestions.length > 0 ? "partial" : "unknown";
+}
+
+function uniqueSortedFromPhotos(
+  photos: Array<{ coversQuestions: number[] }>,
+): number[] {
+  return [
+    ...new Set(photos.flatMap((p) => p.coversQuestions)),
+  ].sort((a, b) => a - b);
+}
+
 export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest | null {
   if (!body || typeof body !== "object") return null;
   const o = body as Record<string, unknown>;
@@ -305,6 +532,9 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
       speechTranscript: trimmed(o.speechTranscript) || undefined,
       typedText: trimmed(o.typedText) || undefined,
       learningReviewCorpus: trimmed(o.learningReviewCorpus) || undefined,
+      worksheetCaptureContext: parseWorksheetCaptureContext(
+        o.worksheetCaptureContext ?? o.worksheet_capture_context,
+      ),
     };
   } else {
     raw = normalizeFromLegacyBody(o);
@@ -332,6 +562,9 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
     learningReviewCorpus,
   });
   const hasStudentCorpus = resolveHasStudentCorpusForParser(raw.submissionKind);
+  const worksheetCaptureContext = parseWorksheetCaptureContext(
+    raw.worksheetCaptureContext,
+  );
 
   return {
     submissionKind: raw.submissionKind,
@@ -345,6 +578,7 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
     promptText,
     requireSpeechPronunciation,
     hasStudentCorpus,
+    ...(worksheetCaptureContext ? { worksheetCaptureContext } : {}),
   };
 }
 
@@ -355,15 +589,105 @@ export type VisionUserPart =
 export function buildVisionUserContent(
   homeworkQuestion: string,
   images: AnalyzeImagePayload[],
+  worksheetCaptureContext?: WorksheetCaptureContext,
 ): VisionUserPart[] {
   const questionBlock = homeworkQuestion
     ? `Student homework question (typed for this submission):\n${homeworkQuestion}\n\n`
+    : "";
+  const lowQualityLine =
+    worksheetCaptureContext &&
+    worksheetCaptureContext.lowQualityQuestions.length > 0
+      ? `lowQualityQuestions (Quality — present but unclear; mark lower confidence): ${worksheetCaptureContext.lowQualityQuestions.join(", ")}\n`
+      : "";
+  const missingLine =
+    worksheetCaptureContext &&
+    worksheetCaptureContext.missingQuestions.length > 0
+      ? `missingQuestions (Coverage — NOT photographed): ${worksheetCaptureContext.missingQuestions.join(", ")}\n`
+      : "";
+  const scope = worksheetCaptureContext?.analysisScope;
+  const confidence = worksheetCaptureContext?.analysisConfidence;
+  const evidenceEntries = worksheetCaptureContext
+    ? Object.values(worksheetCaptureContext.questionEvidenceMap).sort(
+        (a, b) => a.questionNumber - b.questionNumber,
+      )
+    : [];
+  const evidenceBlock =
+    evidenceEntries.length > 0
+      ? [
+          "questionEvidenceMap (Evidence Layer — AUTHORITATIVE):",
+          JSON.stringify(evidenceEntries, null, 2),
+          "You may analyze ONLY questionNumbers that appear in questionEvidenceMap.",
+          "For each analyzed question, cite its QuestionEvidence (sourcePhotoLabel, visionConfidence, quality).",
+          "If a question has no Evidence entry, reply in Traditional Chinese:",
+          "「目前沒有收到第 X 題影像，因此無法分析。」",
+          "FORBIDDEN: guessing, inventing answers, or analyzing missingQuestions.",
+        ].join("\n") + "\n"
+      : "";
+  const scopeRules =
+    scope === "partial"
+      ? [
+          "analysisScope = partial.",
+          "You may analyze ONLY questions listed in questionEvidenceMap / coveredQuestions.",
+          "FORBIDDEN:",
+          "- Guessing or inventing answers for missingQuestions",
+          "- Hallucinating questions that were not photographed",
+          "- Answering questions not in questionEvidenceMap",
+          "- Claiming the full worksheet was recognized or completed",
+          "You may ONLY discuss currently evidenced questions.",
+          'If the student asks about a missing / unphotographed question, reply exactly in Traditional Chinese: 「目前沒有收到該題影像，無法分析。」',
+        ].join("\n") + "\n"
+      : scope === "unknown"
+        ? [
+            "analysisScope = unknown (total question count unknown).",
+            "Analyze only questions in questionEvidenceMap.",
+            "Do not invent a full worksheet inventory.",
+          ].join("\n") + "\n"
+        : scope === "full"
+          ? "analysisScope = full. Coverage is complete for estimatedTotalQuestions; still cite QuestionEvidence per question.\n"
+          : "";
+  const confidenceRules =
+    confidence === "high"
+      ? "analysisConfidence = high. Analyze normally with clear, confident wording.\n"
+      : confidence === "medium"
+        ? [
+            "analysisConfidence = medium. Analysis is allowed.",
+            "For Evidence with isLowConfidence=true, hedge: use 「可能」「看起來」; do not overstate certainty.",
+            "Remind: 「此題影像可信度較低。」 on those questions.",
+          ].join("\n") + "\n"
+        : confidence === "low"
+          ? [
+              "analysisConfidence = low. Do NOT invent content.",
+              "Analyze ONLY what QuestionEvidence supports.",
+              "For every low-confidence Evidence question, remind: 「此題影像可信度較低。」",
+              "You MUST include this Traditional Chinese reminder in the report:",
+              "「部分題目影像可信度不足，以下分析僅供參考。」",
+            ].join("\n") + "\n"
+          : "";
+  const captureBlock = worksheetCaptureContext
+    ? `Multi-photo worksheet capture (quality check complete):\n` +
+      `analysisScope: ${worksheetCaptureContext.analysisScope}\n` +
+      `analysisConfidence: ${worksheetCaptureContext.analysisConfidence}\n` +
+      `estimatedTotalQuestions: ${worksheetCaptureContext.estimatedTotalQuestions}\n` +
+      `coveredQuestions: [${worksheetCaptureContext.coveredQuestions.join(", ")}]\n` +
+      `missingQuestions: [${worksheetCaptureContext.missingQuestions.join(", ")}]\n` +
+      `lowQualityQuestions: [${worksheetCaptureContext.lowQualityQuestions.join(", ")}]\n` +
+      `captureComplete: ${worksheetCaptureContext.captureComplete ? "yes" : "no"}\n` +
+      worksheetCaptureContext.photos
+        .map(
+          (p) =>
+            `${p.photoLabel} covers questions: ${p.coversQuestions.join(", ")}`,
+        )
+        .join("\n") +
+      `\n${missingLine}${lowQualityLine}${evidenceBlock}${scopeRules}${confidenceRules}` +
+      `Coverage gaps and quality issues are SEPARATE: missing ≠ low-confidence.\n` +
+      `Do not refuse analysis for low-quality evidenced questions; note lower confidence instead.\n\n`
     : "";
   const parts: VisionUserPart[] = [
     {
       type: "text",
       text:
         questionBlock +
+        captureBlock +
         "Homework worksheet image(s) ONLY.\n" +
         "STEP 1: Fill homeworkReport.questionAnswerAudit (per-question answered|blank + reason). Derive counts ONLY from that audit.\n" +
         "Do not count printed questions, Chinese hints, model answers, or answer-key text as student answers.\n" +

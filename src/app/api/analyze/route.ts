@@ -477,7 +477,11 @@ export async function POST(request: Request) {
       );
     }
     systemPrompt = TUTOR_VISION_IMAGES_PROMPT;
-    userContent = buildVisionUserContent(homeworkQuestion, images);
+    userContent = buildVisionUserContent(
+      homeworkQuestion,
+      images,
+      parsedRequest.worksheetCaptureContext,
+    );
   } else if (requireSpeechPronunciation) {
     systemPrompt = TUTOR_SPEECH_WITH_PRONUNCIATION_PROMPT;
     userContent = buildSpeechUserContent(speechTranscript);
@@ -554,6 +558,8 @@ export async function POST(request: Request) {
   };
   const choice0 = data.choices?.[0];
   const rawContent = choice0?.message?.content?.trim() ?? "";
+  console.log("RAW RESPONSE:");
+  console.log(choice0?.message?.content);
   const finishReason = choice0?.finish_reason ?? null;
 
   let step3Snapshot: HomeworkTraceSnapshot | null = null;
@@ -674,6 +680,18 @@ export async function POST(request: Request) {
 
   if (hasImages && feedback.imageInsights?.homeworkReport) {
     const report = feedback.imageInsights.homeworkReport;
+    const ctx = parsedRequest.worksheetCaptureContext;
+    const lowConfidenceQuestions = ctx?.lowQualityQuestions ?? [];
+    const questionEvidenceMap = ctx?.questionEvidenceMap;
+    if (lowConfidenceQuestions.length > 0 || questionEvidenceMap) {
+      feedback.imageInsights.homeworkReport = {
+        ...report,
+        ...(lowConfidenceQuestions.length > 0
+          ? { lowConfidenceQuestions }
+          : {}),
+        ...(questionEvidenceMap ? { questionEvidenceMap } : {}),
+      };
+    }
     const parserOverview = report.answerOverview;
     step5Snapshot = {
       ocrQuestionCount: countOcrQuestionNumbers(

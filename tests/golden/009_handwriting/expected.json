@@ -1,0 +1,46 @@
+{
+  "id": "009_handwriting",
+  "description": "Handwritten answers — may be uncertain even when coverage is full.",
+  "photos": ["photo1.jpg"],
+  "analysisScope": "full",
+  "analysisConfidence": "medium",
+  "estimatedTotalQuestions": 3,
+  "coveredQuestions": [1, 2, 3],
+  "missingQuestions": [],
+  "lowQualityQuestions": [2],
+  "expectedAnswerVerdict": [
+    {
+      "questionNumber": 1,
+      "verdict": "correct",
+      "studentAnswer": "happy",
+      "expectedAnswer": "happy",
+      "isLowConfidence": false,
+      "sourcePhoto": "photo1.jpg"
+    },
+    {
+      "questionNumber": 2,
+      "verdict": "uncertain",
+      "studentAnswer": "becos",
+      "expectedAnswer": "because",
+      "isLowConfidence": true,
+      "sourcePhoto": "photo1.jpg",
+      "notes": "Illegible/handwriting noise"
+    },
+    {
+      "questionNumber": 3,
+      "verdict": "correct",
+      "studentAnswer": "friend",
+      "expectedAnswer": "friend",
+      "isLowConfidence": false,
+      "sourcePhoto": "photo1.jpg"
+    }
+  ],
+  "expectedFeedback": [
+    {
+      "questionNumber": 2,
+      "tone": "hedged",
+      "mustInclude": ["可能", "看起來"],
+      "mustNotInclude": ["確定你寫的是"]
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import {
   logHandwritingDetectionEvidence,
   type HandwritingDetectionEvidence,
 } from "@/lib/handwritingDetection";
-
+import { formatQuestionRangesZh } from "@/lib/worksheetCapture";
 export type StudentAnswersStatus = "none" | "unclear" | "insufficient" | "detected";
 
 export type QuestionAnswerState = "answered" | "blank";
@@ -46,26 +46,175 @@ export const UNCLEAR_STUDENT_ANSWERS_MESSAGE_EN =
 export const UNCLEAR_STUDENT_ANSWERS_MESSAGE_ZH =
   "無法確認作業上是否有學生手寫作答。\n請重新拍攝更清楚的照片（光線充足、減少反光、完整入鏡）。\n在無法確認前，我不會推測學生的學習表現。";
 
-export const INSUFFICIENT_EVIDENCE_MESSAGE_EN =
-  "Only a small number of answers were detected.\nThere is not enough evidence to evaluate learning performance yet.";
+/** Minimum worksheet answer coverage (%) before treating partial work as ready for analysis intro. */
+export const PARTIAL_ANSWER_COVERAGE_READY_PERCENT = 80;
 
-export const INSUFFICIENT_EVIDENCE_MESSAGE_ZH =
-  "只偵測到少量作答。\n尚無足夠證據評估整體學習表現。";
+const CONTRADICTORY_EVIDENCE_PATTERNS = [
+  /Only a small number of answers were detected\.?/gi,
+  /There is not enough evidence to evaluate learning performance yet\.?/gi,
+  /not enough evidence to evaluate/gi,
+  /Unable to evaluate(?: learning performance)?/gi,
+  /只偵測到少量作答。?/g,
+  /尚無足夠證據評估整體學習表現。?/g,
+  /無法評估(?:整體)?學習表現/g,
+];
 
 export function formatStudentAnswersNotice(
   status: Exclude<StudentAnswersStatus, "detected">,
   evidence?: StudentAnswerEvidence,
 ): string {
   if (status === "unclear") {
-    return `${UNCLEAR_STUDENT_ANSWERS_MESSAGE_ZH}\n\n${UNCLEAR_STUDENT_ANSWERS_MESSAGE_EN}`;
+    return UNCLEAR_STUDENT_ANSWERS_MESSAGE_ZH;
   }
-  if (status === "insufficient") {
-    const stats = evidence
-      ? `\n（已作答 ${evidence.answeredQuestions} / ${evidence.totalQuestions} 題，覆蓋率 ${evidence.answerCoveragePercent}%）\n（Answered ${evidence.answeredQuestions} of ${evidence.totalQuestions} questions — ${evidence.answerCoveragePercent}% coverage）`
-      : "";
-    return `${INSUFFICIENT_EVIDENCE_MESSAGE_ZH}${stats}\n\n${INSUFFICIENT_EVIDENCE_MESSAGE_EN}${stats}`;
+  if (status === "insufficient" && evidence) {
+    return formatTutorAnswerSummary(evidence);
   }
-  return `${NO_STUDENT_ANSWERS_MESSAGE_ZH}\n\n${NO_STUDENT_ANSWERS_MESSAGE_EN}`;
+  return NO_STUDENT_ANSWERS_MESSAGE_ZH;
+}
+
+function preferTraditionalChineseNotice(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  const blocks = trimmed.split(/\n\n+/);
+  const zhBlocks = blocks.filter((b) => /[\u4e00-\u9fff]/.test(b));
+  if (zhBlocks.length > 0) return zhBlocks.join("\n\n");
+  return trimmed;
+}
+
+function stripContradictoryEvidenceMessages(text: string): string {
+  let out = text;
+  for (const pattern of CONTRADICTORY_EVIDENCE_PATTERNS) {
+    out = out.replace(pattern, "");
+  }
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/** Remove debug / contradictory English from text shown to students. */
+export function sanitizeStudentFacingHomeworkText(text: string): string {
+  let out = stripContradictoryEvidenceMessages(text);
+  out = out.replace(
+    /^(?:Q|第)\s*\d+\s*(?:題)?\s*[:：]\s*(?:answered|blank)\s*$/gim,
+    "",
+  );
+  out = out.replace(/^model audit:.*$/gim, "");
+  out = out.replace(
+    /^(?:Status|OCR in answer area|Handwriting detected|Confidence|Why|Rejected by rule|Exact evidence|Reason):.*$/gim,
+    "",
+  );
+  const headerReplacements: [RegExp, string][] = [
+    [/📸\s*Homework analyzed/gi, "📸 作業分析完成"],
+    [/✅\s*Answer Overview/gi, "✅ 作答總覽"],
+    [/🔍\s*Key Explanations?/gi, "🔍 重點解析"],
+    [/🔊\s*Pronunciation Practice/gi, "🔊 發音練習"],
+    [/📈\s*Today'?s Learning Signal/gi, "📈 今日學習重點"],
+    [/💡\s*Hints/gi, "💡 提示"],
+    [/•\s*Homework type:/gi, "• 作業類型："],
+    [/•\s*Number of questions:/gi, "• 題數："],
+    [/•\s*Image quality:/gi, "• 照片品質："],
+    [/Correct answer:\s*/gi, "正確答案："],
+    [/Why\?\s*/gi, "說明："],
+    [/Example:\s*/gi, "例句："],
+  ];
+  for (const [pattern, replacement] of headerReplacements) {
+    out = out.replace(pattern, replacement);
+  }
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/** Tutor-facing summary derived from per-question answer statistics — never contradicts counts. */
+export function formatTutorAnswerSummary(evidence: StudentAnswerEvidence): string {
+  const { answeredQuestions, totalQuestions, perQuestion } = evidence;
+  const missing = perQuestion
+    .filter((q) => q.status === "blank")
+    .map((q) => q.questionNumber);
+  const missingRange = formatQuestionRangesZh(missing);
+
+  if (totalQuestions > 0 && answeredQuestions === totalQuestions) {
+    return [
+      "---",
+      "太棒了！",
+      `我已成功辨識全部 ${totalQuestions} 題作答。`,
+      "接下來我會開始分析：",
+      "• 每一題是否答對",
+      "• 文法、拼字與用字",
+      "• 哪些觀念需要加強",
+      "• 哪些地方表現很好",
+      "---",
+    ].join("\n");
+  }
+
+  const coveragePercent =
+    totalQuestions > 0
+      ? Math.round((answeredQuestions / totalQuestions) * 100)
+      : evidence.answerCoveragePercent;
+
+  if (coveragePercent >= PARTIAL_ANSWER_COVERAGE_READY_PERCENT && missing.length > 0) {
+    return [
+      `我已辨識 ${answeredQuestions} / ${totalQuestions} 題作答。`,
+      "",
+      `還有 ${missing.length} 題需要補清楚：`,
+      missingRange ? `• ${missingRange}` : `• 第 ${missing.join("、")} 題`,
+      "",
+      "請只針對這幾題補拍即可，不用重拍整張作業。",
+    ].join("\n");
+  }
+
+  if (missing.length > 0) {
+    return [
+      `目前辨識到 ${answeredQuestions} / ${totalQuestions} 題作答。`,
+      "",
+      "請補拍尚未清楚作答的題目：",
+      missingRange ? `• ${missingRange}` : `• 第 ${missing.join("、")} 題`,
+      "",
+      "只要補拍缺少的題目就好，不需要重拍整張作業。",
+    ].join("\n");
+  }
+
+  return [
+    `目前已辨識 ${answeredQuestions} / ${totalQuestions} 題作答。`,
+    "若還有漏掉的題目，請補拍該題附近即可。",
+  ].join("\n");
+}
+
+function evidenceFromModelAudit(
+  report: HomeworkReport,
+  fallback: StudentAnswerEvidence,
+): StudentAnswerEvidence {
+  const modelAudit = parseModelQuestionAudit(report);
+  if (!modelAudit?.length) return fallback;
+
+  const total =
+    toPositiveInt(report.totalQuestionCount) ??
+    toPositiveInt(report.questionCount) ??
+    fallback.totalQuestions ??
+    Math.max(...modelAudit.map((a) => a.questionNumber));
+  if (total <= 0) return fallback;
+
+  const auditByNumber = new Map(modelAudit.map((a) => [a.questionNumber, a]));
+  const perQuestion: QuestionAnswerAuditEntry[] = [];
+  for (let n = 1; n <= total; n++) {
+    const item = auditByNumber.get(n);
+    perQuestion.push({
+      questionNumber: n,
+      questionLabel: `第${n}題`,
+      status: item?.status ?? "blank",
+      reason: item?.reason ?? "model audit: not listed",
+      source: "model_audit",
+      ...(item?.studentAnswerSnippet
+        ? { studentAnswerSnippet: item.studentAnswerSnippet }
+        : {}),
+    });
+  }
+
+  const answeredQuestions = perQuestion.filter((q) => q.status === "answered").length;
+  return {
+    totalQuestions: total,
+    answeredQuestions,
+    answerCoveragePercent:
+      total > 0 ? Math.round((answeredQuestions / total) * 100) : 0,
+    perQuestion,
+    debugLog: fallback.debugLog,
+  };
 }
 
 const NO_STUDENT_WORK_TEXT =
@@ -536,6 +685,17 @@ export function resolveStudentAnswersStatus(input: {
         ? "detected"
         : "none"
       : null);
+
+  const { answeredQuestions, totalQuestions, answerCoveragePercent } =
+    input.evidence;
+
+  if (
+    totalQuestions > 0 &&
+    answeredQuestions === totalQuestions
+  ) {
+    return "detected";
+  }
+
   const corpus = [
     input.ocrText,
     input.visualSummaryZh,
@@ -547,28 +707,15 @@ export function resolveStudentAnswersStatus(input: {
     return "unclear";
   }
 
-  const { answeredQuestions } = input.evidence;
   if (answeredQuestions <= 0) {
     return "none";
   }
 
-  if (!meetsEvidenceThreshold(input.evidence)) {
-    return "insufficient";
+  if (answerCoveragePercent >= PARTIAL_ANSWER_COVERAGE_READY_PERCENT) {
+    return answeredQuestions === totalQuestions ? "detected" : "insufficient";
   }
 
-  if (declared === "insufficient") {
-    return "insufficient";
-  }
-
-  if (declared === "detected" || corpusMentionsStudentWork(...corpus)) {
-    return "detected";
-  }
-
-  if (answerOverviewLooksLikeNoStudentWork(input.answerOverview)) {
-    return "none";
-  }
-
-  return "detected";
+  return "insufficient";
 }
 
 export function homeworkAllowsPerformanceEvaluation(
@@ -624,12 +771,6 @@ function stripPerformanceSectionsFromFormattedReport(text: string): string {
   return out.replace(/\n{3,}/g, "\n\n").trim();
 }
 
-function formatAuditSummary(perQuestion: QuestionAnswerAuditEntry[]): string {
-  return perQuestion
-    .map((q) => `${q.questionLabel}: ${q.status}`)
-    .join("\n");
-}
-
 /** Enforce answer-evidence rules before homework analytics reach the UI. */
 export function applyHomeworkStudentAnswersGuard(
   insights: ImageInsights,
@@ -637,7 +778,8 @@ export function applyHomeworkStudentAnswersGuard(
   const report = insights.homeworkReport;
   if (!report) return insights;
 
-  const evidence = computeStudentAnswerEvidence(report, insights.ocrText);
+  const computed = computeStudentAnswerEvidence(report, insights.ocrText);
+  const summaryEvidence = evidenceFromModelAudit(report, computed);
   const status = resolveStudentAnswersStatus({
     declaredStatus: report.studentAnswersStatus,
     declaredDetected: report.studentAnswersDetected,
@@ -645,14 +787,14 @@ export function applyHomeworkStudentAnswersGuard(
     visualSummaryZh: insights.visualSummaryZh,
     answerOverview: report.answerOverview,
     formattedReport: report.formattedReport,
-    evidence,
+    evidence: summaryEvidence,
   });
 
   const evidenceFields = {
-    studentAnsweredQuestions: evidence.answeredQuestions,
-    studentAnswerCoveragePercent: evidence.answerCoveragePercent,
-    totalQuestionCount: evidence.totalQuestions,
-    questionAnswerAudit: evidence.perQuestion.map(
+    studentAnsweredQuestions: summaryEvidence.answeredQuestions,
+    studentAnswerCoveragePercent: summaryEvidence.answerCoveragePercent,
+    totalQuestionCount: summaryEvidence.totalQuestions,
+    questionAnswerAudit: computed.perQuestion.map(
       ({
         questionNumber,
         questionLabel,
@@ -685,28 +827,38 @@ export function applyHomeworkStudentAnswersGuard(
   };
 
   if (status === "detected") {
+    const summary = formatTutorAnswerSummary(summaryEvidence);
+    const cleanedReport = report.formattedReport
+      ? sanitizeStudentFacingHomeworkText(report.formattedReport)
+      : "";
+    const formattedReport = cleanedReport
+      ? `${summary}\n\n${cleanedReport}`
+      : summary;
     return {
       ...insights,
       homeworkReport: {
         ...report,
         studentAnswersStatus: "detected",
         ...evidenceFields,
+        formattedReport: sanitizeStudentFacingHomeworkText(formattedReport),
       },
     };
   }
 
   if (status === "insufficient") {
-    const notice =
-      toTrimmed(report.insufficientEvidenceMessage) ||
-      formatStudentAnswersNotice("insufficient", evidence);
-    const auditBlock = formatAuditSummary(evidence.perQuestion);
+    const notice = formatTutorAnswerSummary(summaryEvidence);
     const partialOverview = filterAnswerOverviewToAnsweredOnly(
       report.answerOverview,
-      evidence.perQuestion,
+      computed.perQuestion,
     );
-    const partialFormatted = report.formattedReport
-      ? `${notice}\n\n${auditBlock}\n\n${stripPerformanceSectionsFromFormattedReport(report.formattedReport)}`
-      : `${notice}\n\n${auditBlock}`;
+    const cleanedBody = report.formattedReport
+      ? sanitizeStudentFacingHomeworkText(
+          stripPerformanceSectionsFromFormattedReport(report.formattedReport),
+        )
+      : "";
+    const partialFormatted = cleanedBody
+      ? `${notice}\n\n${cleanedBody}`
+      : notice;
 
     return {
       ...insights,
@@ -718,17 +870,17 @@ export function applyHomeworkStudentAnswersGuard(
         answerOverview: partialOverview,
         learningSignal: [],
         learningSummary: emptyLearningSummary(),
-        formattedReport: partialFormatted.trim(),
+        formattedReport: sanitizeStudentFacingHomeworkText(partialFormatted.trim()),
       },
     };
   }
 
   const notice =
-    toTrimmed(report.noStudentAnswersMessage) ||
-    toTrimmed(report.unclearPhotoMessage) ||
-    formatStudentAnswersNotice(status, evidence);
-
-  const auditBlock = formatAuditSummary(evidence.perQuestion);
+    preferTraditionalChineseNotice(
+      toTrimmed(report.noStudentAnswersMessage) ||
+        toTrimmed(report.unclearPhotoMessage) ||
+        "",
+    ) || formatStudentAnswersNotice(status, summaryEvidence);
 
   const safeReport: HomeworkReport = {
     ...report,
@@ -742,7 +894,7 @@ export function applyHomeworkStudentAnswersGuard(
     pronunciationFocus: [],
     learningSignal: [],
     learningSummary: emptyLearningSummary(),
-    formattedReport: `${notice}\n\n${auditBlock}`,
+    formattedReport: sanitizeStudentFacingHomeworkText(notice),
     hintsFirst: report.hintsFirst,
   };
 
