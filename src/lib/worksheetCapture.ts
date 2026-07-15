@@ -1,4 +1,5 @@
 import type { AnalyzeImagePayload } from "@/lib/analyzeApiRequest";
+import type { FinalCoverageResponse } from "@/lib/finalCoverageApi";
 import {
   collectQuestionNumbersFromQualityResult,
   inferWorksheetQuestionTotal,
@@ -124,6 +125,11 @@ export type WorksheetCaptureSession = {
   questionEvidenceMap: QuestionEvidenceMap;
   /** Derived state machine — source of truth for UI / analyze gating. */
   analysis: WorksheetCaptureAnalysisState;
+  /**
+   * Questions seen in more than one photo, per Final Coverage Verify.
+   * Optional — only set by reconcileFinalCoverage(); merge never populates it.
+   */
+  duplicateQuestions?: number[];
 };
 
 /** @deprecated Use AnalysisScope (`full` | `partial` | `unknown`). */
@@ -767,5 +773,63 @@ export function buildWorksheetCaptureContext(
     analysisConfidence: analysis.analysisConfidence,
     lowQualityQuestions: analysis.lowQualityQuestions,
     questionEvidenceMap: session.questionEvidenceMap,
+  };
+}
+
+/**
+ * Phase 2 — pure reconcile of a capture session with a Final Coverage Verify
+ * result. Returns a new WorksheetCaptureSession.
+ *
+ * STANDALONE: nothing calls this yet. It is not wired into merge, the state
+ * machine, buildWorksheetCaptureContext, UI, or runAnalyze. It has no side
+ * effects and mutates nothing.
+ *
+ * What it does:
+ * - total = max(session total, Final Coverage total) — never lowers the total,
+ *   so it can only reveal missing questions, never hide them.
+ * - Re-derives missingQuestions / analysisScope / analysisConfidence via the
+ *   existing state machine (buildCaptureAnalysisState) against the new total, so
+ *   these stay mutually consistent. (coverageComplete / recommendedAction follow
+ *   as consequences; qualityAcceptable / canAnalyzeCurrent / lowQualityQuestions
+ *   are unchanged because their inputs are unchanged.)
+ * - Attaches duplicateQuestions from Final Coverage.
+ *
+ * What it preserves byte-for-byte (never touched):
+ * - questionPhotoMap, questionEvidenceMap (sourcePhotoId / sourcePhotoIndex /
+ *   ocrText and the whole Evidence Layer)
+ * - coveredQuestions, questionsNeedingRetake, openIssues, pendingCaptureRequest,
+ *   photos, tutorMessage
+ */
+export function reconcileFinalCoverage(
+  session: WorksheetCaptureSession,
+  finalCoverage: FinalCoverageResponse,
+): WorksheetCaptureSession {
+  const reconciledTotal = Math.max(
+    Math.max(0, session.estimatedTotalQuestions),
+    Math.max(0, finalCoverage.result.estimatedTotalQuestions),
+  );
+
+  // Inputs the state machine needs, read straight from the (unchanged) session.
+  // Reading photo state here does not modify merge or the state machine.
+  const checkedCount = session.photos.filter((p) => p.quality).length;
+  const anyPhotoInProgress = session.photos.some(
+    (p) =>
+      p.qualityStatus === "checking" ||
+      (p.qualityStatus === "pending" && session.photos.length > 0),
+  );
+
+  const analysis = buildCaptureAnalysisState({
+    estimatedTotalQuestions: reconciledTotal,
+    coveredQuestions: session.coveredQuestions,
+    questionsNeedingRetake: session.questionsNeedingRetake,
+    anyPhotoInProgress,
+    checkedCount,
+  });
+
+  return {
+    ...session,
+    estimatedTotalQuestions: reconciledTotal,
+    duplicateQuestions: uniqueSorted(finalCoverage.result.duplicateQuestions),
+    analysis,
   };
 }

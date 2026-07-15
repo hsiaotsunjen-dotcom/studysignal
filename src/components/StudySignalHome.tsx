@@ -56,10 +56,14 @@ import {
   type ComposerTextSource,
 } from "@/lib/analyzeApiRequest";
 import { postPhotoQualityCheck } from "@/lib/photoQualityApi";
+import { postFinalCoverageCheck } from "@/lib/finalCoverageApi";
+import type { FinalCoverageRequestBody } from "@/lib/finalCoverageApi";
 import {
   buildWorksheetCaptureContext,
   mergeWorksheetCaptureSession,
+  reconcileFinalCoverage,
   type WorksheetCaptureContext,
+  type WorksheetCaptureSession,
   type WorksheetPhotoEntry,
 } from "@/lib/worksheetCapture";
 import {
@@ -1553,6 +1557,105 @@ export function StudySignalHome({
     return mergeWorksheetCaptureSession(entries);
   }, [checkWorksheetPhotoQuality]);
 
+  /**
+   * Final Coverage Verify (wiring only): re-verify whole-worksheet coverage with
+   * all photos before analyze, then reconcile the total/scope/confidence.
+   *
+   * Non-blocking by design — on timeout / error / invalid response it returns the
+   * original session unchanged so analyze always proceeds. It does not modify
+   * merge, the state machine, Evidence, or the analyze route.
+   */
+  const verifyFinalCoverage = useCallback(
+    async (
+      session: WorksheetCaptureSession,
+    ): Promise<WorksheetCaptureSession> => {
+      console.log("[final-coverage] STEP1 entered", {
+        photos: session.photos.length,
+        coveredQuestions: session.coveredQuestions,
+        canAnalyzeCurrent: session.analysis.canAnalyzeCurrent,
+      });
+      const FINAL_COVERAGE_TIMEOUT_MS = 12000;
+      try {
+        const images = await loadAnalyzeImagesFromAttachments(
+          attachmentsRef.current,
+          "verifyFinalCoverage",
+        );
+        console.log("[final-coverage] STEP2 images loaded", {
+          imagesLength: images.length,
+        });
+        if (images.length === 0) {
+          console.log("[final-coverage] EARLY RETURN images.length == 0");
+          return session;
+        }
+
+        const body: FinalCoverageRequestBody = {
+          images,
+          captureSummary: {
+            estimatedTotalQuestions: session.estimatedTotalQuestions,
+            coveredQuestions: session.coveredQuestions,
+            missingQuestions: session.analysis.missingQuestions,
+            analysisScope: session.analysis.analysisScope,
+          },
+          existingCoverage: session.photos
+            .map((p, index) => ({
+              photoIndex: index,
+              questionsClearlyVisible: p.quality?.questionsClearlyVisible ?? [],
+            }))
+            .filter((c) => c.questionsClearlyVisible.length > 0),
+        };
+
+        console.log("[final-coverage] STEP3 before POST", {
+          captureSummary: body.captureSummary,
+          existingCoverage: body.existingCoverage,
+        });
+
+        const timeoutPromise = new Promise<{ ok: false; error: string }>(
+          (resolve) =>
+            setTimeout(
+              () => resolve({ ok: false, error: "final-coverage timeout" }),
+              FINAL_COVERAGE_TIMEOUT_MS,
+            ),
+        );
+        const outcome = await Promise.race([
+          postFinalCoverageCheck(body),
+          timeoutPromise,
+        ]);
+        console.log("[final-coverage] STEP4 after POST", outcome);
+
+        if (!outcome.ok) {
+          if (outcome.error === "final-coverage timeout") {
+            console.log("[final-coverage] TIMEOUT fallback");
+          } else {
+            console.log("[final-coverage] API returned ok:false");
+          }
+          console.log(
+            "[final-coverage] fallback → 使用原 session:",
+            outcome.error,
+          );
+          return session;
+        }
+
+        console.log("[final-coverage] reconcile input", {
+          estimatedTotalQuestions: outcome.result.estimatedTotalQuestions,
+          questionsClearlyVisible: outcome.result.questionsClearlyVisible,
+        });
+        const reconciled = reconcileFinalCoverage(session, {
+          result: outcome.result,
+        });
+        console.log("[final-coverage] reconciled", {
+          total: reconciled.estimatedTotalQuestions,
+          covered: reconciled.coveredQuestions,
+          missing: reconciled.analysis.missingQuestions,
+        });
+        return reconciled;
+      } catch (error) {
+        console.log("[final-coverage] exception", error);
+        return session;
+      }
+    },
+    [],
+  );
+
   const pushCaptureTutorGuidance = useCallback((text: string) => {
     setChatItems((prev) => [
       ...prev,
@@ -3007,11 +3110,14 @@ export function StudySignalHome({
     if (hasImages) {
       const session = await ensureWorksheetPhotosChecked();
       if (!session.analysis.canAnalyzeCurrent) {
+        console.log("[ENTRY] handleAnalyzePress blocked", session.analysis);
         pushCaptureTutorGuidance(session.tutorMessage);
         return;
       }
+      console.log("[ENTRY] handleAnalyzePress -> verify");
+      const verifiedSession = await verifyFinalCoverage(session);
       await runAnalyze({
-        worksheetCaptureContext: buildWorksheetCaptureContext(session),
+        worksheetCaptureContext: buildWorksheetCaptureContext(verifiedSession),
       });
       return;
     }
@@ -3047,6 +3153,7 @@ export function StudySignalHome({
   }, [
     chatItems,
     ensureWorksheetPhotosChecked,
+    verifyFinalCoverage,
     pushCaptureTutorGuidance,
     runAnalyze,
     scheduleRunAnalyzeAfterDictation,
@@ -3367,12 +3474,19 @@ export function StudySignalHome({
                         void (async () => {
                           const session = await ensureWorksheetPhotosChecked();
                           if (!session.analysis.canAnalyzeCurrent) {
+                            console.log(
+                              "[ENTRY] Guide blocked",
+                              session.analysis,
+                            );
                             pushCaptureTutorGuidance(session.tutorMessage);
                             return;
                           }
+                          console.log("[ENTRY] Guide -> verify");
+                          const verifiedSession =
+                            await verifyFinalCoverage(session);
                           await runAnalyze({
                             worksheetCaptureContext:
-                              buildWorksheetCaptureContext(session),
+                              buildWorksheetCaptureContext(verifiedSession),
                           });
                         })();
                       }}

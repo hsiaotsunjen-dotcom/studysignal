@@ -309,6 +309,68 @@ async function logPhotoVisionRequestDebug(
   console.log("====================================");
 }
 
+/**
+ * Debug-only: print the exact Vision request (model, messages, full prompt text,
+ * image count) WITHOUT dumping base64. Does not modify any request logic.
+ */
+function logVisionRequestSummary(model: string, messages: unknown[]): void {
+  console.log("====================================");
+  console.log("Vision Request");
+  console.log("====================================");
+  console.log("model:", model);
+  console.log("messages 長度:", messages.length);
+
+  let imagesSent = 0;
+  let totalTextLength = 0;
+
+  messages.forEach((msg, msgIndex) => {
+    const m = (msg ?? {}) as { role?: unknown; content?: unknown };
+    const role = typeof m.role === "string" ? m.role : "(unknown)";
+    console.log(`--- message[${msgIndex}] ---`);
+    console.log(`message[${msgIndex}].role:`, role);
+
+    if (typeof m.content === "string") {
+      console.log(`message[${msgIndex}].content 長度:`, m.content.length);
+      totalTextLength += m.content.length;
+      console.log(`message[${msgIndex}].content (完整 text):`);
+      console.log(m.content);
+      return;
+    }
+
+    if (Array.isArray(m.content)) {
+      console.log(
+        `message[${msgIndex}].content 長度 (陣列 items):`,
+        m.content.length,
+      );
+      m.content.forEach((item, itemIndex) => {
+        const it = (item ?? {}) as { type?: unknown; text?: unknown };
+        const type = typeof it.type === "string" ? it.type : "(unknown)";
+        console.log(`  content[${itemIndex}] index:`, itemIndex);
+        console.log(`  content[${itemIndex}] type:`, type);
+        if (type === "text" && typeof it.text === "string") {
+          totalTextLength += it.text.length;
+          console.log(`  content[${itemIndex}] text (完整):`);
+          console.log(it.text);
+        } else if (type === "image_url") {
+          imagesSent += 1;
+          console.log(`  content[${itemIndex}] image #${imagesSent}`);
+        }
+      });
+      return;
+    }
+
+    console.log(`message[${msgIndex}].content: (非字串也非陣列)`);
+  });
+
+  console.log("====================================");
+  console.log("Vision Request Summary");
+  console.log("Images sent:");
+  console.log(imagesSent);
+  console.log("Text length:");
+  console.log(totalTextLength);
+  console.log("====================================");
+}
+
 export async function POST(req: Request) {
   console.log("===== /api/photo-quality REQUEST ENTERED =====");
   console.log("request url:", req.url);
@@ -395,7 +457,7 @@ export async function POST(req: Request) {
         type: "image_url" as const,
         image_url: {
           url: `data:${image.mimeType};base64,${image.dataBase64}`,
-          detail: "low" as const,
+          detail: "high" as const,
         },
       },
     ];
@@ -422,6 +484,7 @@ export async function POST(req: Request) {
     });
 
     await logPhotoVisionRequestDebug(photoIndex, photoId, image, messages);
+    logVisionRequestSummary("gpt-4o-mini", messages);
 
     logPhotoQualityStep("開始 Vision API", { photoId, photoIndex });
     const visionPromise = fetch(

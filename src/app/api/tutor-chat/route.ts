@@ -4,6 +4,7 @@ import type { HomeworkReport } from "@/lib/analyzeFeedback";
 import {
   buildTutorChatHomeworkSystemPrompt,
   TUTOR_CHAT_GENERIC_SYSTEM,
+  TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM,
 } from "@/lib/tutorChatOpenAiMessages";
 type ChatRole = "system" | "user" | "assistant";
 
@@ -256,8 +257,18 @@ export async function POST(request: Request) {
     });
   }
 
-  const openaiMessages: ApiMessage[] =
-    promptMode === "homework" && homeworkReport
+  const lastIncoming = messages[messages.length - 1];
+  const hasVision =
+    lastIncoming?.role === "user" &&
+    typeof lastIncoming.content !== "string" &&
+    lastIncoming.content.some((p) => p.type === "image_url");
+
+  const openaiMessages: ApiMessage[] = hasVision
+    ? [
+        { role: "system", content: TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM },
+        ...messages.slice(1),
+      ]
+    : promptMode === "homework" && homeworkReport
       ? [
           {
             role: "system",
@@ -265,11 +276,12 @@ export async function POST(request: Request) {
           },
           ...messages.slice(1),
         ]
-      : messages.map((m, i) =>
-          i === 0 && m.role === "system"
-            ? { ...m, content: TUTOR_CHAT_GENERIC_SYSTEM }
-            : m,
-        );
+      : messages[0]?.role === "system"
+        ? messages
+        : [
+            { role: "system", content: TUTOR_CHAT_GENERIC_SYSTEM },
+            ...messages,
+          ];
 
   const est = totalPayloadEstimate(openaiMessages);
   if (est > 280000) {
@@ -286,9 +298,6 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const hasVision =
-    typeof last.content !== "string" &&
-    last.content.some((p) => p.type === "image_url");
 
   if (hasVision && typeof last.content !== "string") {
     const imageParts = last.content.filter((p) => p.type === "image_url");
@@ -320,7 +329,7 @@ export async function POST(request: Request) {
         model: "gpt-4o-mini",
         messages: openaiMessages,
         temperature: 0.65,
-        max_tokens: hasVision ? 1400 : 900,
+        max_tokens: hasVision ? 500 : 900,
       }),
     });
   } catch (error) {
