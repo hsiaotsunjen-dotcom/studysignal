@@ -36,7 +36,7 @@ export function WorksheetCaptureGuide({
   canAddPhoto,
   analyzeBusy = false,
 }: WorksheetCaptureGuideProps) {
-  const { estimatedTotalQuestions, coveredQuestions, analysis } = session;
+  const { estimatedTotalQuestions, detectedQuestions, analysis } = session;
   const {
     canAnalyzeCurrent,
     recommendedAction,
@@ -49,8 +49,8 @@ export function WorksheetCaptureGuide({
 
   const progressLabel =
     estimatedTotalQuestions > 0
-      ? `${coveredQuestions.length} / ${estimatedTotalQuestions} 題`
-      : `${coveredQuestions.length} 題`;
+      ? `${detectedQuestions.length} / ${estimatedTotalQuestions} 題`
+      : `${detectedQuestions.length} 題`;
 
   const showRetakePrimary =
     canAddPhoto &&
@@ -66,7 +66,7 @@ export function WorksheetCaptureGuide({
       <div
         className="mb-3 h-1.5 overflow-hidden rounded-full bg-black/30"
         role="progressbar"
-        aria-valuenow={coveredQuestions.length}
+        aria-valuenow={detectedQuestions.length}
         aria-valuemin={0}
         aria-valuemax={Math.max(estimatedTotalQuestions, 1)}
         aria-label={`已辨識 ${progressLabel}`}
@@ -81,10 +81,10 @@ export function WorksheetCaptureGuide({
                 ? Math.min(
                     100,
                     Math.round(
-                      (coveredQuestions.length / estimatedTotalQuestions) * 100,
+                      (detectedQuestions.length / estimatedTotalQuestions) * 100,
                     ),
                   )
-                : coveredQuestions.length > 0
+                : detectedQuestions.length > 0
                   ? 40
                   : 8
             }%`,

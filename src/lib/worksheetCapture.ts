@@ -1,9 +1,11 @@
 import type { AnalyzeImagePayload } from "@/lib/analyzeApiRequest";
 import type { FinalCoverageResponse } from "@/lib/finalCoverageApi";
 import {
-  collectQuestionNumbersFromQualityResult,
-  inferWorksheetQuestionTotal,
-} from "@/lib/worksheetQuestionNumbers";
+  logGlobalQuestionMerge,
+  mergeGlobalQuestions,
+  type GlobalQuestionCoverage,
+  type GlobalQuestionStatus,
+} from "@/lib/globalQuestionMerge";
 
 export type PhotoQualityIssueType =
   | "blur"
@@ -34,6 +36,10 @@ export type AdditionalPhotoRequest = {
 export type PhotoQualityCheckResult = {
   photoId: string;
   photoIndex: number;
+  /**
+   * Per-photo estimate only (debug / legacy). Global merge MUST NOT use this
+   * as the homework total — see mergeGlobalQuestions().
+   */
   estimatedTotalQuestions: number;
   questionsClearlyVisible: number[];
   questionsWithIssues: Array<{
@@ -41,11 +47,18 @@ export type PhotoQualityCheckResult = {
     issueType: PhotoQualityIssueType;
     fixInstruction: string;
   }>;
+  /**
+   * Union of Vision + OCR question numbers detected on this photo.
+   * Required for Global Question Merge so OCR-only finds (e.g. Q13) raise total.
+   */
+  detectedQuestionNumbers?: number[];
   globalIssues: PhotoQualityIssue[];
   readyForAnalysis: boolean;
   tutorMessage: string;
   additionalPhotoRequest?: AdditionalPhotoRequest;
 };
+
+export type { GlobalQuestionCoverage, GlobalQuestionStatus };
 
 export type WorksheetPhotoEntry = {
   id: string;
@@ -111,6 +124,12 @@ export type WorksheetCaptureSession = {
   photos: WorksheetPhotoEntry[];
   estimatedTotalQuestions: number;
   coveredQuestions: number[];
+  /**
+   * COMPLETE + PARTIAL — positively detected in some photo, regardless of
+   * quality. Progress-display only (X / Y, progress bar). Never use for
+   * analyze gating / evidence / grading — use coveredQuestions for that.
+   */
+  detectedQuestions: number[];
   questionsNeedingRetake: Array<{
     questionNumber: number;
     issueType: PhotoQualityIssueType;
@@ -130,6 +149,13 @@ export type WorksheetCaptureSession = {
    * Optional — only set by reconcileFinalCoverage(); merge never populates it.
    */
   duplicateQuestions?: number[];
+  /**
+   * Global Question Merge — per-question COMPLETE / PARTIAL / MISSING /
+   * LOW_CONFIDENCE coverage across all photos.
+   */
+  questionCoverage?: GlobalQuestionCoverage[];
+  /** Union of every question number detected across all photos. */
+  globalQuestionSet?: number[];
 };
 
 /** @deprecated Use AnalysisScope (`full` | `partial` | `unknown`). */
@@ -222,34 +248,26 @@ export function mergeWorksheetCaptureSession(
   photos: WorksheetPhotoEntry[],
 ): WorksheetCaptureSession {
   const checked = photos.filter((p) => p.quality);
-  const reportedTotals = checked.map((p) => p.quality!.estimatedTotalQuestions);
-  const allReferencedNumbers = uniqueSorted(
-    checked.flatMap((p) => collectQuestionNumbersFromQualityResult(p.quality!)),
-  );
 
-  const covered = new Set<number>();
-  const questionPhotoMap: Record<number, string> = {};
+  // Global Question Merge — total from union of detected numbers only.
+  // Never uses any single photo's estimatedTotalQuestions.
+  const globalMerge = mergeGlobalQuestions(photos);
+  logGlobalQuestionMerge(photos, globalMerge);
+
+  const {
+    coveredQuestions,
+    detectedQuestions,
+    estimatedTotalQuestions: resolvedTotal,
+    questionPhotoMap,
+    questionsNeedingRetake,
+    questionCoverage,
+    globalQuestionSet,
+  } = globalMerge;
+
   const openIssues: PhotoQualityIssue[] = [];
-  const retakeByQuestion = new Map<
-    number,
-    { issueType: PhotoQualityIssueType; fixInstruction: string }
-  >();
   let pendingCaptureRequest: AdditionalPhotoRequest | undefined;
   const perPhotoClearlyVisible: Record<string, number[]> = {};
   const perPhotoWithIssues: Record<string, number[]> = {};
-  const perPhotoMergeDebugSnapshots: Array<{
-    photoNumber: number;
-    questionsClearlyVisible: number[];
-    questionsWithIssues: Array<{
-      questionNumber: number;
-      issueType: PhotoQualityIssueType;
-    }>;
-    mergedQuestionNumbers: number[];
-    covered: number[];
-    openIssues: PhotoQualityIssue[];
-    pendingCaptureRequest: AdditionalPhotoRequest | null;
-    estimatedTotalQuestions: number;
-  }> = [];
 
   for (const photo of checked) {
     const q = photo.quality!;
@@ -257,19 +275,8 @@ export function mergeWorksheetCaptureSession(
     perPhotoWithIssues[photo.id] = uniqueSorted(
       q.questionsWithIssues.map((issue) => issue.questionNumber),
     );
-    for (const n of q.questionsClearlyVisible) {
-      covered.add(n);
-      if (!questionPhotoMap[n]) {
-        questionPhotoMap[n] = photo.id;
-      }
-      retakeByQuestion.delete(n);
-    }
     for (const issue of q.questionsWithIssues) {
-      if (!covered.has(issue.questionNumber)) {
-        retakeByQuestion.set(issue.questionNumber, {
-          issueType: issue.issueType,
-          fixInstruction: issue.fixInstruction,
-        });
+      if (!coveredQuestions.includes(issue.questionNumber)) {
         openIssues.push({
           issueType: issue.issueType,
           severity: "major",
@@ -284,70 +291,51 @@ export function mergeWorksheetCaptureSession(
     if (q.additionalPhotoRequest && !pendingCaptureRequest) {
       pendingCaptureRequest = q.additionalPhotoRequest;
     }
-
-    const photoNumber = photos.findIndex((p) => p.id === photo.id) + 1;
-    const questionsClearlyVisible = uniqueSorted(q.questionsClearlyVisible);
-    const questionsWithIssues = q.questionsWithIssues.map((issue) => ({
-      questionNumber: issue.questionNumber,
-      issueType: issue.issueType,
-    }));
-    perPhotoMergeDebugSnapshots.push({
-      photoNumber,
-      questionsClearlyVisible,
-      questionsWithIssues,
-      mergedQuestionNumbers: uniqueSorted([
-        ...questionsClearlyVisible,
-        ...questionsWithIssues.map((issue) => issue.questionNumber),
-      ]),
-      covered: uniqueSorted([...covered]),
-      openIssues: openIssues.map((issue) => ({ ...issue })),
-      pendingCaptureRequest: pendingCaptureRequest
-        ? { ...pendingCaptureRequest }
-        : null,
-      estimatedTotalQuestions: q.estimatedTotalQuestions,
-    });
   }
 
   console.log("====================================");
   console.log("mergeWorksheetCaptureSession — ALL PHOTOS");
   console.log("====================================");
-  for (const snap of perPhotoMergeDebugSnapshots) {
-    console.log(`Photo ${snap.photoNumber}`);
-    console.log("questionsClearlyVisible:", snap.questionsClearlyVisible);
-    console.log("questionsWithIssues:", snap.questionsWithIssues);
-    console.log("Merged question numbers:", snap.mergedQuestionNumbers);
-    console.log("covered:", snap.covered);
-    console.log("openIssues:", snap.openIssues);
-    console.log("pendingCaptureRequest:", snap.pendingCaptureRequest);
-    console.log("estimatedTotalQuestions:", snap.estimatedTotalQuestions);
+  for (let i = 0; i < checked.length; i++) {
+    const photo = checked[i]!;
+    const q = photo.quality!;
+    console.log(`Photo ${i + 1}`);
+    console.log(
+      "questionsClearlyVisible:",
+      uniqueSorted(q.questionsClearlyVisible),
+    );
+    console.log(
+      "questionsWithIssues:",
+      q.questionsWithIssues.map((issue) => ({
+        questionNumber: issue.questionNumber,
+        issueType: issue.issueType,
+      })),
+    );
+    console.log(
+      "detectedQuestionNumbers:",
+      uniqueSorted(q.detectedQuestionNumbers ?? []),
+    );
+    console.log(
+      "per-photo estimatedTotalQuestions (ignored for global total):",
+      q.estimatedTotalQuestions,
+    );
     console.log("------------------------------------");
   }
+  console.log("Global question set:", globalQuestionSet);
+  console.log("Global total (from merge):", resolvedTotal);
+  console.log("COMPLETE / covered:", coveredQuestions);
   console.log("====================================");
   console.log("END mergeWorksheetCaptureSession — ALL PHOTOS");
   console.log("====================================");
-
-  const coveredQuestions = uniqueSorted([...covered]);
-  // Do not invent a total from covered.length — that would force analysisScope=full
-  // when the real total is unknown (Case 1 → analysisScope=unknown).
-  const resolvedTotal = inferWorksheetQuestionTotal(
-    Math.max(0, ...reportedTotals),
-    allReferencedNumbers,
-  );
-  const questionsNeedingRetake = [...retakeByQuestion.entries()]
-    .filter(([questionNumber]) => !covered.has(questionNumber))
-    .map(([questionNumber, row]) => ({
-      questionNumber,
-      issueType: row.issueType,
-      fixInstruction: row.fixInstruction,
-    }))
-    .sort((a, b) => a.questionNumber - b.questionNumber);
 
   logWorksheetCaptureMergeDebug({
     photos,
     perPhotoClearlyVisible,
     perPhotoWithIssues,
     coveredQuestions,
-    questionsNeedingRetake: questionsNeedingRetake.map((row) => row.questionNumber),
+    questionsNeedingRetake: questionsNeedingRetake.map(
+      (row) => row.questionNumber,
+    ),
     estimatedTotalQuestions: resolvedTotal,
   });
 
@@ -378,6 +366,7 @@ export function mergeWorksheetCaptureSession(
     analysisConfidence: analysis.analysisConfidence,
     // pendingCaptureRequest is Quality/crop hint only — not Coverage
     pendingCaptureRequest: pendingCaptureRequest ?? null,
+    questionCoverage,
   });
 
   const questionEvidenceMap = buildQuestionEvidenceMap({
@@ -388,6 +377,18 @@ export function mergeWorksheetCaptureSession(
     analysis,
   });
 
+  // Mark LOW_CONFIDENCE questions in evidence when they somehow appear covered
+  // (should not), and log status summary for debugging.
+  const lowConfidenceNums = questionCoverage
+    .filter((c) => c.status === "LOW_CONFIDENCE")
+    .map((c) => c.questionNumber);
+  if (lowConfidenceNums.length > 0) {
+    console.log(
+      "[worksheetCapture] LOW_CONFIDENCE questions (OCR/weak signal only):",
+      lowConfidenceNums,
+    );
+  }
+
   console.log(
     "[worksheetCapture evidence]",
     Object.keys(questionEvidenceMap).map((k) => questionEvidenceMap[k]),
@@ -396,6 +397,7 @@ export function mergeWorksheetCaptureSession(
   const tutorMessage = formatCaptureTutorMessage({
     analysis,
     coveredQuestions,
+    detectedQuestions,
     estimatedTotalQuestions: resolvedTotal,
     photoCount: photos.length,
   });
@@ -404,6 +406,7 @@ export function mergeWorksheetCaptureSession(
     photos,
     estimatedTotalQuestions: resolvedTotal,
     coveredQuestions,
+    detectedQuestions,
     questionsNeedingRetake,
     openIssues,
     tutorMessage,
@@ -411,6 +414,8 @@ export function mergeWorksheetCaptureSession(
     questionPhotoMap,
     questionEvidenceMap,
     analysis,
+    questionCoverage,
+    globalQuestionSet,
   };
 }
 
@@ -548,12 +553,15 @@ export function buildQuestionEvidenceMap(input: {
 export function formatCaptureTutorMessage(input: {
   analysis: WorksheetCaptureAnalysisState;
   coveredQuestions: number[];
+  /** Progress-display count only (COMPLETE + PARTIAL). Defaults to coveredQuestions if omitted. */
+  detectedQuestions?: number[];
   estimatedTotalQuestions: number;
   photoCount: number;
 }): string {
   const {
     analysis,
     coveredQuestions,
+    detectedQuestions = coveredQuestions,
     estimatedTotalQuestions: total,
     photoCount,
   } = input;
@@ -587,7 +595,7 @@ export function formatCaptureTutorMessage(input: {
     const lines = [
       "📷 作業照片檢查完成",
       "目前已辨識：",
-      `${coveredQuestions.length} / ${total} 題`,
+      `${detectedQuestions.length} / ${total} 題`,
       "",
       "尚缺：",
       missingLabel,
@@ -614,7 +622,7 @@ export function formatCaptureTutorMessage(input: {
     const lines = [
       "📷 作業照片檢查完成",
       "目前尚不確定整份作業總題數。",
-      `已辨識 ${coveredQuestions.length} 題，可先分析目前已辨識內容。`,
+      `已辨識 ${detectedQuestions.length} 題，可先分析目前已辨識內容。`,
     ];
     if (lowQualityQuestions.length > 0) {
       lines.push(
@@ -631,7 +639,7 @@ export function formatCaptureTutorMessage(input: {
   const lines = [
     "📷 作業照片檢查完成",
     "✅ 已完整辨識：",
-    `${coveredQuestions.length} / ${total} 題`,
+    `${detectedQuestions.length} / ${total} 題`,
     "",
   ];
   if (recommendedAction === "analyze-low-confidence") {

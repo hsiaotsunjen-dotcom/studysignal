@@ -27,6 +27,7 @@ import Trash2 from "lucide-react/dist/esm/icons/trash-2.js";
 import Upload from "lucide-react/dist/esm/icons/upload.js";
 import X from "lucide-react/dist/esm/icons/x.js";
 
+import { AnalyzeFeedbackPanel } from "@/components/AnalyzeFeedbackPanel";
 import { AttachmentPhotoLightbox } from "@/components/AttachmentPhotoLightbox";
 import { playCameraShutterSound } from "@/lib/cameraCaptureFeedback";
 import { WorksheetCaptureGuide } from "@/components/WorksheetCaptureGuide";
@@ -93,6 +94,9 @@ import {
   logSendTutorMessageTrace,
   probeAndroidThumbnailUrl,
   logPreAnalyzeApiPayload,
+  logImageIntegrityCheckpoint,
+  sha256HexFromBase64,
+  sha256HexFromBlob,
 } from "@/lib/imageUploadDebug";
 import {
   buildLearningReviewAnalyzeText,
@@ -1372,6 +1376,26 @@ export function StudySignalHome({
           ...(analyzePayload ? { analyzePayload } : {}),
         };
         logAndroidAttachmentBuilt("handleImageChange", attachment);
+
+        void (async () => {
+          const [originalHash, encodedHash] = await Promise.all([
+            sha256HexFromBlob(file),
+            analyzePayload
+              ? sha256HexFromBase64(analyzePayload.dataBase64)
+              : Promise.resolve(null),
+          ]);
+          logImageIntegrityCheckpoint("gallery upload — original vs encoded", {
+            attachmentId: attachment.id,
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            path: "handleImageChange — FileReader.readAsDataURL(file), no canvas/resize",
+            "sha256(original file bytes)": originalHash,
+            "sha256(analyzePayload base64 decoded)": encodedHash,
+            identical: originalHash != null && originalHash === encodedHash,
+          });
+        })();
+
         probeAndroidThumbnailUrl(previewUrl, attachment.id, attachment.name);
         added.push(attachment);
       }
@@ -1474,6 +1498,17 @@ export function StudySignalHome({
         console.log(`[photo-quality-client] END index=${photoIndex}`);
         return;
       }
+
+      void sha256HexFromBase64(payload.dataBase64).then((hash) => {
+        logImageIntegrityCheckpoint("checkWorksheetPhotoQuality — final payload before wire send", {
+          attachmentId: attachment.id,
+          photoIndex,
+          mimeType: payload.mimeType,
+          dataBase64Length: payload.dataBase64.length,
+          path: "checkWorksheetPhotoQuality -> attachmentToImagePayload -> postPhotoQualityCheck (JSON body)",
+          "sha256(bytes about to be POSTed to /api/photo-quality)": hash,
+        });
+      });
 
       const existingCoverage = attachmentsRef.current
         .filter((a) => a.id !== attachment.id)
@@ -1820,6 +1855,27 @@ export function StudySignalHome({
           "file instanceof File": false,
           "image MIME type": blob.type || "image/jpeg",
         });
+        void (async () => {
+          const [blobHash, encodedHash] = await Promise.all([
+            sha256HexFromBlob(blob),
+            analyzePayload
+              ? sha256HexFromBase64(analyzePayload.dataBase64)
+              : Promise.resolve(null),
+          ]);
+          logImageIntegrityCheckpoint("camera capture — canvas.toBlob vs canvas.toDataURL", {
+            fileName: name,
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height,
+            path:
+              "takeCameraPhoto — canvas.toBlob(quality 0.92) stored as sourceBlob (unused fallback); " +
+              "canvas.toDataURL(quality 0.92) is the ONLY encode actually sent as analyzePayload",
+            "sha256(canvas.toBlob bytes — sourceBlob, unused when analyzePayload present)": blobHash,
+            "sha256(analyzePayload base64 decoded — the bytes actually transmitted)": encodedHash,
+            note:
+              "toBlob and toDataURL are two independent JPEG encoder calls; they may legitimately " +
+              "differ even at identical quality. Only the toDataURL-derived analyzePayload is ever sent.",
+          });
+        })();
         setAttachments((prev) => {
           if (prev.length >= MAX_IMAGES) return prev;
           dictationAfterTranscribeRef.current = null;

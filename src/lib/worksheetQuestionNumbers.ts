@@ -98,14 +98,17 @@ export function uniqueSortedQuestionNumbers(nums: number[]): number[] {
   );
 }
 
-/** Worksheet total = max(reported total, highest question number seen anywhere). */
+/**
+ * Highest question number from detected number sources only.
+ * Ignores Vision-reported totals so we never invent unseen questions.
+ * Prefer mergeGlobalQuestions() for multi-photo homework totals.
+ */
 export function inferWorksheetQuestionTotal(
-  reportedTotal: number,
+  _reportedTotal: number,
   ...numberSources: number[][]
 ): number {
   const all = numberSources.flat().filter((n) => n > 0);
-  const maxN = all.length > 0 ? Math.max(...all) : 0;
-  return Math.max(reportedTotal, maxN);
+  return all.length > 0 ? Math.max(...all) : 0;
 }
 
 export function collectQuestionNumbersFromPayload(
@@ -150,6 +153,7 @@ export function collectQuestionNumbersFromQualityResult(
   q: PhotoQualityCheckResult,
 ): number[] {
   return uniqueSortedQuestionNumbers([
+    ...(q.detectedQuestionNumbers ?? []),
     ...q.questionsClearlyVisible,
     ...q.questionsWithIssues.map((i) => i.questionNumber),
     ...q.globalIssues.flatMap((g) => g.affectedQuestions ?? []),
@@ -164,6 +168,7 @@ export type OcrQuestionDetectResult = {
   questionNumbers: number[];
   timedOut: boolean;
   error?: string;
+  errorStack?: string;
 };
 
 type TesseractWorker = {
@@ -215,6 +220,9 @@ export async function ocrDetectQuestionNumbersDetailed(
         questionNumbers: [],
         timedOut: false,
         error: error instanceof Error ? error.message : String(error),
+        ...(error instanceof Error && error.stack
+          ? { errorStack: error.stack }
+          : {}),
       };
     }
   })();
@@ -241,6 +249,72 @@ export async function ocrDetectQuestionNumbersDetailed(
     );
   }
   return result;
+}
+
+export type OcrAttemptLog = {
+  attempt: number;
+  startedAtIso: string;
+  endedAtIso: string;
+  durationMs: number;
+  timedOut: boolean;
+  error?: string;
+  errorStack?: string;
+  rawTextLength: number;
+  questionNumbersFound: number[];
+};
+
+export type OcrDetectWithRetryResult = OcrQuestionDetectResult & {
+  attempts: OcrAttemptLog[];
+};
+
+/**
+ * Same as ocrDetectQuestionNumbersDetailed, but retries once (only) if the
+ * first attempt times out — a fresh Tesseract worker may succeed even when a
+ * prior one stalled (worker init contention, transient CPU pressure, etc).
+ * Investigation logging only; extraction/regex logic is unchanged.
+ */
+export async function ocrDetectQuestionNumbersDetailedWithRetry(
+  mimeType: string,
+  dataBase64: string,
+  options?: { timeoutMs?: number; maxAttempts?: number },
+): Promise<OcrDetectWithRetryResult> {
+  const maxAttempts = Math.max(1, options?.maxAttempts ?? 2);
+  const attempts: OcrAttemptLog[] = [];
+  let last: OcrQuestionDetectResult = {
+    rawText: "",
+    questionNumbers: [],
+    timedOut: false,
+  };
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const startedAt = new Date();
+    last = await ocrDetectQuestionNumbersDetailed(mimeType, dataBase64, options);
+    const endedAt = new Date();
+    attempts.push({
+      attempt,
+      startedAtIso: startedAt.toISOString(),
+      endedAtIso: endedAt.toISOString(),
+      durationMs: endedAt.getTime() - startedAt.getTime(),
+      timedOut: last.timedOut,
+      ...(last.error ? { error: last.error } : {}),
+      ...(last.errorStack ? { errorStack: last.errorStack } : {}),
+      rawTextLength: last.rawText.length,
+      questionNumbersFound: last.questionNumbers,
+    });
+
+    if (!last.timedOut) break;
+    if (attempt < maxAttempts) {
+      console.warn(
+        `[photo-quality] OCR attempt ${attempt} timed out — retrying once (attempt ${attempt + 1}/${maxAttempts}) with a fresh worker.`,
+      );
+    } else {
+      console.warn(
+        `[photo-quality] OCR timed out on all ${maxAttempts} attempts — continuing with Vision API result only.`,
+      );
+    }
+  }
+
+  return { ...last, attempts };
 }
 
 export async function ocrDetectQuestionNumbers(

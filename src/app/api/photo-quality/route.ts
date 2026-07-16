@@ -13,10 +13,20 @@ import {
   collectQuestionNumbersFromPayload,
   debugExtractQuestionNumbersFromText,
   extractVisionClearlyVisibleNumbers,
-  inferWorksheetQuestionTotal,
-  ocrDetectQuestionNumbersDetailed,
+  ocrDetectQuestionNumbersDetailedWithRetry,
   uniqueSortedQuestionNumbers,
 } from "@/lib/worksheetQuestionNumbers";
+import {
+  logImagePipelineOriginal,
+  logImagePipelineByteComparison,
+  logVisionRequestConfig,
+  logOcrAttempt,
+  logPhotoComparisonTable,
+  readImagePipelineMetadata,
+  recordPhotoPipelineSnapshot,
+  saveVisionDebugImage,
+  sha256Hex,
+} from "@/lib/visionPipelineDebug";
 
 export const runtime = "nodejs";
 
@@ -184,15 +194,24 @@ function parsePhotoQualityResult(
   if (!hasSignal) return null;
 
   const payloadNumbers = collectQuestionNumbersFromPayload(o);
-  const estimatedTotalQuestions = inferWorksheetQuestionTotal(
-    reportedTotal,
-    questionsClearlyVisible,
-    questionsWithIssues.map((i) => i.questionNumber),
-    globalIssues.flatMap((g) => g.affectedQuestions ?? []),
-    additionalPhotoRequest?.targetQuestions ?? [],
-    payloadNumbers,
-    ocrQuestionNumbers,
-  );
+  // Persist every detected number (Vision + OCR). Global Question Merge uses
+  // this field — never invent total from Vision's estimatedTotalQuestions alone.
+  const detectedQuestionNumbers = uniqueSortedQuestionNumbers([
+    ...questionsClearlyVisible,
+    ...questionsWithIssues.map((i) => i.questionNumber),
+    ...globalIssues.flatMap((g) => g.affectedQuestions ?? []),
+    ...(additionalPhotoRequest?.targetQuestions ?? []),
+    ...payloadNumbers,
+    ...ocrQuestionNumbers,
+  ]);
+  // Per-photo estimate = max detected number on THIS photo only (debug/legacy).
+  // Global homework total is computed later by mergeGlobalQuestions().
+  const estimatedTotalQuestions =
+    detectedQuestionNumbers.length > 0
+      ? Math.max(...detectedQuestionNumbers)
+      : reportedTotal > 0
+        ? reportedTotal
+        : 0;
 
   return {
     photoId,
@@ -200,6 +219,7 @@ function parsePhotoQualityResult(
     estimatedTotalQuestions,
     questionsClearlyVisible,
     questionsWithIssues,
+    detectedQuestionNumbers,
     globalIssues,
     readyForAnalysis: o.readyForAnalysis === true,
     tutorMessage,
@@ -256,8 +276,11 @@ function logPhotoQualityPerPhotoDebug(input: {
     "Vision extracted question numbers (full JSON scan)：",
     input.visionPayloadNumbers,
   );
-  console.log("Merged question numbers：", input.mergedQuestionNumbers);
-  console.log("estimatedTotalQuestions：", input.estimatedTotalQuestions);
+  console.log("Merged question numbers (Vision+OCR)：", input.mergedQuestionNumbers);
+  console.log(
+    "per-photo estimatedTotalQuestions (ignored for global total)：",
+    input.estimatedTotalQuestions,
+  );
   console.log(
     "questionsClearlyVisible (stored in result)：",
     input.questionsClearlyVisible,
@@ -418,6 +441,34 @@ export async function POST(req: Request) {
     }
 
     const image = images[0]!;
+    const photoLabel = `Photo ${photoIndex + 1}`;
+
+    // ===== Investigation instrumentation — logging only, no transforms. =====
+    // Checkpoint A: "original upload" — bytes as received in the request body,
+    // decoded exactly once, immediately, before anything else touches `image`.
+    const originalBuffer = Buffer.from(image.dataBase64, "base64");
+    const originalMeta = await readImagePipelineMetadata(originalBuffer);
+    const originalSha256 = sha256Hex(originalBuffer);
+    logImagePipelineOriginal({
+      photoLabel,
+      photoId,
+      mimeType: image.mimeType,
+      uploadedBytes: originalBuffer.byteLength,
+      base64Length: image.dataBase64.length,
+      sha256: originalSha256,
+      width: originalMeta.width,
+      height: originalMeta.height,
+      format: originalMeta.format,
+      orientationExif: originalMeta.orientationExif,
+    });
+    void saveVisionDebugImage({
+      photoLabel,
+      photoId,
+      mimeType: image.mimeType,
+      buffer: originalBuffer,
+      checkpoint: "original-upload",
+    });
+
     const existingCoverage = Array.isArray(o.existingCoverage)
       ? o.existingCoverage
           .map((row) => {
@@ -446,6 +497,50 @@ export async function POST(req: Request) {
             .join("；")}。只需針對尚未清楚的題目建議補拍。`
         : "";
 
+    // Checkpoint B: "sent to Vision" — re-decode `image.dataBase64` completely
+    // independently, right at the point the request body is built, so any
+    // mutation of `image` between checkpoints A and B would be caught.
+    const imageUrlForVision = `data:${image.mimeType};base64,${image.dataBase64}`;
+    const bufferSentToVision = Buffer.from(image.dataBase64, "base64");
+    const sentMeta = await readImagePipelineMetadata(bufferSentToVision);
+    const sentSha256 = sha256Hex(bufferSentToVision);
+
+    logImagePipelineByteComparison({
+      photoLabel,
+      before: {
+        label: "original-upload",
+        buffer: originalBuffer,
+        sha256: originalSha256,
+        width: originalMeta.width,
+        height: originalMeta.height,
+        mimeType: image.mimeType,
+        format: originalMeta.format,
+        orientationExif: originalMeta.orientationExif,
+      },
+      after: {
+        label: "sent-to-vision",
+        buffer: bufferSentToVision,
+        sha256: sentSha256,
+        width: sentMeta.width,
+        height: sentMeta.height,
+        mimeType: image.mimeType,
+        format: sentMeta.format,
+        orientationExif: sentMeta.orientationExif,
+      },
+    });
+    logVisionRequestConfig({
+      photoLabel,
+      model: "gpt-4o-mini",
+      detail: "high",
+    });
+    void saveVisionDebugImage({
+      photoLabel,
+      photoId,
+      mimeType: image.mimeType,
+      buffer: bufferSentToVision,
+      checkpoint: "sent-to-vision",
+    });
+
     const userContent = [
       {
         type: "text" as const,
@@ -456,7 +551,7 @@ export async function POST(req: Request) {
       {
         type: "image_url" as const,
         image_url: {
-          url: `data:${image.mimeType};base64,${image.dataBase64}`,
+          url: imageUrlForVision,
           detail: "high" as const,
         },
       },
@@ -468,14 +563,34 @@ export async function POST(req: Request) {
     ];
 
     logPhotoQualityStep("開始 OCR", { photoId, photoIndex });
-    const ocrPromise = ocrDetectQuestionNumbersDetailed(
+    const ocrPromise = ocrDetectQuestionNumbersDetailedWithRetry(
       image.mimeType,
       image.dataBase64,
     ).then((result) => {
+      for (const attempt of result.attempts) {
+        logOcrAttempt({
+          photoLabel,
+          attempt: attempt.attempt,
+          startedAtIso: attempt.startedAtIso,
+          endedAtIso: attempt.endedAtIso,
+          durationMs: attempt.durationMs,
+          timedOut: attempt.timedOut,
+          ...(attempt.error ? { error: attempt.error } : {}),
+          rawTextLength: attempt.rawTextLength,
+          questionNumbersFound: attempt.questionNumbersFound,
+        });
+        if (attempt.errorStack) {
+          console.log(
+            `[vision-pipeline] OCR attempt ${attempt.attempt} exception stack:`,
+            attempt.errorStack,
+          );
+        }
+      }
       logPhotoQualityStep("OCR 完成", {
         photoId,
         photoIndex,
         timedOut: result.timedOut,
+        totalAttempts: result.attempts.length,
         rawTextLength: result.rawText.length,
         questionCount: result.questionNumbers.length,
         questionNumbers: result.questionNumbers,
@@ -659,6 +774,24 @@ export async function POST(req: Request) {
       questionsClearlyVisible: result.questionsClearlyVisible,
       questionsWithIssues: result.questionsWithIssues.map((i) => i.questionNumber),
     });
+
+    // Step 8 — record this photo and print a cross-photo comparison (same process only).
+    recordPhotoPipelineSnapshot({
+      photoLabel,
+      photoId,
+      photoIndex,
+      width: originalMeta.width,
+      height: originalMeta.height,
+      uploadedBytes: originalBuffer.byteLength,
+      mimeType: image.mimeType,
+      ocrQuestionNumbers,
+      ocrTimedOut: ocrResult.timedOut,
+      visionQuestionNumbers: visionAllQuestionNumbers,
+      visionEstimatedTotal: toPositiveInt(parsedObject.estimatedTotalQuestions),
+      detectedQuestionNumbers: result.detectedQuestionNumbers ?? mergedQuestionNumbers,
+      recordedAtIso: new Date().toISOString(),
+    });
+    logPhotoComparisonTable(photoId);
 
     logPhotoQualityStep("回傳 response", {
       photoId,

@@ -106,6 +106,7 @@ function buildSession(input: {
     photos,
     estimatedTotalQuestions: input.estimatedTotalQuestions,
     coveredQuestions: input.coveredQuestions,
+    detectedQuestions: input.coveredQuestions,
     questionsNeedingRetake: retake,
     openIssues: [],
     tutorMessage: "",

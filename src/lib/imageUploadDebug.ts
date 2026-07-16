@@ -1,6 +1,13 @@
 /** TEMPORARY: image upload / blob read debugging (Android Chrome). */
 export const IMAGE_UPLOAD_DEBUG = true;
 
+/**
+ * TEMPORARY: full-pipeline SHA-256 integrity investigation.
+ * Hashes are relayed to the dev server terminal (via /api/debug-image-log)
+ * regardless of platform, so client + server checkpoints can be correlated.
+ */
+export const IMAGE_INTEGRITY_DEBUG = true;
+
 /** TEMPORARY: Android-only verbose attachment / Blob probes. */
 export const ANDROID_IMAGE_DEBUG = true;
 
@@ -494,6 +501,78 @@ export function logEncodeBlobArrayBufferFailure(
     stack: error instanceof Error ? error.stack : null,
   });
   logAndroidBlobArrayBufferFailure(caller, error);
+}
+
+function bufferToHex(bytes: Uint8Array): string {
+  let hex = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    hex += bytes[i]!.toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+
+/** SHA-256 of raw bytes (Web Crypto — no library). Returns null if unavailable (e.g. non-secure context). */
+export async function sha256HexFromBytes(
+  bytes: Uint8Array,
+): Promise<string | null> {
+  try {
+    if (typeof crypto === "undefined" || !crypto.subtle) return null;
+    // Copy into a plain ArrayBuffer-backed view — avoids SharedArrayBuffer
+    // typing mismatches with crypto.subtle.digest's BufferSource parameter.
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+    const digest = await crypto.subtle.digest("SHA-256", copy.buffer);
+    return bufferToHex(new Uint8Array(digest));
+  } catch {
+    return null;
+  }
+}
+
+export async function sha256HexFromBlob(blob: Blob): Promise<string | null> {
+  try {
+    const ab = await blob.arrayBuffer();
+    return await sha256HexFromBytes(new Uint8Array(ab));
+  } catch {
+    return null;
+  }
+}
+
+/** Decode a base64 payload the same way the server does, then hash it. */
+export async function sha256HexFromBase64(dataBase64: string): Promise<string | null> {
+  try {
+    const binary = atob(dataBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return await sha256HexFromBytes(bytes);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Log an image-integrity checkpoint to the browser console AND relay it to the
+ * dev server terminal (unconditionally — not gated to Android) so client and
+ * server checkpoints for the same photo can be correlated by SHA-256.
+ */
+export function logImageIntegrityCheckpoint(
+  step: string,
+  detail: Record<string, unknown>,
+) {
+  if (!IMAGE_INTEGRITY_DEBUG) return;
+  console.log(`[image integrity] ${step}`, detail);
+  if (typeof fetch === "undefined") return;
+  void fetch(DEBUG_IMAGE_LOG_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      step: `[image integrity] ${step}`,
+      payload: detail,
+      timestamp: new Date().toISOString(),
+    }),
+    keepalive: true,
+  }).catch(() => {
+    /* dev-only relay; ignore failures (e.g. production 404) */
+  });
 }
 
 export function imageUploadDebugLog(step: string, payload?: unknown) {
