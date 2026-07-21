@@ -124,7 +124,17 @@ import {
   TUTOR_CHAT_PENDING_BODY,
   TUTOR_CHAT_SAO_DEFAULT_USER_TEXT,
 } from "@/lib/tutorChatOpenAiMessages";
-import { cancelBrowserTTS, speakWithBrowserTTS } from "@/lib/speechSynthesis";
+import { fetchTutorChat } from "@/lib/tutorChatClient";
+import { latEnd, latMark, latNote, latStart } from "@/lib/latencyProfile";
+import {
+  cancelTutorAudio,
+  speakTutorReplyChunkedFireAndForget,
+} from "@/lib/tts/client";
+import {
+  resolveBrowserSpeechRecognitionLang,
+  STT_WHISPER_LANGUAGE_AUTO,
+} from "@/lib/sttLanguage";
+import { toTraditionalChineseForDisplay } from "@/lib/sttTraditionalChinese";
 
 const StudySignalSecureContextMicDiagLoader = dynamic(
   () =>
@@ -2059,6 +2069,7 @@ export function StudySignalHome({
   };
 
   const stopDictationRecording = useCallback(() => {
+    latMark("stop_mic_button_click");
     const mr = dictationMediaRecorderRef.current;
     const sessionGen = dictationMediaSessionGenRef.current;
     const intent = dictationIntentRef.current;
@@ -2152,6 +2163,7 @@ export function StudySignalHome({
 
   const sendTutorMessage = useCallback(async () => {
     logSendTutorMessageTrace("sendTutorMessage entry");
+    latMark("7a_chat_sendTutorMessage_click");
     try {
     const raw =
       messageTextareaRef.current?.value ?? messageRef.current;
@@ -2304,7 +2316,11 @@ export function StudySignalHome({
               : text;
 
     const tutorId = newAttachmentId();
-    const baseMessages = buildTutorChatOpenAIMessages(chatItems, modelUserText);
+    const baseMessages = buildTutorChatOpenAIMessages(
+      chatItems,
+      modelUserText,
+      selectedSpeechLang,
+    );
 
     const requestMessages: unknown[] =
       images.length > 0
@@ -2370,39 +2386,44 @@ export function StudySignalHome({
         mode: "sao_tutor",
         saoAttached: Boolean(saoForTutor),
       });
-      const res = await fetch("/api/tutor-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      latMark("7b_tutor_chat_fetch_start", {
+        transport: "HTTP POST /api/tutor-chat (no WebSocket)",
+      });
+      const result = await fetchTutorChat(
+        {
           messages: requestMessages,
           homeworkContextExpected: false,
+          tutorLanguage: selectedSpeechLang,
           ...(saoForTutor ? { studentAnswerObject: saoForTutor } : {}),
-        }),
+        },
+        {
+          onDelta: (_delta, accumulated) => {
+            setChatItems((prev) =>
+              prev.map((m) =>
+                m.id === tutorId && m.role === "tutor"
+                  ? { ...m, body: accumulated }
+                  : m,
+              ),
+            );
+          },
+        },
+      );
+      latMark("8a_tutor_chat_first_response_headers", {
+        ok: result.ok,
+        transport: result.ok ? result.transport : "error",
       });
-      const data: unknown = await res.json().catch(() => ({}));
-      const errMsg =
-        typeof data === "object" &&
-        data !== null &&
-        "error" in data &&
-        typeof (data as { error: unknown }).error === "string"
-          ? (data as { error: string }).error
-          : null;
-      if (!res.ok) {
-        const msg = errMsg ?? `對話服務暫時不可用（${res.status}）。`;
+      latMark("8b_tutor_chat_body_parsed");
+      if (!result.ok) {
+        const msg = result.error || "對話服務暫時不可用。";
         setChatItems((prev) =>
           prev.map((m) =>
             m.id === tutorId && m.role === "tutor" ? { ...m, body: msg } : m,
           ),
         );
+        latEnd("tutor_chat_http_error");
         return;
       }
-      const reply =
-        typeof data === "object" &&
-        data !== null &&
-        "reply" in data &&
-        typeof (data as { reply: unknown }).reply === "string"
-          ? (data as { reply: string }).reply.trim()
-          : "";
+      const reply = result.reply;
       if (!reply) {
         setChatItems((prev) =>
           prev.map((m) =>
@@ -2411,14 +2432,30 @@ export function StudySignalHome({
               : m,
           ),
         );
+        latEnd("tutor_chat_empty_reply");
         return;
       }
       setChatItems((prev) =>
         prev.map((m) =>
-          m.id === tutorId && m.role === "tutor" ? { ...m, body: reply } : m,
+          m.id === tutorId && m.role === "tutor"
+            ? { ...m, body: reply, awaitingTtsTap: false }
+            : m,
         ),
       );
-      speakWithBrowserTTS(reply, selectedSpeechLang);
+      latMark("9_tts_start_requested", { replyChars: reply.length });
+      // Sentence-chunk cloud TTS; never late Android SpeechSynthesis.
+      speakTutorReplyChunkedFireAndForget(reply, selectedSpeechLang, {
+        purpose: "tutor_reply",
+        onNeedsTapToPlay: () => {
+          setChatItems((prev) =>
+            prev.map((m) =>
+              m.id === tutorId && m.role === "tutor"
+                ? { ...m, awaitingTtsTap: true }
+                : m,
+            ),
+          );
+        },
+      });
       if (hasImages) {
         homeworkPipelineLog("8_tutor_chat_complete");
       }
@@ -2530,30 +2567,17 @@ export function StudySignalHome({
     ];
 
     try {
-      const res = await fetch("/api/tutor-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: requestMessages }),
+      const result = await fetchTutorChat({
+        messages: requestMessages,
+        tutorLanguage: selectedSpeechLang,
       });
-      const data: unknown = await res.json().catch(() => ({}));
-      const errMsg =
-        typeof data === "object" &&
-        data !== null &&
-        "error" in data &&
-        typeof (data as { error: unknown }).error === "string"
-          ? (data as { error: string }).error
-          : null;
-      if (!res.ok) {
-        setChatSendError(errMsg ?? `翻譯服務暫時不可用（${res.status}）。`);
+      if (!result.ok) {
+        setChatSendError(
+          result.error || `翻譯服務暫時不可用（${result.status}）。`,
+        );
         return;
       }
-      const reply =
-        typeof data === "object" &&
-        data !== null &&
-        "reply" in data &&
-        typeof (data as { reply: unknown }).reply === "string"
-          ? (data as { reply: string }).reply.trim()
-          : "";
+      const reply = result.reply;
       if (!reply) {
         setChatSendError("沒有收到翻譯結果，請再試一次。");
         return;
@@ -2572,7 +2596,7 @@ export function StudySignalHome({
     } finally {
       chatSendInFlightRef.current = false;
     }
-  }, [syncMessageTextareaHeight]);
+  }, [selectedSpeechLang, syncMessageTextareaHeight]);
 
   const readComposerText = useCallback((): string => {
     const fromDom = messageTextareaRef.current?.value;
@@ -2985,6 +3009,21 @@ export function StudySignalHome({
       return;
     }
 
+    latStart("talk_mic_dictation");
+    latMark("1_talk_button_click");
+    latNote(
+      "6_websocket",
+      "N/A — Talk path uses HTTP fetch only (no WebSocket)",
+    );
+    latNote(
+      "4_audiocontext",
+      "N/A — Talk path does not create AudioContext (camera shutter only)",
+    );
+
+    // Student is about to speak — stop Tutor audio immediately (no overlap).
+    cancelTutorAudio();
+    latMark("2_microphone_activation_begin");
+
     dictationTranscribeOpIdRef.current = null;
     stopDictationMediaHard();
     setLastVoiceRecording(null);
@@ -2999,7 +3038,9 @@ export function StudySignalHome({
     dictationBaseRef.current = base;
     setSpeechListening(false);
 
-    const whisperLanguage = selectedSpeechLang.slice(0, 2);
+    // STT: Whisper auto-detect (do not force Tutor TTS locale en-US/en-GB).
+    const whisperLanguageMode = STT_WHISPER_LANGUAGE_AUTO;
+    const speechRecognitionLang = resolveBrowserSpeechRecognitionLang();
 
     dictationIntentRef.current += 1;
     const intent = dictationIntentRef.current;
@@ -3014,10 +3055,17 @@ export function StudySignalHome({
       let stream: MediaStream | null = null;
       if (navigator.mediaDevices?.getUserMedia) {
         try {
+          latMark("3a_getUserMedia_start");
           stream = await navigator.mediaDevices.getUserMedia({
             audio: true,
           });
-        } catch {
+          latMark("3b_getUserMedia_resolved", {
+            tracks: stream.getTracks().length,
+          });
+        } catch (e) {
+          latMark("3b_getUserMedia_failed", {
+            error: e instanceof Error ? e.message : String(e),
+          });
           stream = null;
         }
       }
@@ -3075,19 +3123,29 @@ export function StudySignalHome({
       let speechRec: BrowserSpeechRecognizer | null = null;
       const RecCtor = getBrowserSpeechRecognitionCtor();
       if (RecCtor && intent === dictationIntentRef.current) {
-        cancelBrowserTTS();
+        // Student speech barges in — never overlap Tutor audio.
+        cancelTutorAudio();
         try {
           const rec = new RecCtor();
           rec.continuous = true;
           rec.interimResults = true;
-          rec.lang = selectedSpeechLang;
+          // Do not force Tutor TTS locale (en-US/en-GB). Browser default /
+          // device language is best-effort only; Whisper auto-detect is primary.
+          if (speechRecognitionLang) {
+            rec.lang = speechRecognitionLang;
+          }
           rec.onstart = () => {
+            latMark("5b_SpeechRecognition_onstart", {
+              lang: rec.lang,
+              intent,
+            });
             console.info(
               "[StudySignal dictation SpeechRecognition] onstart",
               {
                 lang: rec.lang,
                 intent,
                 selectedSpeechLang,
+                sttPolicy: "whisper_auto_detect; sr_device_lang_fallback",
               },
             );
           };
@@ -3188,6 +3246,44 @@ export function StudySignalHome({
             });
             setLastVoiceRecording(blob);
 
+            // Estimate duration for STT diagnostics (decode is best-effort).
+            let audioDurationSec: number | null = null;
+            try {
+              const url = URL.createObjectURL(blob);
+              audioDurationSec = await new Promise<number | null>((resolve) => {
+                const audio = new Audio();
+                const done = (v: number | null) => {
+                  try {
+                    URL.revokeObjectURL(url);
+                  } catch {
+                    /* ignore */
+                  }
+                  resolve(v);
+                };
+                audio.onloadedmetadata = () => {
+                  const d = audio.duration;
+                  done(Number.isFinite(d) && d > 0 ? d : null);
+                };
+                audio.onerror = () => done(null);
+                audio.src = url;
+              });
+            } catch {
+              audioDurationSec = null;
+            }
+
+            console.log("[STT] recording ready", {
+              selectedSpeechLang,
+              whisperLanguageMode,
+              whisperLanguageSent: null,
+              speechRecognitionLang: speechRecognitionLang ?? "(browser default)",
+              audioDurationSec,
+              blobBytes: blob.size,
+              blobType,
+              chunkCount: chunks.length,
+              note:
+                "Whisper auto-detect (no language field). SpeechRecognition uses device language as fallback only — not Tutor TTS locale.",
+            });
+
             const ext = blobType.includes("webm")
               ? "webm"
               : blobType.includes("mp4")
@@ -3195,18 +3291,27 @@ export function StudySignalHome({
                 : "webm";
             const form = new FormData();
             form.append("file", blob, `dictation.${ext}`);
-            form.append("language", whisperLanguage);
+            // Omit forced language — Whisper detects Chinese / English / mixed.
+            form.append("language", STT_WHISPER_LANGUAGE_AUTO);
 
             dictationLine("BEFORE_FETCH", ctx, {
               blobBytes: blob.size,
               ext,
-              whisperLanguage,
+              whisperLanguageMode,
               endpoint: "/api/transcribe",
             });
 
+            latMark("7c_transcribe_fetch_start", {
+              endpoint: "/api/transcribe",
+              blobBytes: blob.size,
+            });
             const res = await fetch("/api/transcribe", {
               method: "POST",
               body: form,
+            });
+            latMark("8c_transcribe_first_response_headers", {
+              status: res.status,
+              ok: res.ok,
             });
 
             dictationLine("AFTER_FETCH", ctx, {
@@ -3217,6 +3322,9 @@ export function StudySignalHome({
             });
 
             const rawText = await res.text();
+            latMark("8d_transcribe_body_received", {
+              chars: rawText.length,
+            });
 
             dictationLine("RESPONSE_STATUS", ctx, {
               ok: res.ok,
@@ -3273,7 +3381,8 @@ export function StudySignalHome({
                   { speechFallback, httpStatus: res.status },
                 );
                 setTranscribeError(null);
-                const next = dictationBaseRef.current + speechFallback;
+                const displayText = toTraditionalChineseForDisplay(speechFallback);
+                const next = dictationBaseRef.current + displayText;
                 pronunciationFromSpeechRef.current = true;
                 composerTextSourceRef.current = "dictation";
                 setMessage(next);
@@ -3321,21 +3430,42 @@ export function StudySignalHome({
             const speechText = dictationSpeechFinalRef.current.trim();
             const merged =
               whisperText.length > 0 ? whisperText : speechText;
+            console.log("[STT] transcript result", {
+              selectedSpeechLang,
+              whisperLanguageSent: null,
+              whisperMode: "auto_detect",
+              speechRecognitionLang: speechRecognitionLang ?? "(browser default)",
+              audioDurationSec,
+              whisperText,
+              speechRecognitionText: speechText,
+              transcriptUsed: merged,
+              usedWhisper: whisperText.length > 0,
+              usedSpeechRecognitionFallback: whisperText.length === 0 && speechText.length > 0,
+            });
             if (merged.length > 0 && whisperText.length === 0) {
               console.info(
                 "[StudySignal dictation] Whisper returned empty text; using SpeechRecognition transcript",
                 { speechText },
               );
             }
-            const next =
+            // One-shot Simplified → Traditional (Taiwan) for Chinese STT display.
+            const displayMerged =
               merged.length > 0
-                ? dictationBaseRef.current + merged
+                ? toTraditionalChineseForDisplay(merged)
+                : merged;
+            const next =
+              displayMerged.length > 0
+                ? dictationBaseRef.current + displayMerged
                 : dictationBaseRef.current;
             pronunciationFromSpeechRef.current = true;
             composerTextSourceRef.current = "dictation";
             setMessage(next);
             messageRef.current = next;
             setDictationUiStatus("ready");
+            latMark("transcribe_ready_in_composer", {
+              mergedChars: displayMerged.length,
+              usedWhisper: whisperText.length > 0,
+            });
             settleDictationTranscribeRef.current(true);
           } catch (err) {
             if (sessionGen === dictationMediaSessionGenRef.current) {
@@ -3350,7 +3480,8 @@ export function StudySignalHome({
                   { speechFallback, err },
                 );
                 setTranscribeError(null);
-                const next = dictationBaseRef.current + speechFallback;
+                const displayText = toTraditionalChineseForDisplay(speechFallback);
+                const next = dictationBaseRef.current + displayText;
                 pronunciationFromSpeechRef.current = true;
                 composerTextSourceRef.current = "dictation";
                 setMessage(next);
@@ -3382,6 +3513,7 @@ export function StudySignalHome({
             : `dictation-${Date.now()}`;
         dictationTranscribeOpIdRef.current = opId;
         dictationLine("START", { opId, sessionGen, intent });
+        latMark("2b_MediaRecorder_start");
         mr.start(250);
         if (speechRec) {
           try {
@@ -3389,8 +3521,14 @@ export function StudySignalHome({
               "[StudySignal dictation SpeechRecognition] calling start() after MediaRecorder.start(250)",
               { lang: speechRec.lang },
             );
+            latMark("5a_SpeechRecognition_start_called", {
+              lang: speechRec.lang,
+            });
             speechRec.start();
           } catch (e) {
+            latMark("5a_SpeechRecognition_start_threw", {
+              error: e instanceof Error ? e.message : String(e),
+            });
             console.warn(
               "[StudySignal dictation SpeechRecognition] start() threw",
               e,
@@ -3400,6 +3538,7 @@ export function StudySignalHome({
         if (intent === dictationIntentRef.current) {
           setSpeechListening(true);
           setDictationUiStatus("recording");
+          latMark("2c_microphone_recording_ui_ready");
         }
       } catch (e) {
         if (speechRec) {
@@ -3685,6 +3824,15 @@ export function StudySignalHome({
                 dictationVoiceLang={selectedSpeechLang}
                 welcomeAutoSpokenRef={welcomeAutoSpokenRef}
                 onWelcomeSessionReady={focusChatComposer}
+                onTutorTtsTapPlay={(itemId) => {
+                  setChatItems((prev) =>
+                    prev.map((m) =>
+                      m.id === itemId && m.role === "tutor"
+                        ? { ...m, awaitingTtsTap: false }
+                        : m,
+                    ),
+                  );
+                }}
               />
             </div>
           </section>

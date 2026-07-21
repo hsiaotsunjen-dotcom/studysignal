@@ -200,10 +200,13 @@ describe("HomeworkVisionService MOCK vs REAL", () => {
       name: "google",
       model: "gemini-2.5-flash",
       version: HOMEWORK_VISION_SCHEMA_VERSION,
-      latency: 0,
+      latency: expect.any(Number),
       retryCount: 0,
       fallbackUsed: false,
+      providerRetryCount: 0,
+      usage: null,
     });
+    expect(result.provider.latency).toBeGreaterThanOrEqual(0);
   });
 
   it("can switch back to MOCK after REAL", async () => {

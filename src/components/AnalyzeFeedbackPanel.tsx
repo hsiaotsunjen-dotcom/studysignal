@@ -21,6 +21,7 @@ import type { QuestionEvidence } from "@/lib/worksheetCapture";
 import { ANALYSIS_CONFIDENCE_UI } from "@/lib/worksheetCapture";
 import { Volume2 } from "@/components/LucideVolume2";
 import { speakWithBrowserTTS } from "@/lib/speechSynthesis";
+import { cancelTutorAudio } from "@/lib/tts/client";
 
 /** Show IPA with slashes; accepts "ɪˈrɑːn" or "/ɪˈrɑːn/". Model may send numbers — never call .trim on non-strings. */
 function formatIpaForDisplay(raw: unknown): string {
@@ -754,6 +755,7 @@ export function AnalyzeFeedbackPanel({
                         className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900/80 text-zinc-200 hover:bg-zinc-800/90"
                         aria-label={`Speak practice word: ${speakWord}`}
                         onClick={() => {
+                          cancelTutorAudio();
                           speakWithBrowserTTS(speakWord, dictationVoiceLang);
                         }}
                       >

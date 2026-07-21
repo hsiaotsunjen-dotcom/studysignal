@@ -1,14 +1,12 @@
 "use client";
 
 import { Volume2 } from "@/components/LucideVolume2";
-import {
-  cancelBrowserTTS,
-  speakWithBrowserTTS,
-} from "@/lib/speechSynthesis";
+import { speakWithBrowserTTS } from "@/lib/speechSynthesis";
+import { cancelTutorAudio } from "@/lib/tts/client";
 
 /**
- * Read-aloud for analyze feedback — same TTS + icon imports as
- * `StudySignalChatThread` tutor/student replay buttons.
+ * Read-aloud for analyze feedback — same icon as chat replay buttons.
+ * Not Tutor speech (browser TTS). Cancels Tutor cloud audio to avoid overlap.
  */
 export function AnalyzeFeedbackReadAloudButton({
   text,
@@ -27,7 +25,7 @@ export function AnalyzeFeedbackReadAloudButton({
       className={className}
       aria-label={ariaLabel}
       onClick={() => {
-        cancelBrowserTTS();
+        cancelTutorAudio();
         const t = text.trim();
         if (t) speakWithBrowserTTS(t, dictationVoiceLang);
       }}

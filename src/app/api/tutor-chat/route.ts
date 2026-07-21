@@ -5,7 +5,8 @@ import { parseStudentAnswerObject } from "@/lib/studentAnswerObject";
 import type { StudentAnswerObject } from "@/lib/studentAnswerObject";
 import {
   buildTutorChatHomeworkSystemPrompt,
-  TUTOR_CHAT_GENERIC_SYSTEM,
+  buildTutorChatOpenAIMessages,
+  TUTOR_CHAT_GENERIC_MAX_TOKENS,
   TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM,
 } from "@/lib/tutorChatOpenAiMessages";
 import {
@@ -13,6 +14,11 @@ import {
   logTutorSaoDevInput,
   logTutorSaoDevPromptPayloadResponse,
 } from "@/lib/tutorSaoContext";
+import { normalizeTutorReplyLanguage } from "@/lib/tutorReplyLanguage";
+import {
+  createTutorChatAppSseResponse,
+  shouldUseTutorChatStreaming,
+} from "@/lib/tutorChatStream";
 
 type ChatRole = "system" | "user" | "assistant";
 
@@ -116,6 +122,7 @@ function parseBody(body: unknown): {
   homeworkReport: HomeworkReport | null;
   homeworkContextExpected: boolean;
   studentAnswerObject: StudentAnswerObject | null;
+  tutorLanguage: string;
 } | null {
   if (!body || typeof body !== "object") return null;
   const o = body as Record<string, unknown>;
@@ -141,6 +148,9 @@ function parseBody(body: unknown): {
     homeworkContextExpected: o.homeworkContextExpected === true,
     studentAnswerObject: parseStudentAnswerObject(
       o.studentAnswerObject ?? o.student_answer_object,
+    ),
+    tutorLanguage: normalizeTutorReplyLanguage(
+      o.tutorLanguage ?? o.selectedSpeechLang ?? o.replyLanguage,
     ),
   };
 }
@@ -231,6 +241,7 @@ export async function POST(request: Request) {
     homeworkReport,
     homeworkContextExpected,
     studentAnswerObject,
+    tutorLanguage,
   } = parsed;
   if (messages.length < 2) {
     return NextResponse.json(
@@ -289,6 +300,7 @@ export async function POST(request: Request) {
       homeworkContextExpected,
       promptMode,
       hasVision,
+      tutorLanguage,
       saoAnswered: studentAnswerObject?.summary.answered ?? null,
       declaredQuestionCount: homeworkReport?.questionCount ?? null,
       systemPromptKind: promptMode,
@@ -310,10 +322,10 @@ export async function POST(request: Request) {
   } else if (hasVision) {
     // Unreachable when SAO required for vision; keep stub for safety.
     systemContent = TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM;
-  } else if (messages[0]?.role === "system" && typeof messages[0].content === "string") {
-    systemContent = messages[0].content;
   } else {
-    systemContent = TUTOR_CHAT_GENERIC_SYSTEM;
+    // Same language-aware system prompt as buildTutorChatOpenAIMessages(..., tutorLanguage).
+    systemContent = buildTutorChatOpenAIMessages([], "", tutorLanguage)[0]!
+      .content;
   }
 
   const openaiMessages: ApiMessage[] = [
@@ -364,6 +376,70 @@ export async function POST(request: Request) {
     });
   }
 
+  const useStreaming = shouldUseTutorChatStreaming(request);
+
+  // SAO / vision / homework keep prior budgets; spoken Tutor chat is capped.
+  // missing_homework_debug already returned above.
+  const maxTokens =
+    promptMode === "sao" || promptMode === "homework" || hasVision
+      ? hasVision
+        ? 500
+        : 900
+      : TUTOR_CHAT_GENERIC_MAX_TOKENS;
+
+  // --- Streaming path (ENABLE_STREAMING_CHAT=true, no buffered force header) ---
+  if (useStreaming) {
+    let openaiStreamRes: Response;
+    try {
+      openaiStreamRes = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: openaiMessages,
+            temperature: 0.65,
+            max_tokens: maxTokens,
+            stream: true,
+          }),
+        },
+      );
+    } catch (error) {
+      console.error("[tutor-chat] OpenAI stream fetch failed", error);
+      return NextResponse.json(
+        {
+          error: "對話服務暫時失敗，請稍後再試。",
+          detail: error instanceof Error ? error.message : String(error),
+        },
+        { status: 502 },
+      );
+    }
+
+    if (!openaiStreamRes.ok) {
+      const detail = await openaiStreamRes.text();
+      return NextResponse.json(
+        { error: "對話服務暫時失敗，請稍後再試。", detail },
+        { status: 502 },
+      );
+    }
+
+    return createTutorChatAppSseResponse({
+      openaiRes: openaiStreamRes,
+      onComplete: (reply) => {
+        logTutorSaoDevPromptPayloadResponse({
+          systemPrompt: systemContent,
+          messages: openaiMessages,
+          reply,
+        });
+      },
+    });
+  }
+
+  // --- Buffered JSON path (default; keep until streaming verified) ---
   let openaiRes: Response;
   try {
     openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -376,7 +452,7 @@ export async function POST(request: Request) {
         model: "gpt-4o-mini",
         messages: openaiMessages,
         temperature: 0.65,
-        max_tokens: hasVision ? 500 : 900,
+        max_tokens: maxTokens,
       }),
     });
   } catch (error) {

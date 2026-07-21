@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 
+import { resolveWhisperLanguageHint } from "@/lib/sttLanguage";
+
 const OPENAI_TRANSCRIPTIONS =
   "https://api.openai.com/v1/audio/transcriptions";
 
+/**
+ * POST /api/transcribe
+ * Multipart: file (required), language? (optional).
+ * Omit language / send "auto" → Whisper automatic language detection
+ * (Chinese, English, or mixed). Do not force Tutor TTS locale here.
+ */
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -31,14 +39,22 @@ export async function POST(request: Request) {
   }
 
   const langRaw = formData.get("language");
-  const languageHint =
-    typeof langRaw === "string" && /^[a-z]{2}(-[A-Za-z]+)?$/.test(langRaw)
-      ? langRaw.slice(0, 2)
-      : null;
+  const languageHint = resolveWhisperLanguageHint(langRaw);
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[STT] /api/transcribe inbound", {
+      languageFormField: typeof langRaw === "string" ? langRaw : langRaw,
+      languageSentToWhisper: languageHint,
+      whisperMode: languageHint ? "forced_hint" : "auto_detect",
+      fileBytes: file.size,
+      fileType: file.type,
+    });
+  }
 
   const outbound = new FormData();
   outbound.append("model", "whisper-1");
   outbound.append("file", file, "audio.webm");
+  // Only set when explicitly hinted — omitting enables Whisper auto-detect.
   if (languageHint) {
     outbound.append("language", languageHint);
   }

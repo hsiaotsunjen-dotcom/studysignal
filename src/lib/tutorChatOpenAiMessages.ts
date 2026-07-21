@@ -1,12 +1,29 @@
 import type { ChatListItem } from "@/types/chatListItem";
 import type { HomeworkReport } from "@/lib/analyzeFeedback";
+import {
+  buildTutorReplyLanguageInstruction,
+  normalizeTutorReplyLanguage,
+} from "@/lib/tutorReplyLanguage";
 
 /** Tutor bubble placeholder while `/api/tutor-chat` is in flight. */
 export const TUTOR_CHAT_PENDING_BODY = "思考中…";
 
-/** Generic conversational tutor — text-only chat without homework photos. */
-export const TUTOR_CHAT_GENERIC_SYSTEM =
-  "你是 StudySignal 的英文家教。請用繁體中文與學生對話，語氣友善、簡短。每次回覆結尾問一個相關問題延續對話。純文字即可，不要 JSON 或程式碼區塊。";
+/**
+ * Generic conversational tutor — spoken conversation (not a document generator).
+ * Language is NOT hardcoded; append via buildTutorChatGenericSystemPrompt(language).
+ */
+export const TUTOR_CHAT_GENERIC_SYSTEM_BASE =
+  "你是 StudySignal 的英文家教，正在進行口語對話（不是寫文章）。語氣自然、友善。回覆必須 40–80 個字（words），最多 3–5 句短句，不要長段落或條列長文。除非學生明確要求詳細說明，否則禁止寫成 essay。每次回覆結尾必須恰好問一個後續問題。純文字即可，不要 JSON 或程式碼區塊。";
+
+/** max_tokens for normal (non-SAO / non-vision) Tutor chat — sized for 40–80 spoken words. */
+export const TUTOR_CHAT_GENERIC_MAX_TOKENS = 180;
+/**
+ * Full generic system prompt: base role/style + dynamic reply-language rule.
+ */
+export function buildTutorChatGenericSystemPrompt(language: unknown): string {
+  const lang = normalizeTutorReplyLanguage(language);
+  return `${TUTOR_CHAT_GENERIC_SYSTEM_BASE}\n${buildTutorReplyLanguageInstruction(lang)}`;
+}
 
 /**
  * @deprecated Phase 3 — Tutor homework mode must use SAO via
@@ -51,15 +68,17 @@ export type TutorChatPromptMode = "homework" | "fallback" | "photo";
 
 /**
  * Build OpenAI chat messages: system + prior thread (tutor=assistant, student=user) + latest user text.
+ * `language` selects the reply-language instruction (e.g. en-US, en-GB, zh-TW).
  * Caller may replace the last message with multimodal `content` before POSTing.
- * Server replaces the system message when homeworkReport is provided.
+ * Server re-applies language via the same builder when composing the final system prompt.
  */
 export function buildTutorChatOpenAIMessages(
   items: ChatListItem[],
   newUserText: string,
+  language: unknown,
 ): TutorChatApiMessage[] {
   const out: TutorChatApiMessage[] = [
-    { role: "system", content: TUTOR_CHAT_GENERIC_SYSTEM },
+    { role: "system", content: buildTutorChatGenericSystemPrompt(language) },
   ];
   const cleaned = stripPendingTutorPlaceholders(items);
   for (const item of cleaned) {

@@ -6,8 +6,10 @@ export type ChatListItem =
       id: string;
       role: "tutor";
       body: string;
-      /** If set, SpeechSynthesis uses this instead of `body` (e.g. English TTS for Chinese UI). */
+      /** If set, speech uses this instead of `body` (e.g. English TTS for Chinese UI). */
       speechText?: string;
+      /** Cloud TTS exceeded budget / failed — show Tap to play (no robotic autoplay). */
+      awaitingTtsTap?: boolean;
     }
   | {
       id: string;

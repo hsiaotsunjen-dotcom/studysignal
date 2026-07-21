@@ -12,13 +12,13 @@ import {
 
 import { Volume2 } from "@/components/LucideVolume2";
 import type { ChatListItem } from "@/types/chatListItem";
+import { isLikelyMobileBrowser, speakWithBrowserTTS } from "@/lib/speechSynthesis";
 import {
-  cancelBrowserTTS,
-  isLikelyMobileBrowser,
-  speakWithBrowserTTS,
-  speakWithBrowserTTSAsync,
-  speakWithBrowserTTSUntilEnd,
-} from "@/lib/speechSynthesis";
+  cancelTutorAudio,
+  speakTutorAudioAsync,
+  speakTutorAudioUntilEnd,
+  speakTutorReplyChunkedFireAndForget,
+} from "@/lib/tts/client";
 
 export type { ChatListItem };
 
@@ -52,16 +52,19 @@ export function StudySignalChatThread({
   dictationVoiceLang = "en-US",
   welcomeAutoSpokenRef,
   onWelcomeSessionReady,
+  onTutorTtsTapPlay,
 }: {
   items: ChatListItem[];
   scrollParentRef: RefObject<HTMLDivElement | null>;
   className?: string;
-  /** Matches StudySignal dictation language for SpeechSynthesis (en-US / en-GB). */
+  /** Matches StudySignal dictation language for Tutor voice locale (en-US / en-GB). */
   dictationVoiceLang?: "en-US" | "en-GB";
   /** Persists across tab switches; reset only when chat is cleared. */
   welcomeAutoSpokenRef: MutableRefObject<boolean>;
   /** Focus composer after mobile welcome playback completes. */
   onWelcomeSessionReady?: () => void;
+  /** Clear awaitingTtsTap + optional analytics when user taps play. */
+  onTutorTtsTapPlay?: (itemId: string) => void;
 }) {
   const inlineReplayAudioRef = useRef<HTMLAudioElement | null>(null);
   const mobileAutoplayRestricted = useSyncExternalStore(
@@ -91,9 +94,10 @@ export function StudySignalChatThread({
     if (!welcomeItem || welcomePlayInFlightRef.current) return;
     welcomePlayInFlightRef.current = true;
     setWelcomePlaying(true);
-    void speakWithBrowserTTSUntilEnd(
+    void speakTutorAudioUntilEnd(
       tutorUtteranceText(welcomeItem),
       dictationVoiceLang,
+      { purpose: "tutor_welcome" },
     ).then((finished) => {
       if (finished) {
         completeWelcomePlayback();
@@ -112,7 +116,7 @@ export function StudySignalChatThread({
 
   useEffect(() => {
     return () => {
-      cancelBrowserTTS();
+      cancelTutorAudio();
       inlineReplayAudioRef.current?.pause();
       inlineReplayAudioRef.current = null;
     };
@@ -132,7 +136,9 @@ export function StudySignalChatThread({
 
     let cancelled = false;
     const text = tutorUtteranceText(welcomeItem);
-    void speakWithBrowserTTSAsync(text, dictationVoiceLang).then((started) => {
+    void speakTutorAudioAsync(text, dictationVoiceLang, {
+      purpose: "tutor_welcome_auto",
+    }).then((started) => {
       if (cancelled) return;
       if (started) {
         welcomeAutoSpokenRef.current = true;
@@ -176,6 +182,22 @@ export function StudySignalChatThread({
                     {welcomePlaying ? "播放中…" : "👋 點我開始"}
                   </button>
                 ) : null}
+                {item.awaitingTtsTap ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onTutorTtsTapPlay?.(item.id);
+                      speakTutorReplyChunkedFireAndForget(
+                        tutorUtteranceText(item),
+                        dictationVoiceLang,
+                        { purpose: "tutor_tap_replay" },
+                      );
+                    }}
+                    className="mt-3 flex w-full items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-500/15 px-3 py-2.5 text-sm font-semibold text-emerald-100 shadow-inner ring-1 ring-emerald-500/20 transition-colors active:scale-[0.98] touch-manipulation hover:bg-emerald-500/25"
+                  >
+                    Tap to play
+                  </button>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -184,14 +206,15 @@ export function StudySignalChatThread({
                 onClick={() => {
                   inlineReplayAudioRef.current?.pause();
                   inlineReplayAudioRef.current = null;
-                  cancelBrowserTTS();
+                  cancelTutorAudio();
                   if (item.id === "welcome" && welcomeStartPromptVisible) {
                     playWelcomeTts();
                     return;
                   }
-                  speakWithBrowserTTS(
+                  speakTutorReplyChunkedFireAndForget(
                     tutorUtteranceText(item),
                     dictationVoiceLang,
+                    { purpose: "tutor_replay" },
                   );
                 }}
               >
@@ -218,7 +241,8 @@ export function StudySignalChatThread({
                     onClick={() => {
                       inlineReplayAudioRef.current?.pause();
                       inlineReplayAudioRef.current = null;
-                      cancelBrowserTTS();
+                      // Stop Tutor cloud audio so student replay never overlaps.
+                      cancelTutorAudio();
                       const url = item.voiceRecordingObjectUrl?.trim();
                       if (url) {
                         const audio = new Audio(url);
@@ -236,6 +260,7 @@ export function StudySignalChatThread({
                       } else {
                         const ttsText = studentReplayableTextForTts(item.body);
                         if (ttsText) {
+                          // Student bubble read-aloud stays on browser TTS (not Tutor).
                           speakWithBrowserTTS(ttsText, dictationVoiceLang);
                         }
                       }
