@@ -14,6 +14,8 @@ import type {
   VisionProvider,
   VisionProviderInfo,
   VisionProviderRawResult,
+  VisionProviderWithUsage,
+  VisionTokenUsage,
 } from "@/lib/vision/VisionProvider";
 import type {
   HomeworkVisionAnalyzeInput,
@@ -90,6 +92,11 @@ type GeminiGenerateContentResponse = {
       parts?: Array<{ text?: string }>;
     };
   }>;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    totalTokenCount?: number;
+  };
   error?: {
     message?: string;
     status?: string;
@@ -148,8 +155,9 @@ function parseRawJsonPayload(text: string): VisionProviderRawResult {
   }
 }
 
-export class GeminiVisionProvider implements VisionProvider {
+export class GeminiVisionProvider implements VisionProviderWithUsage {
   readonly info: VisionProviderInfo = GEMINI_VISION_INFO;
+  lastUsage: VisionTokenUsage | null = null;
 
   /**
    * Send all worksheet photos to Gemini Vision (gemini-3.5-flash) in one request.
@@ -158,6 +166,7 @@ export class GeminiVisionProvider implements VisionProvider {
   async analyzeHomework(
     input: HomeworkVisionAnalyzeInput,
   ): Promise<VisionProviderRawResult> {
+    this.lastUsage = null;
     if (!input.images.length) {
       throw new Error(
         "GeminiVisionProvider.analyzeHomework requires at least one image.",
@@ -215,6 +224,20 @@ export class GeminiVisionProvider implements VisionProvider {
       throw new Error(
         `GeminiVisionProvider: Gemini error — ${rawBody.error.message}`,
       );
+    }
+
+    const u = rawBody.usageMetadata;
+    if (u) {
+      this.lastUsage = {
+        promptTokens:
+          typeof u.promptTokenCount === "number" ? u.promptTokenCount : null,
+        completionTokens:
+          typeof u.candidatesTokenCount === "number"
+            ? u.candidatesTokenCount
+            : null,
+        totalTokens:
+          typeof u.totalTokenCount === "number" ? u.totalTokenCount : null,
+      };
     }
 
     const text = extractTextFromGeminiResponse(rawBody);

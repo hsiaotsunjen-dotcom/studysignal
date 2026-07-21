@@ -103,7 +103,7 @@ describe("PriorityVisionProvider fallback", () => {
     expect(priority.info.model).toBe("gemini-3.5-flash");
   });
 
-  it("falls back to OpenAI on Gemini HTTP 503 and returns HomeworkVisionResult", async () => {
+  it("retries Gemini once on 503 then falls back to OpenAI", async () => {
     setHomeworkVisionUseMock(false);
     const gemini = trackingProvider({
       id: "gemini",
@@ -128,15 +128,52 @@ describe("PriorityVisionProvider fallback", () => {
       images: [{ mimeType: "image/jpeg", base64: "dGVzdA==" }],
     });
 
-    expect(gemini.analyzeHomework).toHaveBeenCalledTimes(1);
+    expect(gemini.analyzeHomework).toHaveBeenCalledTimes(2);
     expect(openai.analyzeHomework).toHaveBeenCalledTimes(1);
     expect(result.provider.provider).toBe("openai");
     expect(result.provider.name).toBe("openai");
     expect(result.provider.model).toBe("gpt-4o-mini");
     expect(result.provider.fallbackUsed).toBe(true);
     expect(result.provider.retryCount).toBe(1);
+    expect(result.provider.providerRetryCount).toBe(0);
     expect(result.questions[0]?.studentAnswer).toBe("cat");
     expect(typeof result.provider.latency).toBe("number");
+  });
+
+  it("succeeds on Gemini retry without calling OpenAI", async () => {
+    let geminiCalls = 0;
+    const gemini = trackingProvider({
+      id: "gemini",
+      provider: "google",
+      model: "gemini-3.5-flash",
+      impl: async () => {
+        geminiCalls += 1;
+        if (geminiCalls === 1) {
+          throw new Error(
+            "GeminiVisionProvider: Gemini request failed — HTTP 429: rate_limit",
+          );
+        }
+        return VALID_RAW;
+      },
+    });
+    const openai = trackingProvider({
+      id: "openai",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      impl: async () => {
+        throw new Error("OpenAI should not be called");
+      },
+    });
+
+    const priority = new PriorityVisionProvider([gemini, openai]);
+    const raw = await priority.analyzeHomework({
+      images: [{ mimeType: "image/jpeg", base64: "dGVzdA==" }],
+    });
+    expect(raw).toEqual(VALID_RAW);
+    expect(gemini.analyzeHomework).toHaveBeenCalledTimes(2);
+    expect(openai.analyzeHomework).not.toHaveBeenCalled();
+    expect(priority.lastCallMeta?.fallbackUsed).toBe(false);
+    expect(priority.lastCallMeta?.providerRetryCount).toBe(1);
   });
 
   it("does not fall back on non-transient Gemini errors", async () => {

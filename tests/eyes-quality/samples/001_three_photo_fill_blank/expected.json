@@ -1,0 +1,37 @@
+{
+  "id": "001_three_photo_fill_blank",
+  "sampleId": "001_three_photo_fill_blank",
+  "description": "Real 3-photo English fill-blank worksheet. Ground truth: Q1=end, Q9=picture; other questions blank.",
+  "enabled": true,
+  "subject": "English",
+  "grade": "elementary",
+  "language": "en",
+  "difficulty": "Medium",
+  "imageQuality": [
+    "Handwriting",
+    "Multi-page",
+    "Worksheet",
+    "English"
+  ],
+  "providerNotes": "Canonical multi-page seed. Truncation (end→nd, picture→icture) has been observed intermittently on Gemini.",
+  "photos": ["photo1.jpg", "photo2.jpg", "photo3.jpg"],
+  "questionCount": 13,
+  "expectedQuestionCount": 13,
+  "expectedQuestionNumbers": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+  "expectedAnswers": [
+    {
+      "questionNumber": 1,
+      "studentAnswer": "end",
+      "minConfidence": 0.5
+    },
+    {
+      "questionNumber": 9,
+      "studentAnswer": "picture",
+      "minConfidence": 0.5
+    }
+  ],
+  "expectedBlanks": [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13],
+  "expectedConfidenceMin": 0.5,
+  "expectedConfidenceMax": 1,
+  "expectedOverview": "1. end\n9. picture"
+}

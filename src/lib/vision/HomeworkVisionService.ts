@@ -17,11 +17,12 @@
  */
 
 import type { VisionProvider } from "@/lib/vision/VisionProvider";
-import { getVisionCallMeta } from "@/lib/vision/VisionProvider";
+import { getVisionCallMeta, getVisionTokenUsage } from "@/lib/vision/VisionProvider";
 import {
   HomeworkVisionSchemaError,
   parseHomeworkVisionModelPayload,
 } from "@/lib/vision/homeworkVisionSchema";
+import { logEyesProviderDevSummary } from "@/lib/vision/eyesProviderLog";
 import type {
   HomeworkVisionAnalyzeInput,
   HomeworkVisionModelPayload,
@@ -126,39 +127,50 @@ export class HomeworkVisionService {
           latency: 0,
           retryCount: 0,
           fallbackUsed: false,
+          providerRetryCount: 0,
         },
       };
     }
 
     // --- REAL mode ---
+    const started = Date.now();
     const raw = await this.provider.analyzeHomework(input);
+    const serviceLatency = Date.now() - started;
     const validated = this.validateRaw(raw);
     const mapped = this.mapToResult(validated);
     const callMeta = getVisionCallMeta(this.provider);
-    if (!callMeta) {
-      return {
-        ...mapped,
-        provider: {
-          ...mapped.provider,
-          name: mapped.provider.provider,
-          latency: mapped.provider.latency ?? 0,
-          retryCount: mapped.provider.retryCount ?? 0,
-          fallbackUsed: mapped.provider.fallbackUsed ?? false,
-        },
-      };
-    }
-    return {
-      ...mapped,
-      provider: {
-        ...mapped.provider,
-        provider: callMeta.provider,
-        name: callMeta.name,
-        model: callMeta.model,
-        latency: callMeta.latency,
-        retryCount: callMeta.retryCount,
-        fallbackUsed: callMeta.fallbackUsed,
-      },
-    };
+    const usage = callMeta?.usage ?? getVisionTokenUsage(this.provider);
+    const result: HomeworkVisionResult = !callMeta
+      ? {
+          ...mapped,
+          provider: {
+            ...mapped.provider,
+            name: mapped.provider.provider,
+            latency: serviceLatency,
+            retryCount: mapped.provider.retryCount ?? 0,
+            fallbackUsed: mapped.provider.fallbackUsed ?? false,
+            providerRetryCount: mapped.provider.providerRetryCount ?? 0,
+            usage,
+          },
+        }
+      : {
+          ...mapped,
+          provider: {
+            ...mapped.provider,
+            provider: callMeta.provider,
+            name: callMeta.name,
+            model: callMeta.model,
+            // Prefer PriorityVisionProvider wall-clock (includes retries/fallback).
+            latency: callMeta.latency > 0 ? callMeta.latency : serviceLatency,
+            retryCount: callMeta.retryCount,
+            fallbackUsed: callMeta.fallbackUsed,
+            providerRetryCount: callMeta.providerRetryCount,
+            usage,
+          },
+        };
+
+    logEyesProviderDevSummary(result);
+    return result;
   }
 
   /**

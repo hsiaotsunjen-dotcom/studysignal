@@ -1,0 +1,32 @@
+{
+  "id": "003_photo2_q9_picture",
+  "sampleId": "003_photo2_q9_picture",
+  "description": "Mid-worksheet single page (photo 2). Must recover Q9=picture without relying on other pages.",
+  "enabled": true,
+  "subject": "English",
+  "grade": "elementary",
+  "language": "en",
+  "difficulty": "Hard",
+  "imageQuality": [
+    "Handwriting",
+    "Worksheet",
+    "English",
+    "Perspective"
+  ],
+  "providerNotes": "Hard because numbering is mid-sheet and page is a crop. Ground truth focuses on Q9.",
+  "photos": ["photo1.jpg"],
+  "questionCount": 1,
+  "expectedQuestionCount": 1,
+  "expectedQuestionNumbers": [9],
+  "expectedAnswers": [
+    {
+      "questionNumber": 9,
+      "studentAnswer": "picture",
+      "minConfidence": 0.5
+    }
+  ],
+  "expectedBlanks": [],
+  "expectedConfidenceMin": 0.4,
+  "expectedConfidenceMax": 1,
+  "expectedOverview": "9. picture"
+}

@@ -5,6 +5,7 @@ import {
   homeworkAllowsPerformanceEvaluation,
   parseStudentAnswersStatus,
 } from "@/lib/homeworkStudentAnswers";
+import type { StudentAnswerObject } from "@/lib/studentAnswerObject";
 import type { QuestionEvidenceMap } from "@/lib/worksheetCapture";
 
 export type ScoreCategoryFeedback = {
@@ -298,6 +299,11 @@ const IMAGE_ONLY_TUTOR_COMMENT_STUB: TutorPersonalizedComment = {
 export type ParseAnalyzeOptions = {
   /** Whether this submission includes student speech/typed/review corpus (never true for homework image submissions). */
   hasStudentCorpus: boolean;
+  /**
+   * Phase 2+: Student Answer Object — Signals inventory authority.
+   * When set, answer counts / status / overview are derived from SAO only.
+   */
+  studentAnswerObject?: StudentAnswerObject | null;
 };
 
 /** @deprecated Use resolveHasStudentCorpusForParser(submissionKind) from analyzeApiRequest. */
@@ -1218,6 +1224,7 @@ function sanitizeHomeworkKeyExplanation(
 /** Homework vision: strip speech-practice rows and Talk/Learning Review leakage. */
 function finalizeHomeworkVisionInsights(
   insights: ImageInsights,
+  studentAnswerObject?: StudentAnswerObject | null,
 ): ImageInsights {
   if (!insights.homeworkReport) {
     return {
@@ -1226,11 +1233,14 @@ function finalizeHomeworkVisionInsights(
       visualSummaryZh: sanitizeHomeworkVisionText(insights.visualSummaryZh),
     };
   }
-  const guarded = applyHomeworkStudentAnswersGuard({
-    ...insights,
-    ocrText: sanitizeHomeworkVisionText(insights.ocrText),
-    visualSummaryZh: sanitizeHomeworkVisionText(insights.visualSummaryZh),
-  });
+  const guarded = applyHomeworkStudentAnswersGuard(
+    {
+      ...insights,
+      ocrText: sanitizeHomeworkVisionText(insights.ocrText),
+      visualSummaryZh: sanitizeHomeworkVisionText(insights.visualSummaryZh),
+    },
+    { studentAnswerObject },
+  );
   const report = guarded.homeworkReport!;
   const learningSummary =
     report.learningSummary && homeworkAllowsPerformanceEvaluation(report.studentAnswersStatus)
@@ -1359,7 +1369,10 @@ export function parseAnalyzeApiData(
       log?.("parse_fail_homework_vision_no_insights");
       return null;
     }
-    imageInsights = finalizeHomeworkVisionInsights(imageInsights);
+    imageInsights = finalizeHomeworkVisionInsights(
+      imageInsights,
+      options?.studentAnswerObject,
+    );
     const learningSummary = extractHomeworkLearningSummary(imageInsights);
     const canEvaluateHomework = homeworkAllowsPerformanceEvaluation(
       imageInsights.homeworkReport?.studentAnswersStatus,

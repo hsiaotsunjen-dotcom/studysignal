@@ -6,9 +6,10 @@
  */
 
 import type {
-  VisionProvider,
   VisionProviderInfo,
   VisionProviderRawResult,
+  VisionProviderWithUsage,
+  VisionTokenUsage,
 } from "@/lib/vision/VisionProvider";
 import type {
   HomeworkVisionAnalyzeInput,
@@ -100,12 +101,14 @@ function parseRawJsonPayload(text: string): VisionProviderRawResult {
   }
 }
 
-export class OpenAIVisionProvider implements VisionProvider {
+export class OpenAIVisionProvider implements VisionProviderWithUsage {
   readonly info: VisionProviderInfo = OPENAI_VISION_INFO;
+  lastUsage: VisionTokenUsage | null = null;
 
   async analyzeHomework(
     input: HomeworkVisionAnalyzeInput,
   ): Promise<VisionProviderRawResult> {
+    this.lastUsage = null;
     if (!input.images.length) {
       throw new Error(
         "OpenAIVisionProvider.analyzeHomework requires at least one image.",
@@ -154,6 +157,11 @@ export class OpenAIVisionProvider implements VisionProvider {
     const rawBody = (await openaiRes.json()) as {
       error?: { message?: string; code?: string; type?: string };
       choices?: Array<{ message?: { content?: string } }>;
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+      };
     };
 
     if (!openaiRes.ok) {
@@ -164,6 +172,23 @@ export class OpenAIVisionProvider implements VisionProvider {
       throw new Error(
         `OpenAIVisionProvider: OpenAI request failed — HTTP ${openaiRes.status}: ${detail}`,
       );
+    }
+
+    if (rawBody.usage) {
+      this.lastUsage = {
+        promptTokens:
+          typeof rawBody.usage.prompt_tokens === "number"
+            ? rawBody.usage.prompt_tokens
+            : null,
+        completionTokens:
+          typeof rawBody.usage.completion_tokens === "number"
+            ? rawBody.usage.completion_tokens
+            : null,
+        totalTokens:
+          typeof rawBody.usage.total_tokens === "number"
+            ? rawBody.usage.total_tokens
+            : null,
+      };
     }
 
     const text = rawBody.choices?.[0]?.message?.content?.trim() ?? "";

@@ -4,6 +4,11 @@ import {
   logHandwritingDetectionEvidence,
   type HandwritingDetectionEvidence,
 } from "@/lib/handwritingDetection";
+import {
+  buildAnswerOverviewFromStudentAnswerObject,
+  summarizeStudentAnswerObjectForLog,
+  type StudentAnswerObject,
+} from "@/lib/studentAnswerObject";
 import { formatQuestionRangesZh } from "@/lib/worksheetCapture";
 export type StudentAnswersStatus = "none" | "unclear" | "insufficient" | "detected";
 
@@ -14,7 +19,12 @@ export type QuestionAnswerAuditEntry = {
   questionLabel: string;
   status: QuestionAnswerState;
   reason: string;
-  source: "model_audit" | "answer_overview" | "default_blank" | "handwriting_detection";
+  source:
+    | "model_audit"
+    | "answer_overview"
+    | "default_blank"
+    | "handwriting_detection"
+    | "sao";
   studentAnswerSnippet?: string;
   handwritingDetection?: HandwritingDetectionEvidence;
 };
@@ -771,59 +781,169 @@ function stripPerformanceSectionsFromFormattedReport(text: string): string {
   return out.replace(/\n{3,}/g, "\n\n").trim();
 }
 
+export type ApplyHomeworkStudentAnswersGuardOptions = {
+  /**
+   * Phase 2+: when present, Signals inventory/status/overview come only from SAO.
+   * Model audit / OCR handwriting re-inventory must not override this.
+   */
+  studentAnswerObject?: StudentAnswerObject | null;
+};
+
+/** Map SAO → Signals evidence (answered / blank / per-question). */
+export function evidenceFromStudentAnswerObject(
+  sao: StudentAnswerObject,
+): StudentAnswerEvidence {
+  const perQuestion: QuestionAnswerAuditEntry[] = sao.questions.map((q) => {
+    const answered =
+      q.answerStatus === "answered" && q.studentAnswer.trim().length > 0;
+    return {
+      questionNumber: q.id,
+      questionLabel: `第${q.id}題`,
+      status: answered ? "answered" : "blank",
+      reason: answered
+        ? `SAO studentAnswer="${q.studentAnswer.trim()}"`
+        : `SAO answerStatus=${q.answerStatus}`,
+      source: "sao",
+      ...(answered ? { studentAnswerSnippet: q.studentAnswer.trim() } : {}),
+    };
+  });
+  const totalQuestions =
+    sao.summary.totalQuestions > 0
+      ? sao.summary.totalQuestions
+      : perQuestion.length;
+  const answeredQuestions = perQuestion.filter(
+    (q) => q.status === "answered",
+  ).length;
+  const answerCoveragePercent =
+    totalQuestions > 0
+      ? Math.round((answeredQuestions / totalQuestions) * 100)
+      : 0;
+  const debugLog = buildDebugLog(perQuestion);
+  return {
+    totalQuestions,
+    answeredQuestions,
+    answerCoveragePercent,
+    perQuestion,
+    debugLog,
+  };
+}
+
+/**
+ * Status from SAO evidence only — ignore model declaredStatus / corpus heuristics
+ * so Signals cannot invent a second inventory.
+ */
+export function resolveStudentAnswersStatusFromSao(
+  evidence: StudentAnswerEvidence,
+): StudentAnswersStatus {
+  const { answeredQuestions, totalQuestions, answerCoveragePercent } = evidence;
+  if (answeredQuestions <= 0) return "none";
+  if (totalQuestions > 0 && answeredQuestions === totalQuestions) {
+    return "detected";
+  }
+  if (answerCoveragePercent >= PARTIAL_ANSWER_COVERAGE_READY_PERCENT) {
+    return answeredQuestions === totalQuestions ? "detected" : "insufficient";
+  }
+  return "insufficient";
+}
+
+function mapAuditToEvidenceFields(perQuestion: QuestionAnswerAuditEntry[]) {
+  return perQuestion.map(
+    ({
+      questionNumber,
+      questionLabel,
+      status,
+      reason,
+      studentAnswerSnippet,
+      handwritingDetection,
+    }) => ({
+      questionNumber,
+      questionLabel,
+      status,
+      reason,
+      ...(studentAnswerSnippet ? { studentAnswerSnippet } : {}),
+      ...(handwritingDetection
+        ? {
+            handwritingDetection: {
+              ocrTextInAnswerArea: handwritingDetection.ocrTextInAnswerArea,
+              handwritingDetected: handwritingDetection.handwritingDetected,
+              confidence: handwritingDetection.confidence,
+              classificationReason: handwritingDetection.classificationReason,
+              ...(handwritingDetection.rejectedByRule
+                ? { rejectedByRule: handwritingDetection.rejectedByRule }
+                : {}),
+              exactEvidence: handwritingDetection.exactEvidence,
+            },
+          }
+        : {}),
+    }),
+  );
+}
+
 /** Enforce answer-evidence rules before homework analytics reach the UI. */
 export function applyHomeworkStudentAnswersGuard(
   insights: ImageInsights,
+  options?: ApplyHomeworkStudentAnswersGuardOptions,
 ): ImageInsights {
   const report = insights.homeworkReport;
   if (!report) return insights;
 
-  const computed = computeStudentAnswerEvidence(report, insights.ocrText);
-  const summaryEvidence = evidenceFromModelAudit(report, computed);
-  const status = resolveStudentAnswersStatus({
-    declaredStatus: report.studentAnswersStatus,
-    declaredDetected: report.studentAnswersDetected,
-    ocrText: insights.ocrText,
-    visualSummaryZh: insights.visualSummaryZh,
-    answerOverview: report.answerOverview,
-    formattedReport: report.formattedReport,
-    evidence: summaryEvidence,
-  });
+  const sao = options?.studentAnswerObject ?? null;
+  let summaryEvidence: StudentAnswerEvidence;
+  let auditPerQuestion: QuestionAnswerAuditEntry[];
+  let status: StudentAnswersStatus;
+  let saoOverview: string | null = null;
+
+  if (sao) {
+    summaryEvidence = evidenceFromStudentAnswerObject(sao);
+    auditPerQuestion = summaryEvidence.perQuestion;
+    status = resolveStudentAnswersStatusFromSao(summaryEvidence);
+    saoOverview = buildAnswerOverviewFromStudentAnswerObject(sao);
+    const blankCount =
+      sao.summary.blank >= 0
+        ? sao.summary.blank
+        : summaryEvidence.perQuestion.filter((q) => q.status === "blank")
+            .length;
+    logHomeworkAnswerAudit({
+      source: "sao",
+      note: "Phase 2 Signals inventory from StudentAnswerObject only",
+      saoSummary: summarizeStudentAnswerObjectForLog(sao),
+      answeredQuestions: summaryEvidence.answeredQuestions,
+      blankQuestions: blankCount,
+      totalQuestions: summaryEvidence.totalQuestions,
+      answerCoveragePercent: summaryEvidence.answerCoveragePercent,
+      studentAnswersStatus: status,
+      answerOverview: saoOverview,
+      perQuestion: summaryEvidence.debugLog,
+    });
+    console.log("[Signals SAO summary]", {
+      answered: summaryEvidence.answeredQuestions,
+      blank: blankCount,
+      total: summaryEvidence.totalQuestions,
+      studentAnswersStatus: status,
+      overview: saoOverview,
+      sao: summarizeStudentAnswerObjectForLog(sao),
+    });
+  } else {
+    // Legacy path (non-homework or SAO not attached). Prefer SAO whenever available.
+    const computed = computeStudentAnswerEvidence(report, insights.ocrText);
+    summaryEvidence = evidenceFromModelAudit(report, computed);
+    auditPerQuestion = computed.perQuestion;
+    status = resolveStudentAnswersStatus({
+      declaredStatus: report.studentAnswersStatus,
+      declaredDetected: report.studentAnswersDetected,
+      ocrText: insights.ocrText,
+      visualSummaryZh: insights.visualSummaryZh,
+      answerOverview: report.answerOverview,
+      formattedReport: report.formattedReport,
+      evidence: summaryEvidence,
+    });
+  }
 
   const evidenceFields = {
     studentAnsweredQuestions: summaryEvidence.answeredQuestions,
     studentAnswerCoveragePercent: summaryEvidence.answerCoveragePercent,
     totalQuestionCount: summaryEvidence.totalQuestions,
-    questionAnswerAudit: computed.perQuestion.map(
-      ({
-        questionNumber,
-        questionLabel,
-        status,
-        reason,
-        studentAnswerSnippet,
-        handwritingDetection,
-      }) => ({
-        questionNumber,
-        questionLabel,
-        status,
-        reason,
-        ...(studentAnswerSnippet ? { studentAnswerSnippet } : {}),
-        ...(handwritingDetection
-          ? {
-              handwritingDetection: {
-                ocrTextInAnswerArea: handwritingDetection.ocrTextInAnswerArea,
-                handwritingDetected: handwritingDetection.handwritingDetected,
-                confidence: handwritingDetection.confidence,
-                classificationReason: handwritingDetection.classificationReason,
-                ...(handwritingDetection.rejectedByRule
-                  ? { rejectedByRule: handwritingDetection.rejectedByRule }
-                  : {}),
-                exactEvidence: handwritingDetection.exactEvidence,
-              },
-            }
-          : {}),
-      }),
-    ),
+    questionAnswerAudit: mapAuditToEvidenceFields(auditPerQuestion),
   };
 
   if (status === "detected") {
@@ -839,7 +959,10 @@ export function applyHomeworkStudentAnswersGuard(
       homeworkReport: {
         ...report,
         studentAnswersStatus: "detected",
+        noStudentAnswersMessage: undefined,
+        unclearPhotoMessage: undefined,
         ...evidenceFields,
+        ...(saoOverview ? { answerOverview: saoOverview } : {}),
         formattedReport: sanitizeStudentFacingHomeworkText(formattedReport),
       },
     };
@@ -847,10 +970,12 @@ export function applyHomeworkStudentAnswersGuard(
 
   if (status === "insufficient") {
     const notice = formatTutorAnswerSummary(summaryEvidence);
-    const partialOverview = filterAnswerOverviewToAnsweredOnly(
-      report.answerOverview,
-      computed.perQuestion,
-    );
+    const partialOverview =
+      saoOverview ??
+      filterAnswerOverviewToAnsweredOnly(
+        report.answerOverview,
+        auditPerQuestion,
+      );
     const cleanedBody = report.formattedReport
       ? sanitizeStudentFacingHomeworkText(
           stripPerformanceSectionsFromFormattedReport(report.formattedReport),
@@ -865,6 +990,8 @@ export function applyHomeworkStudentAnswersGuard(
       homeworkReport: {
         ...report,
         studentAnswersStatus: "insufficient",
+        noStudentAnswersMessage: undefined,
+        unclearPhotoMessage: undefined,
         insufficientEvidenceMessage: notice,
         ...evidenceFields,
         answerOverview: partialOverview,

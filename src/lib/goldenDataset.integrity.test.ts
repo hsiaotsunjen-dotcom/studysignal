@@ -69,7 +69,9 @@ function assertUniquePositiveInts(label: string, nums: unknown): number[] {
   const out: number[] = [];
   for (const n of list) {
     expect(typeof n === "number" && Number.isInteger(n) && n >= 1).toBe(true);
-    out.push(n);
+    // Runtime-verified by the assertion above; `expect(...).toBe(true)` does
+    // not narrow `n`'s type for TS, so assert what we just checked.
+    out.push(n as number);
   }
   expect(new Set(out).size, `${label} must be unique`).toBe(out.length);
   return out.sort((a, b) => a - b);
@@ -113,10 +115,13 @@ function assertValidExpected(raw: unknown, folderId: string): GoldenExpected {
     );
   }
 
-  if (typeof o.estimatedTotalQuestions === "number") {
-    expect(o.estimatedTotalQuestions).toBeGreaterThanOrEqual(0);
-    if (o.analysisScope !== "unknown" && o.estimatedTotalQuestions > 0) {
-      expect(covered.length + missing.length).toBe(o.estimatedTotalQuestions);
+  const rawEstimatedTotalQuestions = o.estimatedTotalQuestions;
+  if (typeof rawEstimatedTotalQuestions === "number") {
+    expect(rawEstimatedTotalQuestions).toBeGreaterThanOrEqual(0);
+    if (o.analysisScope !== "unknown" && rawEstimatedTotalQuestions > 0) {
+      expect(covered.length + missing.length).toBe(
+        rawEstimatedTotalQuestions,
+      );
     }
   }
 

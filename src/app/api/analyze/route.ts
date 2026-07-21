@@ -36,6 +36,7 @@ import {
   parseDeclaredQuestionCount,
 } from "@/lib/analyzeFeedback";
 import { mapProviderResponseToInternalHomeworkSchema } from "@/lib/homeworkSchemaMapping";
+import { summarizeStudentAnswerObjectForLog } from "@/lib/studentAnswerObject";
 
 /** TEMPORARY: set false to silence verbose analyze logs. Remove after debugging. */
 const ANALYZE_ROUTE_DEBUG = true;
@@ -441,11 +442,20 @@ export async function POST(request: Request) {
     hasStudentCorpus,
   } = parsedRequest;
 
+  if (hasImages && parsedRequest.studentAnswerObject) {
+    analyzeLog("signals_sao_summary", {
+      sao: summarizeStudentAnswerObjectForLog(
+        parsedRequest.studentAnswerObject,
+      ),
+    });
+  }
+
   analyzeLog("signals_pipeline_guard", {
     submissionKind,
     "Signals started": hasImages,
     "Microphone started?": false,
     "Whisper called?": false,
+    saoAttached: Boolean(parsedRequest.studentAnswerObject),
     homeworkQuestionLength: homeworkQuestion.length,
     speechTranscriptLength: speechTranscript.length,
     typedTextLength: typedText.length,
@@ -661,7 +671,10 @@ export async function POST(request: Request) {
     parsed,
     requireSpeechPronunciation,
     parseLog,
-    { hasStudentCorpus },
+    {
+      hasStudentCorpus,
+      studentAnswerObject: parsedRequest.studentAnswerObject,
+    },
   );
 
   if (!feedback) {

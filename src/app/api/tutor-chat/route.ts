@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 
 import type { HomeworkReport } from "@/lib/analyzeFeedback";
+import { parseStudentAnswerObject } from "@/lib/studentAnswerObject";
+import type { StudentAnswerObject } from "@/lib/studentAnswerObject";
 import {
   buildTutorChatHomeworkSystemPrompt,
   TUTOR_CHAT_GENERIC_SYSTEM,
   TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM,
 } from "@/lib/tutorChatOpenAiMessages";
+import {
+  buildTutorChatSaoSystemPrompt,
+  logTutorSaoDevInput,
+  logTutorSaoDevPromptPayloadResponse,
+} from "@/lib/tutorSaoContext";
+
 type ChatRole = "system" | "user" | "assistant";
 
 type ContentPart =
@@ -107,6 +115,7 @@ function parseBody(body: unknown): {
   messages: ApiMessage[];
   homeworkReport: HomeworkReport | null;
   homeworkContextExpected: boolean;
+  studentAnswerObject: StudentAnswerObject | null;
 } | null {
   if (!body || typeof body !== "object") return null;
   const o = body as Record<string, unknown>;
@@ -130,6 +139,9 @@ function parseBody(body: unknown): {
     messages,
     homeworkReport: parseHomeworkReportInput(o.homeworkReport),
     homeworkContextExpected: o.homeworkContextExpected === true,
+    studentAnswerObject: parseStudentAnswerObject(
+      o.studentAnswerObject ?? o.student_answer_object,
+    ),
   };
 }
 
@@ -149,6 +161,7 @@ function totalPayloadEstimate(messages: ApiMessage[]): number {
 }
 
 async function logTutorChatIncomingImageDebug(request: Request) {
+  if (process.env.NODE_ENV !== "development") return;
   const contentType = request.headers.get("content-type") ?? "";
   console.log("[image upload debug] api /api/tutor-chat transport", {
     contentType,
@@ -213,48 +226,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages, homeworkReport, homeworkContextExpected } = parsed;
+  const {
+    messages,
+    homeworkReport,
+    homeworkContextExpected,
+    studentAnswerObject,
+  } = parsed;
   if (messages.length < 2) {
     return NextResponse.json(
       { error: "messages 數量不足。" },
       { status: 400 },
     );
-  }
-
-  const answerOverviewPresent = Boolean(
-    homeworkReport?.answerOverview &&
-      homeworkReport.answerOverview.trim() !== "" &&
-      homeworkReport.answerOverview !== "—",
-  );
-
-  let promptMode: "homework" | "fallback" | "missing_homework_debug";
-  if (homeworkContextExpected && !homeworkReport) {
-    promptMode = "missing_homework_debug";
-  } else if (homeworkReport) {
-    promptMode = "homework";
-  } else {
-    promptMode = "fallback";
-  }
-
-  console.log("[tutor-chat] prompt_trace", {
-    homeworkReportPresent: Boolean(homeworkReport),
-    answerOverviewPresent,
-    homeworkContextExpected,
-    promptMode,
-    declaredQuestionCount: homeworkReport?.questionCount ?? null,
-    systemPromptKind:
-      promptMode === "homework"
-        ? "homework"
-        : promptMode === "fallback"
-          ? "fallback"
-          : "missing_homework_debug",
-  });
-
-  if (promptMode === "missing_homework_debug") {
-    return NextResponse.json({
-      reply:
-        "[DEBUG] Tutor homework context missing. homeworkContextExpected=true but homeworkReport was not provided to /api/tutor-chat. Check: postAnalyzeApi → homeworkAnalysis.imageInsights.homeworkReport → fetch body.",
-    });
   }
 
   const lastIncoming = messages[messages.length - 1];
@@ -263,28 +245,88 @@ export async function POST(request: Request) {
     typeof lastIncoming.content !== "string" &&
     lastIncoming.content.some((p) => p.type === "image_url");
 
-  const openaiMessages: ApiMessage[] = hasVision
-    ? [
-        { role: "system", content: TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM },
-        ...messages.slice(1),
-      ]
-    : promptMode === "homework" && homeworkReport
-      ? [
-          {
-            role: "system",
-            content: buildTutorChatHomeworkSystemPrompt(homeworkReport),
-          },
-          ...messages.slice(1),
-        ]
-      : messages[0]?.role === "system"
-        ? messages
-        : [
-            { role: "system", content: TUTOR_CHAT_GENERIC_SYSTEM },
-            ...messages,
-          ];
+  // Phase 3: homework photos require SAO — never invent inventory from pixels.
+  if (hasVision && !studentAnswerObject) {
+    return NextResponse.json(
+      {
+        error:
+          "作業家教需要 Student Answer Object（SAO）。請等待照片辨識完成後再試。",
+      },
+      { status: 400 },
+    );
+  }
 
+  if (studentAnswerObject) {
+    logTutorSaoDevInput(studentAnswerObject);
+  }
+
+  const answerOverviewPresent = Boolean(
+    homeworkReport?.answerOverview &&
+      homeworkReport.answerOverview.trim() !== "" &&
+      homeworkReport.answerOverview !== "—",
+  );
+
+  let promptMode:
+    | "sao"
+    | "homework"
+    | "fallback"
+    | "missing_homework_debug";
+  if (studentAnswerObject) {
+    promptMode = "sao";
+  } else if (homeworkContextExpected && !homeworkReport) {
+    promptMode = "missing_homework_debug";
+  } else if (homeworkReport) {
+    promptMode = "homework";
+  } else {
+    promptMode = "fallback";
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[tutor-chat] prompt_trace", {
+      studentAnswerObjectPresent: Boolean(studentAnswerObject),
+      homeworkReportPresent: Boolean(homeworkReport),
+      answerOverviewPresent,
+      homeworkContextExpected,
+      promptMode,
+      hasVision,
+      saoAnswered: studentAnswerObject?.summary.answered ?? null,
+      declaredQuestionCount: homeworkReport?.questionCount ?? null,
+      systemPromptKind: promptMode,
+    });
+  }
+
+  if (promptMode === "missing_homework_debug") {
+    return NextResponse.json({
+      reply:
+        "[DEBUG] Tutor homework context missing. homeworkContextExpected=true but homeworkReport was not provided to /api/tutor-chat.",
+    });
+  }
+
+  let systemContent: string;
+  if (promptMode === "sao" && studentAnswerObject) {
+    systemContent = buildTutorChatSaoSystemPrompt(studentAnswerObject);
+  } else if (promptMode === "homework" && homeworkReport) {
+    systemContent = buildTutorChatHomeworkSystemPrompt(homeworkReport);
+  } else if (hasVision) {
+    // Unreachable when SAO required for vision; keep stub for safety.
+    systemContent = TUTOR_CHAT_HOMEWORK_PHOTO_SYSTEM;
+  } else if (messages[0]?.role === "system" && typeof messages[0].content === "string") {
+    systemContent = messages[0].content;
+  } else {
+    systemContent = TUTOR_CHAT_GENERIC_SYSTEM;
+  }
+
+  const openaiMessages: ApiMessage[] = [
+    { role: "system", content: systemContent },
+    ...messages.slice(1),
+  ];
+
+  // Temporary experiment.
+  // Current 280000 limit is an app-local payload estimate,
+  // not an OpenAI documented request limit.
+  const MAX_TUTOR_CHAT_PAYLOAD_CHARS = 2000000;
   const est = totalPayloadEstimate(openaiMessages);
-  if (est > 280000) {
+  if (est > MAX_TUTOR_CHAT_PAYLOAD_CHARS) {
     return NextResponse.json(
       { error: "對話或圖片內容過長，請減少圖片數量或清除部分訊息後再試。" },
       { status: 400 },
@@ -299,10 +341,15 @@ export async function POST(request: Request) {
     );
   }
 
-  if (hasVision && typeof last.content !== "string") {
+  if (
+    process.env.NODE_ENV === "development" &&
+    hasVision &&
+    typeof last.content !== "string"
+  ) {
     const imageParts = last.content.filter((p) => p.type === "image_url");
     console.log("[image upload debug] api /api/tutor-chat vision images in messages", {
       imagePartCount: imageParts.length,
+      note: "Images are visual references only; answer inventory is SAO",
       images: imageParts.map((p, i) => {
         const url =
           p.type === "image_url" ? p.image_url.url : "";
@@ -375,6 +422,12 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
+
+  logTutorSaoDevPromptPayloadResponse({
+    systemPrompt: systemContent,
+    messages: openaiMessages,
+    reply: rawContent,
+  });
 
   return NextResponse.json({ reply: rawContent });
   } catch (error) {

@@ -30,6 +30,15 @@ import {
 
 export const runtime = "nodejs";
 
+// Production Vision model (switched from OpenAI gpt-4o-mini).
+const GEMINI_VISION_MODEL = "gemini-3.5-flash";
+const GEMINI_GENERATE_CONTENT_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_VISION_MODEL}:generateContent`;
+
+// Automatic fallback layer — triggers only when the Gemini result for the
+// CURRENT photo looks unreliable. Same prompt / same JSON schema as Gemini;
+// see evaluateFallbackTrigger() + callGpt41VisionFallback() below.
+const GPT41_FALLBACK_MODEL = "gpt-4.1";
+
 const PHOTO_QUALITY_PROMPT = `你是一位耐心、友善的英文家教，正在幫學生拍攝作業照片。
 
 這一步只做「照片是否清楚」的檢查 — 不要批改、不要辨識作答內容、不要分析學習表現。
@@ -102,6 +111,7 @@ function parsePhotoQualityResult(
   photoId: string,
   photoIndex: number,
   ocrQuestionNumbers: number[] = [],
+  ocrRawText = "",
 ): PhotoQualityCheckResult | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -220,6 +230,7 @@ function parsePhotoQualityResult(
     questionsClearlyVisible,
     questionsWithIssues,
     detectedQuestionNumbers,
+    ocrRawText,
     globalIssues,
     readyForAnalysis: o.readyForAnalysis === true,
     tutorMessage,
@@ -232,6 +243,209 @@ function logPhotoQualityStep(
   meta?: Record<string, unknown>,
 ): void {
   console.log("[photo-quality]", step, meta ?? "");
+}
+
+// ===== Automatic fallback layer (debug logging only) =====
+// Does not touch prompts, JSON schema, merge logic, or the downstream
+// parser (parsePhotoQualityResult) — it only decides WHICH raw model
+// response (Gemini vs GPT-4.1) continues into the existing, unmodified
+// downstream pipeline for the CURRENT photo.
+
+type VisionCallOutcome = {
+  ok: boolean;
+  httpStatus: number;
+  rawContent: string;
+  errorDetail?: string;
+};
+
+async function callGeminiVisionPrimary(
+  geminiParts: unknown[],
+  apiKey: string,
+): Promise<VisionCallOutcome> {
+  // Debug-only simulation for verifying HTTP-error → GPT-4.1 fallback.
+  // Unset in normal production; does not change prompts/schema/merge.
+  if (process.env.PHOTO_QUALITY_SIMULATE_GEMINI_429 === "1") {
+    return {
+      ok: false,
+      httpStatus: 429,
+      rawContent: "",
+      errorDetail:
+        '{"error":{"code":429,"message":"SIMULATED RESOURCE_EXHAUSTED (PHOTO_QUALITY_SIMULATE_GEMINI_429=1)","status":"RESOURCE_EXHAUSTED"}}',
+    };
+  }
+
+  try {
+    const res = await fetch(GEMINI_GENERATE_CONTENT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: PHOTO_QUALITY_PROMPT }] },
+        contents: [{ role: "user", parts: geminiParts }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      return { ok: false, httpStatus: res.status, rawContent: "", errorDetail: detail };
+    }
+
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      error?: { message?: string };
+    };
+    if (data.error?.message) {
+      return { ok: false, httpStatus: 502, rawContent: "", errorDetail: data.error.message };
+    }
+    const rawContent = (data.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => (typeof p.text === "string" ? p.text : ""))
+      .join("")
+      .trim();
+    return { ok: true, httpStatus: res.status, rawContent };
+  } catch (err) {
+    // timeout / fetch / network error — treat as primary failure so fallback can run
+    const detail = err instanceof Error ? err.message : String(err);
+    return { ok: false, httpStatus: 0, rawContent: "", errorDetail: detail };
+  }
+}
+
+/**
+ * Fallback call — SAME messages (same PHOTO_QUALITY_PROMPT system message +
+ * same user text/coverageNote/image) as the Gemini primary call, just a
+ * different model. Only invoked for the current photo when the Gemini
+ * result looks unreliable (see evaluateFallbackTrigger).
+ */
+async function callGpt41VisionFallback(
+  messages: unknown[],
+  apiKey: string,
+): Promise<VisionCallOutcome> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: GPT41_FALLBACK_MODEL,
+        response_format: { type: "json_object" },
+        messages,
+        temperature: 0.2,
+        max_tokens: 1200,
+      }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      return { ok: false, httpStatus: res.status, rawContent: "", errorDetail: detail };
+    }
+
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const rawContent = data.choices?.[0]?.message?.content?.trim() ?? "";
+    return { ok: true, httpStatus: res.status, rawContent };
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return { ok: false, httpStatus: 0, rawContent: "", errorDetail: detail };
+  }
+}
+
+function tryParseJson(rawContent: string): { parsed: unknown; ok: boolean } {
+  try {
+    return { parsed: JSON.parse(rawContent), ok: true };
+  } catch {
+    return { parsed: null, ok: false };
+  }
+}
+
+function hasRequiredPhotoQualityFields(parsedObject: Record<string, unknown>): boolean {
+  return (
+    typeof parsedObject.estimatedTotalQuestions !== "undefined" &&
+    Array.isArray(parsedObject.questionsClearlyVisible) &&
+    Array.isArray(parsedObject.questionsWithIssues) &&
+    typeof parsedObject.readyForAnalysis !== "undefined"
+  );
+}
+
+type FallbackTriggerReason =
+  | "primary_call_failure"
+  | "parsing_failure"
+  | "incomplete_question_count"
+  | "crop"
+  | "readability"
+  | "missing_question";
+
+function evaluateFallbackTrigger(input: {
+  /** True when Gemini HTTP/network failed before any usable photo-quality JSON. */
+  primaryCallFailed?: boolean;
+  jsonParseOk: boolean;
+  parsedObject: Record<string, unknown>;
+  existingCoverage: Array<{ photoIndex: number; questionsClearlyVisible: number[] }>;
+}): { trigger: boolean; reasons: FallbackTriggerReason[]; issueTypesFound: string[] } {
+  // Gemini never produced a usable response (429 / 5xx / timeout / network).
+  if (input.primaryCallFailed) {
+    return { trigger: true, reasons: ["primary_call_failure"], issueTypesFound: [] };
+  }
+
+  if (!input.jsonParseOk) {
+    return { trigger: true, reasons: ["parsing_failure"], issueTypesFound: [] };
+  }
+
+  const reasons = new Set<FallbackTriggerReason>();
+  const issueTypesFound = new Set<string>();
+
+  // "required JSON fields are missing"
+  if (!hasRequiredPhotoQualityFields(input.parsedObject)) {
+    reasons.add("incomplete_question_count");
+  }
+
+  // "estimatedTotalQuestions is lower than expected" — expected = highest
+  // question number already known-clear from earlier photos this session
+  // (existingCoverage), unchanged/untouched by this evaluation.
+  const reportedTotal = toPositiveInt(input.parsedObject.estimatedTotalQuestions);
+  const expectedMinimum = input.existingCoverage.reduce(
+    (max, c) => Math.max(max, ...c.questionsClearlyVisible, 0),
+    0,
+  );
+  if (reportedTotal > 0 && expectedMinimum > 0 && reportedTotal < expectedMinimum) {
+    reasons.add("incomplete_question_count");
+  }
+
+  // "questionsWithIssues is not empty" / "any question marked crop, readability, missing, unclear"
+  const issuesRaw = Array.isArray(input.parsedObject.questionsWithIssues)
+    ? input.parsedObject.questionsWithIssues
+    : [];
+  for (const item of issuesRaw) {
+    const issueType =
+      item && typeof item === "object" && typeof (item as Record<string, unknown>).issueType === "string"
+        ? ((item as Record<string, unknown>).issueType as string).trim().toLowerCase()
+        : "";
+    if (issueType) issueTypesFound.add(issueType);
+    if (issueType === "crop") reasons.add("crop");
+    else if (issueType === "readability") reasons.add("readability");
+    else if (issueType === "corner_missing") reasons.add("missing_question");
+    else reasons.add("incomplete_question_count");
+  }
+
+  return { trigger: reasons.size > 0, reasons: [...reasons], issueTypesFound: [...issueTypesFound] };
+}
+
+/** Higher = more complete (more detected questions, fewer open issues). */
+function fallbackCompletenessScore(result: PhotoQualityCheckResult | null): number {
+  if (!result) return Number.NEGATIVE_INFINITY;
+  return (result.detectedQuestionNumbers?.length ?? 0) - result.questionsWithIssues.length;
+}
+
+/** Debug-log formatting only — e.g. "incomplete_question_count" -> "incomplete question count". */
+function formatFallbackReasonsForLog(reasons: FallbackTriggerReason[]): string[] {
+  return reasons.map((r) => r.replace(/_/g, " "));
 }
 
 function logPhotoQualityPerPhotoDebug(input: {
@@ -403,10 +617,14 @@ export async function POST(req: Request) {
   let photoIndex = 0;
 
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Production Vision model: Gemini 3.5 Flash (switched from OpenAI
+    // gpt-4o-mini). Same PHOTO_QUALITY_PROMPT, same user text, same JSON
+    // schema/response contract — only the underlying HTTP call + response
+    // extraction differ, below.
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "尚未設定 OPENAI_API_KEY。" },
+        { error: "尚未設定 GEMINI_API_KEY。" },
         { status: 500 },
       );
     }
@@ -530,8 +748,8 @@ export async function POST(req: Request) {
     });
     logVisionRequestConfig({
       photoLabel,
-      model: "gpt-4o-mini",
-      detail: "high",
+      model: GEMINI_VISION_MODEL,
+      detail: "n/a (Gemini generateContent has no per-image detail param)",
     });
     void saveVisionDebugImage({
       photoLabel,
@@ -541,12 +759,13 @@ export async function POST(req: Request) {
       checkpoint: "sent-to-vision",
     });
 
+    const userText =
+      `第 ${photoIndex + 1} 張作業照片。${coverageNote}\n` +
+      "請只回傳 JSON，不要批改或分析作答。";
     const userContent = [
       {
         type: "text" as const,
-        text:
-          `第 ${photoIndex + 1} 張作業照片。${coverageNote}\n` +
-          "請只回傳 JSON，不要批改或分析作答。",
+        text: userText,
       },
       {
         type: "image_url" as const,
@@ -560,6 +779,19 @@ export async function POST(req: Request) {
     const messages = [
       { role: "system", content: PHOTO_QUALITY_PROMPT },
       { role: "user", content: userContent },
+    ];
+
+    // Gemini request shape — SAME system prompt (PHOTO_QUALITY_PROMPT) and
+    // SAME user text as `userContent` above; `messages` (OpenAI shape) is
+    // kept only for the existing debug logging helpers below, unchanged.
+    const geminiParts = [
+      { text: userText },
+      {
+        inline_data: {
+          mime_type: image.mimeType,
+          data: image.dataBase64,
+        },
+      },
     ];
 
     logPhotoQualityStep("開始 OCR", { photoId, photoIndex });
@@ -599,64 +831,177 @@ export async function POST(req: Request) {
     });
 
     await logPhotoVisionRequestDebug(photoIndex, photoId, image, messages);
-    logVisionRequestSummary("gpt-4o-mini", messages);
+    logVisionRequestSummary(GEMINI_VISION_MODEL, messages);
 
-    logPhotoQualityStep("開始 Vision API", { photoId, photoIndex });
-    const visionPromise = fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          response_format: { type: "json_object" },
-          messages,
-          temperature: 0.2,
-          max_tokens: 1200,
-        }),
-      },
-    ).then(async (res) => {
-      logPhotoQualityStep("Vision API 完成", {
-        photoId,
-        photoIndex,
-        ok: res.ok,
-        status: res.status,
-      });
-      return res;
+    logPhotoQualityStep("開始 Vision API", {
+      photoId,
+      photoIndex,
+      model: GEMINI_VISION_MODEL,
     });
+    const visionPromise = callGeminiVisionPrimary(geminiParts, apiKey).then(
+      (outcome) => {
+        logPhotoQualityStep("Vision API 完成", {
+          photoId,
+          photoIndex,
+          model: GEMINI_VISION_MODEL,
+          ok: outcome.ok,
+          status: outcome.httpStatus,
+        });
+        return outcome;
+      },
+    );
 
-    const [openaiRes, ocrResult] = await Promise.all([
+    const [geminiOutcome, ocrResult] = await Promise.all([
       visionPromise,
       ocrPromise,
     ]);
     const ocrQuestionNumbers = ocrResult.questionNumbers;
 
-    if (!openaiRes.ok) {
-      const detail = await openaiRes.text();
+    // ===== Automatic fallback layer =====
+    // Triggers when Gemini content looks unreliable OR when Gemini itself
+    // failed before JSON (HTTP 429 / 5xx / timeout / network). On primary
+    // failure: call GPT-4.1 with the SAME messages for THIS photo only; if
+    // GPT-4.1 succeeds, continue the normal pipeline; if GPT-4.1 also fails,
+    // return the original Gemini error. Never resends prior photos.
+    const geminiRawContent = geminiOutcome.rawContent;
+    const geminiParseAttempt = geminiOutcome.ok
+      ? tryParseJson(geminiRawContent)
+      : { parsed: null as unknown, ok: false };
+    const geminiParsedObjectForTrigger =
+      geminiParseAttempt.ok &&
+      geminiParseAttempt.parsed &&
+      typeof geminiParseAttempt.parsed === "object"
+        ? (geminiParseAttempt.parsed as Record<string, unknown>)
+        : {};
+
+    const fallbackEvaluation = evaluateFallbackTrigger({
+      primaryCallFailed: !geminiOutcome.ok,
+      jsonParseOk: geminiParseAttempt.ok,
+      parsedObject: geminiParsedObjectForTrigger,
+      existingCoverage,
+    });
+
+    console.log("====================================");
+    console.log("[fallback] Primary model: Gemini 3.5 Flash");
+    console.log("[fallback] Current photo index:", photoIndex);
+    console.log("[fallback] Gemini primary ok:", geminiOutcome.ok);
+    console.log(
+      "[fallback] Gemini primary HTTP status:",
+      geminiOutcome.httpStatus,
+    );
+    console.log("[fallback] Fallback triggered:", fallbackEvaluation.trigger);
+    console.log(
+      "[fallback] Fallback reason(s):",
+      formatFallbackReasonsForLog(fallbackEvaluation.reasons),
+    );
+    console.log(
+      "[fallback] Issue types found on Gemini result (debug):",
+      fallbackEvaluation.issueTypesFound,
+    );
+    console.log("====================================");
+
+    let rawContent = geminiRawContent;
+    let parsed: unknown = geminiParseAttempt.ok ? geminiParseAttempt.parsed : null;
+    let finalModelUsed: "Gemini" | "GPT-4.1" = "Gemini";
+
+    const returnOriginalGeminiError = () => {
       logPhotoQualityStep("回傳 response", {
         photoId,
         photoIndex,
         ok: false,
         status: 502,
+        reason: "primary_and_fallback_failed",
       });
       return NextResponse.json(
-        { error: "照片品質檢查暫時失敗。", detail },
+        { error: "照片品質檢查暫時失敗。", detail: geminiOutcome.errorDetail },
         { status: 502 },
       );
+    };
+
+    if (fallbackEvaluation.trigger) {
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        console.log(
+          "[fallback] OPENAI_API_KEY not set — skipping GPT-4.1 fallback.",
+        );
+        if (!geminiOutcome.ok) {
+          return returnOriginalGeminiError();
+        }
+      } else {
+        console.log(
+          `[fallback] Calling GPT-4.1 Vision for Photo ${photoIndex + 1} only (same prompt, same schema, same image; previously successful photos are not resent).`,
+        );
+        const gpt41Outcome = await callGpt41VisionFallback(messages, openaiApiKey);
+        console.log("[fallback] GPT-4.1 call result:", {
+          ok: gpt41Outcome.ok,
+          status: gpt41Outcome.httpStatus,
+        });
+
+        if (!gpt41Outcome.ok) {
+          console.log(
+            "[fallback] GPT-4.1 call failed.",
+            gpt41Outcome.errorDetail,
+          );
+          if (!geminiOutcome.ok) {
+            return returnOriginalGeminiError();
+          }
+        } else {
+          const gpt41ParseAttempt = tryParseJson(gpt41Outcome.rawContent);
+          const geminiResultForCompare = geminiParseAttempt.ok
+            ? parsePhotoQualityResult(
+                geminiParseAttempt.parsed,
+                photoId,
+                photoIndex,
+                ocrQuestionNumbers,
+                ocrResult.rawText,
+              )
+            : null;
+          const gpt41ResultForCompare = gpt41ParseAttempt.ok
+            ? parsePhotoQualityResult(
+                gpt41ParseAttempt.parsed,
+                photoId,
+                photoIndex,
+                ocrQuestionNumbers,
+                ocrResult.rawText,
+              )
+            : null;
+
+          const geminiScore = fallbackCompletenessScore(geminiResultForCompare);
+          const gpt41Score = fallbackCompletenessScore(gpt41ResultForCompare);
+          console.log("[fallback] Completeness score — Gemini:", geminiScore, "GPT-4.1:", gpt41Score);
+
+          // On primary failure, any usable GPT-4.1 result replaces Gemini.
+          // On content-quality fallback, only replace when strictly more complete.
+          const shouldUseGpt41 =
+            gpt41ResultForCompare != null &&
+            (!geminiOutcome.ok || gpt41Score > geminiScore);
+
+          if (shouldUseGpt41) {
+            rawContent = gpt41Outcome.rawContent;
+            parsed = gpt41ParseAttempt.parsed;
+            finalModelUsed = "GPT-4.1";
+            console.log(
+              !geminiOutcome.ok
+                ? "[fallback] Gemini primary failed — using GPT-4.1 result for this photo only."
+                : "[fallback] GPT-4.1 result is more complete — replacing Gemini result for this photo only.",
+            );
+          } else {
+            console.log("[fallback] GPT-4.1 did not improve on Gemini — keeping Gemini result.");
+            if (!geminiOutcome.ok) {
+              return returnOriginalGeminiError();
+            }
+          }
+        }
+      }
     }
 
-    const data = (await openaiRes.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const rawContent = data.choices?.[0]?.message?.content?.trim() ?? "";
+    console.log("[fallback] Final model used:", finalModelUsed);
+    console.log("====================================");
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(rawContent);
-    } catch {
+    if (!parsed || typeof parsed !== "object") {
+      if (!geminiOutcome.ok) {
+        return returnOriginalGeminiError();
+      }
       console.log("====================");
       console.log(`PHOTO ${photoIndex + 1} RAW JSON`);
       console.log("====================");
@@ -681,10 +1026,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const parsedObject =
-      parsed && typeof parsed === "object"
-        ? (parsed as Record<string, unknown>)
-        : {};
+    const parsedObject = parsed as Record<string, unknown>;
     const visionClearlyVisible = extractVisionClearlyVisibleNumbers(parsedObject);
     const visionPayloadNumbers = collectQuestionNumbersFromPayload(parsedObject);
     const visionAllQuestionNumbers = uniqueSortedQuestionNumbers([
@@ -729,6 +1071,7 @@ export async function POST(req: Request) {
       photoId,
       photoIndex,
       ocrQuestionNumbers,
+      ocrResult.rawText,
     );
     if (!result) {
       logPhotoQualityPerPhotoDebug({
@@ -774,6 +1117,23 @@ export async function POST(req: Request) {
       questionsClearlyVisible: result.questionsClearlyVisible,
       questionsWithIssues: result.questionsWithIssues.map((i) => i.questionNumber),
     });
+
+    console.log("====================================");
+    console.log("[fallback] SUMMARY for Photo", photoIndex + 1);
+    console.log("[fallback] Primary model: Gemini 3.5 Flash");
+    console.log("[fallback] Fallback triggered:", fallbackEvaluation.trigger);
+    console.log(
+      "[fallback] Fallback reason(s):",
+      formatFallbackReasonsForLog(fallbackEvaluation.reasons),
+    );
+    console.log("[fallback] Final model used:", finalModelUsed);
+    console.log("[fallback] Estimated total questions:", result.estimatedTotalQuestions);
+    console.log("[fallback] Questions clearly visible:", result.questionsClearlyVisible);
+    console.log(
+      "[fallback] Questions with issues:",
+      result.questionsWithIssues.map((i) => i.questionNumber),
+    );
+    console.log("====================================");
 
     // Step 8 — record this photo and print a cross-photo comparison (same process only).
     recordPhotoPipelineSnapshot({

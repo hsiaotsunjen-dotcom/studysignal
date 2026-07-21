@@ -22,6 +22,17 @@ export type HomeworkVisionProviderMeta = {
   retryCount?: number;
   /** True when a later provider in VISION_PROVIDER_PRIORITY was used. */
   fallbackUsed?: boolean;
+  /**
+   * Extra attempts on the winning provider before success
+   * (0 = first try of that provider).
+   */
+  providerRetryCount?: number;
+  /** Optional token usage for Eyes Quality cost metrics. */
+  usage?: {
+    promptTokens: number | null;
+    completionTokens: number | null;
+    totalTokens: number | null;
+  } | null;
 };
 
 export type HomeworkVisionAssignment = {

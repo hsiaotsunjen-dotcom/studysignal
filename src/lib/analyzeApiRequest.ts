@@ -9,6 +9,10 @@
  */
 
 import { LEARNING_REVIEW_ANALYZE_PREAMBLE } from "@/lib/learningReviewAnalyzeText";
+import {
+  parseStudentAnswerObject,
+  type StudentAnswerObject,
+} from "@/lib/studentAnswerObject";
 import type {
   QuestionEvidence,
   QuestionEvidenceMap,
@@ -41,6 +45,11 @@ export type AnalyzeApiRequestBody = {
   learningReviewCorpus?: string;
   /** Multi-photo worksheet capture metadata (post quality-check). */
   worksheetCaptureContext?: WorksheetCaptureContext;
+  /**
+   * Phase 2+: Student Answer Object — Signals inventory authority.
+   * Present on homework submissions when capture SAO is ready.
+   */
+  studentAnswerObject?: StudentAnswerObject;
 };
 
 export type ParsedAnalyzeApiRequest = {
@@ -57,6 +66,7 @@ export type ParsedAnalyzeApiRequest = {
   requireSpeechPronunciation: boolean;
   hasStudentCorpus: boolean;
   worksheetCaptureContext?: WorksheetCaptureContext;
+  studentAnswerObject?: StudentAnswerObject;
 };
 
 function trimmed(value: unknown): string {
@@ -134,6 +144,7 @@ export function buildHomeworkAnalyzeRequest(input: {
   composerText: string;
   composerTextSource: ComposerTextSource;
   worksheetCaptureContext?: WorksheetCaptureContext;
+  studentAnswerObject?: StudentAnswerObject;
 }): AnalyzeApiRequestBody {
   const homeworkQuestion = resolveHomeworkQuestionAtSubmit(
     input.composerText,
@@ -148,6 +159,9 @@ export function buildHomeworkAnalyzeRequest(input: {
     ...(homeworkQuestion ? { homeworkQuestion } : {}),
     ...(input.worksheetCaptureContext
       ? { worksheetCaptureContext: input.worksheetCaptureContext }
+      : {}),
+    ...(input.studentAnswerObject
+      ? { studentAnswerObject: input.studentAnswerObject }
       : {}),
   };
 }
@@ -192,6 +206,7 @@ export function buildComposerAnalyzeRequest(input: {
   learningReviewCorpus?: string;
   includePronunciationForLearningReview?: boolean;
   worksheetCaptureContext?: WorksheetCaptureContext;
+  studentAnswerObject?: StudentAnswerObject;
 }): AnalyzeApiRequestBody | null {
   /** Homework pipeline — images must never fall through to Talk / Learning Review. */
   if (input.hasImages) {
@@ -201,6 +216,7 @@ export function buildComposerAnalyzeRequest(input: {
       composerText: input.composerText,
       composerTextSource: input.composerTextSource,
       worksheetCaptureContext: input.worksheetCaptureContext,
+      studentAnswerObject: input.studentAnswerObject,
     });
   }
 
@@ -535,6 +551,10 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
       worksheetCaptureContext: parseWorksheetCaptureContext(
         o.worksheetCaptureContext ?? o.worksheet_capture_context,
       ),
+      studentAnswerObject:
+        parseStudentAnswerObject(
+          o.studentAnswerObject ?? o.student_answer_object,
+        ) ?? undefined,
     };
   } else {
     raw = normalizeFromLegacyBody(o);
@@ -565,6 +585,13 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
   const worksheetCaptureContext = parseWorksheetCaptureContext(
     raw.worksheetCaptureContext,
   );
+  const studentAnswerObject =
+    raw.studentAnswerObject ??
+    parseStudentAnswerObject(
+      (o as Record<string, unknown>).studentAnswerObject ??
+        (o as Record<string, unknown>).student_answer_object,
+    ) ??
+    undefined;
 
   return {
     submissionKind: raw.submissionKind,
@@ -579,6 +606,7 @@ export function parseAnalyzeApiRequest(body: unknown): ParsedAnalyzeApiRequest |
     requireSpeechPronunciation,
     hasStudentCorpus,
     ...(worksheetCaptureContext ? { worksheetCaptureContext } : {}),
+    ...(studentAnswerObject ? { studentAnswerObject } : {}),
   };
 }
 

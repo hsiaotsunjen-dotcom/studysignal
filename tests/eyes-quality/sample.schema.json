@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studysignal.local/schemas/eyes-quality-sample.json",
+  "title": "AI Quality Platform Eyes sample expected.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "description",
+    "photos",
+    "subject",
+    "grade",
+    "language",
+    "difficulty",
+    "imageQuality",
+    "expectedQuestionCount",
+    "expectedAnswers",
+    "expectedBlanks",
+    "expectedOverview"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{3}_[a-z0-9_]+$"
+    },
+    "sampleId": {
+      "type": "string",
+      "pattern": "^[0-9]{3}_[a-z0-9_]+$"
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "enabled": { "type": "boolean" },
+    "subject": {
+      "type": "string",
+      "enum": ["English", "Math", "Science", "Chinese", "Mixed", "Other"]
+    },
+    "grade": { "type": "string", "minLength": 1 },
+    "language": { "type": "string", "minLength": 1 },
+    "difficulty": {
+      "type": "string",
+      "enum": ["Easy", "Medium", "Hard", "Extreme"]
+    },
+    "imageQuality": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "Printed",
+          "Handwriting",
+          "Messy handwriting",
+          "Blur",
+          "Motion blur",
+          "Shadow",
+          "Low light",
+          "Perspective",
+          "Curved page",
+          "Multi-page",
+          "Mixed language",
+          "Exam paper",
+          "Worksheet",
+          "Math",
+          "English",
+          "Science",
+          "Chinese"
+        ]
+      }
+    },
+    "providerNotes": { "type": "string" },
+    "photos": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^photo[0-9]+\\.jpg$" }
+    },
+    "questionCount": { "type": "integer", "minimum": 1 },
+    "expectedQuestionCount": { "type": "integer", "minimum": 1 },
+    "expectedQuestionNumbers": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "uniqueItems": true
+    },
+    "expectedAnswers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["questionNumber", "studentAnswer"],
+        "properties": {
+          "questionNumber": { "type": "integer", "minimum": 1 },
+          "studentAnswer": { "type": ["string", "null"] },
+          "acceptedAnswers": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "minConfidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "expectedBlanks": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "uniqueItems": true
+    },
+    "expectedConfidenceMin": { "type": "number", "minimum": 0, "maximum": 1 },
+    "expectedConfidenceMax": { "type": "number", "minimum": 0, "maximum": 1 },
+    "expectedOverview": { "type": "string", "minLength": 1 }
+  }
+}

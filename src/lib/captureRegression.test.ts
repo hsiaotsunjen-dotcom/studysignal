@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildVisionUserContent } from "@/lib/analyzeApiRequest";
 import type { AnalyzeImagePayload } from "@/lib/analyzeApiRequest";
 import {
+  applyMonotonicEstimatedTotal,
   buildCaptureAnalysisState,
   buildQuestionEvidenceMap,
   buildWorksheetCaptureContext,
@@ -203,11 +204,11 @@ describe("Capture Regression — Scenario 2: covered 3/5 partial", () => {
     expect(ctx.coveredQuestions).toEqual([1, 2, 3]);
     expect(ctx.missingQuestions).toEqual([4, 5]);
     expect(ctx.analysisScope).toBe("partial");
-    expect(Object.keys(ctx.questionEvidenceMap).sort()).toEqual([
-      "1",
-      "2",
-      "3",
-    ]);
+    expect(
+      Object.keys(ctx.questionEvidenceMap)
+        .map(Number)
+        .sort((a, b) => a - b),
+    ).toEqual([1, 2, 3]);
     expect(ctx.questionEvidenceMap["4"]).toBeUndefined();
     expect(ctx.questionEvidenceMap["5"]).toBeUndefined();
 
@@ -399,11 +400,85 @@ describe("Capture Regression — Coverage / Quality / Scope / Confidence / Evide
         { id: "p2", clearlyVisible: [3] },
       ]),
     });
-    expect(Object.keys(session.questionEvidenceMap).sort()).toEqual([
-      "1",
-      "3",
-    ]);
+    expect(
+      Object.keys(session.questionEvidenceMap)
+        .map(Number)
+        .sort((a, b) => a - b),
+    ).toEqual([1, 3]);
     expect(session.questionEvidenceMap["1"]?.sourcePhotoLabel).toBe("Photo1");
     expect(session.questionEvidenceMap["3"]?.sourcePhotoLabel).toBe("Photo2");
   });
 });
+
+describe("Capture Regression — Scenario 8: estimatedTotalQuestions must be monotonic within a session", () => {
+  it("does not let a re-check regress 13 → 10; missing/scope stay correct", () => {
+    // First check of this session found 13 (Q11-13 issue-flagged, not clear).
+    const highWaterMark = 13;
+
+    // A later re-check (retake / re-OCR / re-Vision) under-detects this time —
+    // Q11-13 vanish entirely from this round's coverage.
+    const reChecked = buildSession({
+      estimatedTotalQuestions: 10,
+      coveredQuestions: range(1, 10),
+    });
+
+    const monotonic = applyMonotonicEstimatedTotal(reChecked, highWaterMark);
+
+    // Total never regresses.
+    expect(monotonic.estimatedTotalQuestions).toBe(13);
+    // Coverage still reflects only the LATEST OCR/Vision result — not unioned.
+    expect(monotonic.coveredQuestions).toEqual(range(1, 10));
+    // missingQuestions / analysisScope are recomputed against the raised
+    // floor, so the false "10/10 complete" is corrected back to "10/13".
+    expect(monotonic.analysis.missingQuestions).toEqual([11, 12, 13]);
+    expect(monotonic.analysis.analysisScope).toBe("partial");
+    expect(monotonic.analysis.coverageComplete).toBe(false);
+    // Evidence layer is untouched — still only the covered questions.
+    expect(
+      Object.keys(monotonic.questionEvidenceMap)
+        .map(Number)
+        .sort((a, b) => a - b),
+    ).toEqual(range(1, 10));
+  });
+
+  it("still rises when a fresh check finds MORE than the previous high-water mark", () => {
+    const session = buildSession({
+      estimatedTotalQuestions: 15,
+      coveredQuestions: range(1, 15),
+    });
+
+    const monotonic = applyMonotonicEstimatedTotal(session, 13);
+
+    expect(monotonic.estimatedTotalQuestions).toBe(15);
+    expect(monotonic.analysis.missingQuestions).toEqual([]);
+    expect(monotonic.analysis.analysisScope).toBe("full");
+  });
+
+  it("is a no-op when the current total already meets the floor", () => {
+    const session = buildSession({
+      estimatedTotalQuestions: 13,
+      coveredQuestions: range(1, 13),
+    });
+
+    const monotonic = applyMonotonicEstimatedTotal(session, 13);
+
+    // Same object identity — confirms no unnecessary recompute/rebuild.
+    expect(monotonic).toBe(session);
+  });
+
+  it("previousHighWaterMark of 0 (fresh session) never lowers anything", () => {
+    const session = buildSession({
+      estimatedTotalQuestions: 13,
+      coveredQuestions: range(1, 10),
+    });
+
+    const monotonic = applyMonotonicEstimatedTotal(session, 0);
+
+    expect(monotonic).toBe(session);
+    expect(monotonic.estimatedTotalQuestions).toBe(13);
+  });
+});
+
+function range(from: number, to: number): number[] {
+  return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+}

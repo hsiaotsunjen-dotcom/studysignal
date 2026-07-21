@@ -58,8 +58,12 @@ import {
 } from "@/lib/analyzeApiRequest";
 import { postPhotoQualityCheck } from "@/lib/photoQualityApi";
 import { postFinalCoverageCheck } from "@/lib/finalCoverageApi";
-import type { FinalCoverageRequestBody } from "@/lib/finalCoverageApi";
+import type {
+  FinalCoverageRequestBody,
+  FinalCoverageResult,
+} from "@/lib/finalCoverageApi";
 import {
+  applyMonotonicEstimatedTotal,
   buildWorksheetCaptureContext,
   mergeWorksheetCaptureSession,
   reconcileFinalCoverage,
@@ -67,6 +71,19 @@ import {
   type WorksheetCaptureSession,
   type WorksheetPhotoEntry,
 } from "@/lib/worksheetCapture";
+import {
+  ensureStudentAnswerObject,
+  produceStudentAnswerObject,
+} from "@/lib/homeworkSaoClient";
+import {
+  studentAnswerObjectMatchesPhotos,
+  summarizeStudentAnswerObjectForLog,
+  type StudentAnswerObject,
+} from "@/lib/studentAnswerObject";
+import {
+  logTutorSaoDevInput,
+  tutorOverviewFromSao,
+} from "@/lib/tutorSaoContext";
 import {
   isParsedAnalyzeFeedbackResponse,
   parseAnalyzeApiData,
@@ -105,6 +122,7 @@ import {
 import {
   buildTutorChatOpenAIMessages,
   TUTOR_CHAT_PENDING_BODY,
+  TUTOR_CHAT_SAO_DEFAULT_USER_TEXT,
 } from "@/lib/tutorChatOpenAiMessages";
 import { cancelBrowserTTS, speakWithBrowserTTS } from "@/lib/speechSynthesis";
 
@@ -552,6 +570,10 @@ async function postAnalyzeApi(
     typedTextLength: payload.typedText?.length ?? 0,
     imageCount: payload.images?.length ?? 0,
     includePronunciation: payload.includePronunciation ?? false,
+    saoAttached: Boolean(payload.studentAnswerObject),
+    saoSummary: payload.studentAnswerObject
+      ? summarizeStudentAnswerObjectForLog(payload.studentAnswerObject)
+      : null,
   });
 
   logPreAnalyzeApiPayload(payload);
@@ -623,6 +645,7 @@ async function postAnalyzeApi(
     parseDbg,
     {
       hasStudentCorpus,
+      studentAnswerObject: payload.studentAnswerObject,
     },
   );
 
@@ -958,13 +981,59 @@ export function StudySignalHome({
   >({});
   const photoQualityByIdRef = useRef(photoQualityById);
   const [captureChecking, setCaptureChecking] = useState(false);
+  /**
+   * Final Coverage Verify result, keyed to the exact photo id list it was
+   * computed for. Only applied to worksheetCaptureSession while photoIds
+   * still match — retaking / adding a photo naturally invalidates it.
+   */
+  const [finalCoverageState, setFinalCoverageState] = useState<{
+    photoIds: string[];
+    result: FinalCoverageResult;
+  } | null>(null);
+  /**
+   * Phase 1 SAO — Single Source of Truth (produced after capture OCR settles).
+   * Tutor / Signals do not consume this yet (Phase 2 / 3).
+   */
+  const [studentAnswerObject, setStudentAnswerObject] =
+    useState<StudentAnswerObject | null>(null);
+  const studentAnswerObjectRef = useRef<StudentAnswerObject | null>(null);
+  const saoProduceInFlightRef = useRef<string | null>(null);
+  /**
+   * Monotonic ceiling for estimatedTotalQuestions within this homework
+   * session — once any check (re-take, re-OCR, re-Vision) has observed a
+   * total, later re-checks are never allowed to report a lower one. Reset
+   * to 0 only when all photos are removed (new homework). See
+   * applyMonotonicEstimatedTotal in worksheetCapture.ts.
+   */
+  const estimatedTotalHighWaterMarkRef = useRef(0);
+  const applySessionTotalCeiling = useCallback(
+    (session: WorksheetCaptureSession): WorksheetCaptureSession => {
+      const withCeiling = applyMonotonicEstimatedTotal(
+        session,
+        estimatedTotalHighWaterMarkRef.current,
+      );
+      estimatedTotalHighWaterMarkRef.current = Math.max(
+        estimatedTotalHighWaterMarkRef.current,
+        withCeiling.estimatedTotalQuestions,
+      );
+      return withCeiling;
+    },
+    [],
+  );
   const [photoLightboxId, setPhotoLightboxId] = useState<string | null>(null);
   const [cameraFlashActive, setCameraFlashActive] = useState(false);
   const [cameraCaptureToast, setCameraCaptureToast] = useState<string | null>(
     null,
   );
-  const cameraFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cameraToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Explicit `number` (not `ReturnType<typeof window.setTimeout>`): with both
+  // DOM and @types/node loaded, `window: Window & typeof globalThis` makes
+  // `window.setTimeout` an intersection of DOM's (returns number) and Node's
+  // ambient global (returns NodeJS.Timeout) signatures. Calling it resolves
+  // to `number` (the DOM overload actually matches these call args), but
+  // `ReturnType<typeof window.setTimeout>` picks the other overload — so the
+  // ref type must be spelled out explicitly to match what's really assigned.
+  const cameraFlashTimerRef = useRef<number | null>(null);
+  const cameraToastTimerRef = useRef<number | null>(null);
   const dictationBaseRef = useRef("");
   const [speechListening, setSpeechListening] = useState(false);
   const [selectedSpeechLang, setSelectedSpeechLang] =
@@ -1437,10 +1506,19 @@ export function StudySignalHome({
     });
   }, [attachments, photoQualityById]);
 
-  const worksheetCaptureSession = useMemo(
-    () => mergeWorksheetCaptureSession(worksheetPhotoEntries),
-    [worksheetPhotoEntries],
-  );
+  const worksheetCaptureSession = useMemo(() => {
+    const merged = mergeWorksheetCaptureSession(worksheetPhotoEntries);
+    const photoIds = worksheetPhotoEntries.map((p) => p.id);
+    const coverage = finalCoverageState;
+    const stillFresh =
+      coverage != null &&
+      coverage.photoIds.length === photoIds.length &&
+      coverage.photoIds.every((id, i) => id === photoIds[i]);
+    const reconciled = stillFresh
+      ? reconcileFinalCoverage(merged, { result: coverage.result })
+      : merged;
+    return applySessionTotalCeiling(reconciled);
+  }, [worksheetPhotoEntries, finalCoverageState, applySessionTotalCeiling]);
 
   const checkWorksheetPhotoQuality = useCallback(
     async (attachment: UploadedImage, photoIndex: number) => {
@@ -1589,8 +1667,8 @@ export function StudySignalHome({
         qualityError: q?.error,
       };
     });
-    return mergeWorksheetCaptureSession(entries);
-  }, [checkWorksheetPhotoQuality]);
+    return applySessionTotalCeiling(mergeWorksheetCaptureSession(entries));
+  }, [checkWorksheetPhotoQuality, applySessionTotalCeiling]);
 
   /**
    * Final Coverage Verify (wiring only): re-verify whole-worksheet coverage with
@@ -1674,13 +1752,22 @@ export function StudySignalHome({
           estimatedTotalQuestions: outcome.result.estimatedTotalQuestions,
           questionsClearlyVisible: outcome.result.questionsClearlyVisible,
         });
-        const reconciled = reconcileFinalCoverage(session, {
-          result: outcome.result,
-        });
+        const reconciled = applySessionTotalCeiling(
+          reconcileFinalCoverage(session, {
+            result: outcome.result,
+          }),
+        );
         console.log("[final-coverage] reconciled", {
           total: reconciled.estimatedTotalQuestions,
           covered: reconciled.coveredQuestions,
           missing: reconciled.analysis.missingQuestions,
+        });
+        // Persist so the capture guide (WorksheetCaptureGuide) reflects the
+        // reconciled total / missing list / tutorMessage on the next render —
+        // otherwise it would keep showing the stale pre-verify "complete" state.
+        setFinalCoverageState({
+          photoIds: session.photos.map((p) => p.id),
+          result: outcome.result,
         });
         return reconciled;
       } catch (error) {
@@ -1688,7 +1775,7 @@ export function StudySignalHome({
         return session;
       }
     },
-    [],
+    [applySessionTotalCeiling],
   );
 
   const pushCaptureTutorGuidance = useCallback((text: string) => {
@@ -1705,6 +1792,12 @@ export function StudySignalHome({
   useEffect(() => {
     if (attachments.length === 0) {
       setPhotoQualityById({});
+      // New homework (no photos left) — the monotonic total ceiling from
+      // the previous worksheet must not leak into an unrelated one.
+      estimatedTotalHighWaterMarkRef.current = 0;
+      setStudentAnswerObject(null);
+      studentAnswerObjectRef.current = null;
+      saoProduceInFlightRef.current = null;
       return;
     }
     let cancelled = false;
@@ -1723,6 +1816,70 @@ export function StudySignalHome({
       cancelled = true;
     };
   }, [attachments, checkWorksheetPhotoQuality]);
+
+  /**
+   * Phase 1: after every photo has a quality/OCR result, produce SAO once.
+   * Does not change Tutor or Signals consumers.
+   */
+  useEffect(() => {
+    const entries = worksheetPhotoEntries;
+    if (entries.length === 0) return;
+    const allHaveQuality = entries.every((p) => p.quality != null);
+    if (!allHaveQuality) return;
+
+    const photoIds = entries.map((p) => p.id);
+    const photoKey = photoIds.join("|");
+    if (
+      studentAnswerObjectMatchesPhotos(
+        studentAnswerObjectRef.current,
+        photoIds,
+      )
+    ) {
+      return;
+    }
+    if (saoProduceInFlightRef.current === photoKey) return;
+
+    let cancelled = false;
+    saoProduceInFlightRef.current = photoKey;
+    void (async () => {
+      try {
+        const images = await loadAnalyzeImagesFromAttachments(
+          attachmentsRef.current,
+          "SAO Phase 1 → loadAnalyzeImagesFromAttachments",
+        );
+        if (cancelled) return;
+        const session = worksheetCaptureSession;
+        const sao = await produceStudentAnswerObject({ session, images });
+        if (cancelled) return;
+        const stillSame =
+          attachmentsRef.current.map((a) => a.id).join("|") === photoKey;
+        if (!stillSame) return;
+        studentAnswerObjectRef.current = sao;
+        setStudentAnswerObject(sao);
+        homeworkPipelineLog("sao_phase1_stored", {
+          photoIds: sao.photoIds,
+          summary: sao.summary,
+          ocrMergedLength: sao.ocr.mergedRawText.length,
+          eyesPresent: Boolean(sao.eyes),
+        });
+      } catch (error) {
+        console.warn("[SAO] Phase 1 produce failed", error);
+      } finally {
+        if (saoProduceInFlightRef.current === photoKey) {
+          saoProduceInFlightRef.current = null;
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [worksheetPhotoEntries, worksheetCaptureSession]);
+
+  // Keep ref aligned when state is cleared elsewhere.
+  useEffect(() => {
+    studentAnswerObjectRef.current = studentAnswerObject;
+  }, [studentAnswerObject]);
 
   const imageCount = attachments.length;
   const hasImages = imageCount > 0;
@@ -2089,6 +2246,43 @@ export function StudySignalHome({
       homeworkPipelineLog("skip_homework_pipeline", { reason: "no_images" });
     }
 
+    // Phase 3: Tutor inventory must come from the same SAO as Signals.
+    let saoForTutor: StudentAnswerObject | null = null;
+    if (hasImages) {
+      const photoIds = currentAttachments.map((a) => a.id);
+      try {
+        const sao = await ensureStudentAnswerObject({
+          session: worksheetCaptureSession,
+          images,
+          photoIds,
+          existing: studentAnswerObjectRef.current,
+        });
+        const stillSame =
+          attachmentsRef.current.map((a) => a.id).join("|") ===
+          photoIds.join("|");
+        if (!stillSame) {
+          chatSendInFlightRef.current = false;
+          return;
+        }
+        studentAnswerObjectRef.current = sao;
+        setStudentAnswerObject(sao);
+        saoForTutor = sao;
+      } catch (error) {
+        console.warn("[SAO] Phase 3 ensure-before-Tutor failed", error);
+      }
+      if (!saoForTutor) {
+        const msg = "作業答案尚未就緒，請稍候再按 CHAT。";
+        setChatSendError(msg);
+        chatSendInFlightRef.current = false;
+        return;
+      }
+      logTutorSaoDevInput(saoForTutor);
+      homeworkPipelineLog("tutor_sao_inventory", {
+        overview: tutorOverviewFromSao(saoForTutor),
+        saoSummary: summarizeStudentAnswerObjectForLog(saoForTutor),
+      });
+    }
+
     const displayBody =
       homeworkQuestion && hasImages
         ? `${homeworkQuestion}\n\n（作業照片 ${images.length} 張）`
@@ -2106,7 +2300,7 @@ export function StudySignalHome({
           : text
             ? text
             : hasImages
-              ? "請看我附上的作業照片，幫我檢查最明顯的那一題。"
+              ? TUTOR_CHAT_SAO_DEFAULT_USER_TEXT
               : text;
 
     const tutorId = newAttachmentId();
@@ -2120,6 +2314,7 @@ export function StudySignalHome({
               role: "user" as const,
               content: [
                 { type: "text" as const, text: modelUserText },
+                // Images are optional visual references only (not answer extraction).
                 ...images.map((im) => ({
                   type: "image_url" as const,
                   image_url: {
@@ -2156,8 +2351,9 @@ export function StudySignalHome({
 
     if (hasImages) {
       homeworkPipelineLog("7_tutor_chat_start", {
-        mode: "photo_tutor_direct",
+        mode: "sao_tutor",
         visionImageCount: images.length,
+        saoAttached: Boolean(saoForTutor),
       });
     }
 
@@ -2171,7 +2367,8 @@ export function StudySignalHome({
           "image MIME type": im.mimeType,
           dataBase64Length: im.dataBase64.length,
         })),
-        mode: "photo_tutor_direct",
+        mode: "sao_tutor",
+        saoAttached: Boolean(saoForTutor),
       });
       const res = await fetch("/api/tutor-chat", {
         method: "POST",
@@ -2179,6 +2376,7 @@ export function StudySignalHome({
         body: JSON.stringify({
           messages: requestMessages,
           homeworkContextExpected: false,
+          ...(saoForTutor ? { studentAnswerObject: saoForTutor } : {}),
         }),
       });
       const data: unknown = await res.json().catch(() => ({}));
@@ -2224,9 +2422,6 @@ export function StudySignalHome({
       if (hasImages) {
         homeworkPipelineLog("8_tutor_chat_complete");
       }
-      if (images.length > 0) {
-        commitAttachments([]);
-      }
     } catch (e) {
       setChatItems((prev) =>
         prev.map((m) =>
@@ -2248,7 +2443,12 @@ export function StudySignalHome({
       logSendTutorMessageCaughtError("sendTutorMessage outer catch", error);
       throw error;
     }
-  }, [chatItems, saveAnalysis, selectedSpeechLang, syncMessageTextareaHeight, commitAttachments]);
+  }, [
+    chatItems,
+    selectedSpeechLang,
+    syncMessageTextareaHeight,
+    worksheetCaptureSession,
+  ]);
 
   const sendChineseEnglishHelp = useCallback(async (chineseText: string) => {
     if (process.env.NODE_ENV === "development") {
@@ -2532,6 +2732,63 @@ export function StudySignalHome({
         }
       }
 
+      // Phase 2: Signals inventory must come from SAO. Ensure SAO exists
+      // for the current photo set before calling /api/analyze.
+      let saoForSignals: StudentAnswerObject | null = null;
+      if (imageOnlyMode) {
+        const photoIds = currentAttachments.map((a) => a.id);
+        if (
+          studentAnswerObjectMatchesPhotos(
+            studentAnswerObjectRef.current,
+            photoIds,
+          )
+        ) {
+          saoForSignals = studentAnswerObjectRef.current;
+        } else {
+          try {
+            const sao = await produceStudentAnswerObject({
+              session: worksheetCaptureSession,
+              images,
+            });
+            const stillSame =
+              attachmentsRef.current.map((a) => a.id).join("|") ===
+              photoIds.join("|");
+            if (stillSame) {
+              studentAnswerObjectRef.current = sao;
+              setStudentAnswerObject(sao);
+              saoForSignals = sao;
+            }
+          } catch (error) {
+            console.warn(
+              "[SAO] Phase 2 ensure-before-Signals failed",
+              error,
+            );
+          }
+        }
+        if (!saoForSignals) {
+          homeworkPipelineLog("signals_sao_missing", { photoIds });
+          const msg = "作業答案尚未就緒，請稍候再按 Analyze。";
+          setAnalyzeError(msg);
+          setAnalyzeLoading(false);
+          setChatItems((prev) =>
+            prev.map((m) =>
+              m.id === turnId && m.role === "student"
+                ? {
+                    ...m,
+                    analyzeLoading: false,
+                    analyzeError: msg,
+                    analysis: null,
+                  }
+                : m,
+            ),
+          );
+          return false;
+        }
+        homeworkPipelineLog("signals_sao_inventory", {
+          saoSummary: summarizeStudentAnswerObjectForLog(saoForSignals),
+        });
+      }
+
       const requestPayload = buildComposerAnalyzeRequest({
         composerText,
         composerTextSource,
@@ -2542,6 +2799,7 @@ export function StudySignalHome({
           ? false
           : pronunciationFromSpeechRef.current,
         worksheetCaptureContext: options?.worksheetCaptureContext,
+        studentAnswerObject: saoForSignals ?? undefined,
       });
 
       if (!requestPayload) {
@@ -2644,6 +2902,10 @@ export function StudySignalHome({
           : "composer_analyze";
       saveAnalysis(turnId, parsed, saveSource);
 
+      if (imageOnlyMode) {
+        commitAttachments([]);
+      }
+
       return true;
     } catch (e) {
       setChatItems((prev) =>
@@ -2664,11 +2926,52 @@ export function StudySignalHome({
       analyzeInFlightRef.current = false;
       setAnalyzeLoading(false);
     }
-  }, [chatItems, saveAnalysis]);
+  }, [
+    attachments.length,
+    chatItems,
+    commitAttachments,
+    saveAnalysis,
+    worksheetCaptureSession,
+  ]);
 
   useEffect(() => {
     runAnalyzeRef.current = runAnalyze;
   }, [runAnalyze]);
+
+  /**
+   * Final Coverage Verify → analyze, shared by the composer "Analyze" action
+   * and the capture guide's "直接分析目前已辨識題目" button.
+   *
+   * If Final Coverage Verify reveals question numbers that were not already
+   * known to be missing (i.e. the real total is higher than the capture
+   * phase ever detected), stop and show the corrected 已辨識/缺少 message
+   * instead of silently analyzing an incomplete worksheet.
+   */
+  const runVerifiedWorksheetAnalyze = useCallback(
+    async (session: WorksheetCaptureSession) => {
+      const verifiedSession = await verifyFinalCoverage(session);
+      const previousMissing = new Set(session.analysis.missingQuestions);
+      const newlyMissing = verifiedSession.analysis.missingQuestions.filter(
+        (n) => !previousMissing.has(n),
+      );
+      if (newlyMissing.length > 0) {
+        console.log(
+          "[final-coverage] newly discovered missing questions — blocking analyze",
+          {
+            newlyMissing,
+            totalBefore: session.estimatedTotalQuestions,
+            totalAfter: verifiedSession.estimatedTotalQuestions,
+          },
+        );
+        pushCaptureTutorGuidance(verifiedSession.tutorMessage);
+        return;
+      }
+      await runAnalyze({
+        worksheetCaptureContext: buildWorksheetCaptureContext(verifiedSession),
+      });
+    },
+    [verifyFinalCoverage, pushCaptureTutorGuidance, runAnalyze],
+  );
 
   const confirmClearChatAnalyzeAndSave = useCallback(async () => {
     const ok = await runAnalyze();
@@ -3171,10 +3474,7 @@ export function StudySignalHome({
         return;
       }
       console.log("[ENTRY] handleAnalyzePress -> verify");
-      const verifiedSession = await verifyFinalCoverage(session);
-      await runAnalyze({
-        worksheetCaptureContext: buildWorksheetCaptureContext(verifiedSession),
-      });
+      await runVerifiedWorksheetAnalyze(session);
       return;
     }
 
@@ -3209,7 +3509,7 @@ export function StudySignalHome({
   }, [
     chatItems,
     ensureWorksheetPhotosChecked,
-    verifyFinalCoverage,
+    runVerifiedWorksheetAnalyze,
     pushCaptureTutorGuidance,
     runAnalyze,
     scheduleRunAnalyzeAfterDictation,
@@ -3538,12 +3838,7 @@ export function StudySignalHome({
                             return;
                           }
                           console.log("[ENTRY] Guide -> verify");
-                          const verifiedSession =
-                            await verifyFinalCoverage(session);
-                          await runAnalyze({
-                            worksheetCaptureContext:
-                              buildWorksheetCaptureContext(verifiedSession),
-                          });
+                          await runVerifiedWorksheetAnalyze(session);
                         })();
                       }}
                     />

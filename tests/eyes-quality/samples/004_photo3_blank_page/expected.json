@@ -1,0 +1,26 @@
+{
+  "id": "004_photo3_blank_page",
+  "sampleId": "004_photo3_blank_page",
+  "description": "Later page expected to have no student answers for Q10–Q13. Primary check: zero hallucinations on those blanks.",
+  "enabled": true,
+  "subject": "English",
+  "grade": "elementary",
+  "language": "en",
+  "difficulty": "Medium",
+  "imageQuality": [
+    "Handwriting",
+    "Worksheet",
+    "English",
+    "Multi-page"
+  ],
+  "providerNotes": "Hallucination stress sample. Non-empty answers on Q10–Q13 are failures. Extra answered questions outside this set also count as hallucinations.",
+  "photos": ["photo1.jpg"],
+  "questionCount": 4,
+  "expectedQuestionCount": 4,
+  "expectedQuestionNumbers": [10, 11, 12, 13],
+  "expectedAnswers": [],
+  "expectedBlanks": [10, 11, 12, 13],
+  "expectedConfidenceMin": 0.3,
+  "expectedConfidenceMax": 1,
+  "expectedOverview": "(none)"
+}

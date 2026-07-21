@@ -52,6 +52,11 @@ export type PhotoQualityCheckResult = {
    * Required for Global Question Merge so OCR-only finds (e.g. Q13) raise total.
    */
   detectedQuestionNumbers?: number[];
+  /**
+   * Full Tesseract OCR raw text for this photo.
+   * Must never be discarded — SAO / Evidence Layer consume this (Phase 1+).
+   */
+  ocrRawText?: string;
   globalIssues: PhotoQualityIssue[];
   readyForAnalysis: boolean;
   tutorMessage: string;
@@ -535,13 +540,21 @@ export function buildQuestionEvidenceMap(input: {
         ? "high"
         : "medium";
 
+    const sourcePhoto = sourcePhotoId
+      ? input.photos.find((p) => p.id === sourcePhotoId)
+      : undefined;
+    const ocrText =
+      typeof sourcePhoto?.quality?.ocrRawText === "string"
+        ? sourcePhoto.quality.ocrRawText
+        : "";
+
     map[String(questionNumber)] = {
       questionNumber,
       sourcePhotoId,
       sourcePhotoIndex,
       sourcePhotoLabel:
         sourcePhotoIndex >= 0 ? `Photo${sourcePhotoIndex + 1}` : "Photo?",
-      ocrText: "",
+      ocrText,
       visionConfidence,
       quality,
       isLowConfidence,
@@ -588,24 +601,18 @@ export function formatCaptureTutorMessage(input: {
   }
 
   if (recommendedAction === "retake-missing") {
-    const missingLabel =
-      formatQuestionRangesZh(missingQuestions) ||
-      missingQuestions.map((n) => `第${n}題`).join("、");
-    const coveredLabel = formatQuestionRangesZh(coveredQuestions);
+    // Numerator is coveredQuestions (COMPLETE only), not detectedQuestions
+    // (COMPLETE + PARTIAL) — otherwise a question flagged low-quality
+    // (PARTIAL) counts toward both "已辨識" and "缺少", showing a
+    // self-contradicting message like "13 / 13 題" alongside "缺少：11、12、13".
     const lines = [
-      "📷 作業照片檢查完成",
-      "目前已辨識：",
-      `${detectedQuestions.length} / ${total} 題`,
-      "",
-      "尚缺：",
-      missingLabel,
-      "",
-      "建議補拍缺少題目後再分析。",
-      "也可以直接分析目前已辨識的題目（AI 不會假裝整份作業完整）。",
+      "已辨識：",
+      `${coveredQuestions.length} / ${total} 題`,
+      "缺少：",
+      missingQuestions.join("、"),
+      "❌ 尚未完成辨識",
+      "請補拍缺少的題目。",
     ];
-    if (coveredLabel) {
-      lines.push("", "目前已完成：", coveredLabel);
-    }
     if (lowQualityQuestions.length > 0) {
       lines.push(
         "",
@@ -788,9 +795,7 @@ export function buildWorksheetCaptureContext(
  * Phase 2 — pure reconcile of a capture session with a Final Coverage Verify
  * result. Returns a new WorksheetCaptureSession.
  *
- * STANDALONE: nothing calls this yet. It is not wired into merge, the state
- * machine, buildWorksheetCaptureContext, UI, or runAnalyze. It has no side
- * effects and mutates nothing.
+ * Wired into verifyFinalCoverage (StudySignalHome) right before analyze.
  *
  * What it does:
  * - total = max(session total, Final Coverage total) — never lowers the total,
@@ -800,13 +805,16 @@ export function buildWorksheetCaptureContext(
  *   these stay mutually consistent. (coverageComplete / recommendedAction follow
  *   as consequences; qualityAcceptable / canAnalyzeCurrent / lowQualityQuestions
  *   are unchanged because their inputs are unchanged.)
+ * - Regenerates tutorMessage from the reconciled analysis, so the capture guide
+ *   never shows a stale "✅ 已完整辨識 X/X" message once Final Coverage Verify
+ *   reveals a higher real total (e.g. "已辨識 10/13，缺少 11、12、13").
  * - Attaches duplicateQuestions from Final Coverage.
  *
  * What it preserves byte-for-byte (never touched):
  * - questionPhotoMap, questionEvidenceMap (sourcePhotoId / sourcePhotoIndex /
  *   ocrText and the whole Evidence Layer)
  * - coveredQuestions, questionsNeedingRetake, openIssues, pendingCaptureRequest,
- *   photos, tutorMessage
+ *   photos
  */
 export function reconcileFinalCoverage(
   session: WorksheetCaptureSession,
@@ -834,10 +842,96 @@ export function reconcileFinalCoverage(
     checkedCount,
   });
 
+  const tutorMessage = formatCaptureTutorMessage({
+    analysis,
+    coveredQuestions: session.coveredQuestions,
+    detectedQuestions: session.detectedQuestions,
+    estimatedTotalQuestions: reconciledTotal,
+    photoCount: session.photos.length,
+  });
+
   return {
     ...session,
     estimatedTotalQuestions: reconciledTotal,
     duplicateQuestions: uniqueSorted(finalCoverage.result.duplicateQuestions),
     analysis,
+    tutorMessage,
+  };
+}
+
+/**
+ * Session-level monotonic ceiling on estimatedTotalQuestions.
+ *
+ * Problem this fixes: estimatedTotalQuestions is normally recomputed from
+ * scratch on every check (max of the currently-detected question set — see
+ * mergeGlobalQuestions). Vision/OCR are not perfectly deterministic across
+ * separate calls (temperature > 0, OCR timeouts, prompt-hint variance), so a
+ * *re-check* of the same worksheet's photos can occasionally under-detect a
+ * borderline question and silently lower the total (e.g. 13 → 10) —
+ * resurfacing a false "✅ complete" state for a worksheet that was already
+ * confirmed to have 13 questions earlier in this session.
+ *
+ * Fix: once this session has ever observed a given total, it is never
+ * allowed to report a lower one — newTotal = max(previousHighWaterMark,
+ * currentTotal). Only the total is clamped this way.
+ *
+ * What still comes from the LATEST photos / OCR+Vision results, unchanged:
+ * - coveredQuestions, questionsNeedingRetake, questionPhotoMap,
+ *   questionEvidenceMap, photos, duplicateQuestions, questionCoverage,
+ *   globalQuestionSet — none of these are unioned with history; they always
+ *   reflect only the current photo set.
+ * - missingQuestions / analysisScope ARE recomputed here, but only because
+ *   they are a pure function of (coveredQuestions, total) via
+ *   buildCaptureAnalysisState — raising the total floor while coveredQuestions
+ *   stays at the latest OCR result is exactly what correctly turns a
+ *   would-be-false "10/10 complete" back into "10/13, missing 11、12、13".
+ *
+ * Caller owns the previousHighWaterMark (e.g. a useRef in the component) —
+ * this function is a pure computation and does not persist anything itself.
+ */
+export function applyMonotonicEstimatedTotal(
+  session: WorksheetCaptureSession,
+  previousHighWaterMark: number,
+): WorksheetCaptureSession {
+  const floor = Math.max(0, previousHighWaterMark);
+  const total = Math.max(session.estimatedTotalQuestions, floor);
+
+  console.log("[worksheetCapture] monotonic total check", {
+    currentTotal: session.estimatedTotalQuestions,
+    previousHighWaterMark: floor,
+    resolvedTotal: total,
+    clamped: total !== session.estimatedTotalQuestions,
+  });
+
+  if (total === session.estimatedTotalQuestions) return session;
+
+  const checkedCount = session.photos.filter((p) => p.quality).length;
+  const anyPhotoInProgress = session.photos.some(
+    (p) =>
+      p.qualityStatus === "checking" ||
+      (p.qualityStatus === "pending" && session.photos.length > 0),
+  );
+
+  const analysis = buildCaptureAnalysisState({
+    estimatedTotalQuestions: total,
+    coveredQuestions: session.coveredQuestions,
+    questionsNeedingRetake: session.questionsNeedingRetake,
+    anyPhotoInProgress,
+    checkedCount,
+  });
+
+  const tutorMessage = formatCaptureTutorMessage({
+    analysis,
+    coveredQuestions: session.coveredQuestions,
+    detectedQuestions: session.detectedQuestions,
+    estimatedTotalQuestions: total,
+    photoCount: session.photos.length,
+  });
+
+  return {
+    ...session,
+    estimatedTotalQuestions: total,
+    analysis,
+    tutorMessage,
   };
 }

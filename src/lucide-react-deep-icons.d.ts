@@ -22,6 +22,30 @@ declare module "lucide-react/dist/esm/icons/chevron-down.js" {
   export default Icon;
 }
 
+declare module "lucide-react/dist/esm/icons/chevron-left.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
+declare module "lucide-react/dist/esm/icons/chevron-right.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
+declare module "lucide-react/dist/esm/icons/zoom-in.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
+declare module "lucide-react/dist/esm/icons/zoom-out.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
 declare module "lucide-react/dist/esm/icons/graduation-cap.js" {
   import type { FC, SVGProps } from "react";
   const Icon: FC<SVGProps<SVGSVGElement>>;

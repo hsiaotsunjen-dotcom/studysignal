@@ -11,7 +11,9 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:golden": "vitest run src/lib/goldenDataset.integrity.test.ts"
+    "test:golden": "vitest run src/lib/goldenDataset.integrity.test.ts",
+    "test:eyes-quality": "vitest run src/lib/vision/quality/eyesQuality.integrity.test.ts src/lib/vision/quality/eyesQuality.metrics.test.ts",
+    "test:eyes-quality:live": "vitest run src/lib/vision/quality/eyesQuality.live.benchmark.test.ts"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

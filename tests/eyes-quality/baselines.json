@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "description": "AI Quality Platform regression floors on the full enabled dataset. Reject Eyes changes that drop accuracy, raise hallucination, or exceed latency/cost ceilings.",
+  "enforce": true,
+  "maxLatencyMsAvg": 90000,
+  "maxCostUsdAvg": 0.05,
+  "minOverallScore": 60,
+  "providers": {
+    "gemini": {
+      "minQuestionDetectionAccuracy": 0.7,
+      "minAnswerExtractionAccuracy": 0.5,
+      "maxHallucinationRate": 0.35,
+      "maxLatencyMsAvg": 90000,
+      "maxCostUsdAvg": 0.05,
+      "minOverallScore": 60
+    },
+    "openai": {
+      "minQuestionDetectionAccuracy": 0.7,
+      "minAnswerExtractionAccuracy": 0.5,
+      "maxHallucinationRate": 0.35,
+      "maxLatencyMsAvg": 90000,
+      "maxCostUsdAvg": 0.05,
+      "minOverallScore": 60
+    }
+  }
+}

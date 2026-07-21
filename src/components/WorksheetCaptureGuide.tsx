@@ -112,15 +112,25 @@ export function WorksheetCaptureGuide({
 
       <ul className="mt-3 space-y-1.5 text-xs text-zinc-400">
         {session.photos.map((photo, index) => {
-          const range = formatQuestionRangesZh(
-            photo.quality?.questionsClearlyVisible ?? [],
+          const clearNums = photo.quality?.questionsClearlyVisible ?? [];
+          const issueNums =
+            photo.quality?.questionsWithIssues.map((i) => i.questionNumber) ??
+            [];
+          // Union of clearly-visible + flagged-as-issue numbers — a question
+          // Vision found but rated unclear must still show up in this photo's
+          // range, not disappear as if the photo never covered it.
+          const allNums = [...new Set([...clearNums, ...issueNums])].sort(
+            (a, b) => a - b,
           );
+          const range = formatQuestionRangesZh(allNums);
+          const issueRange = formatQuestionRangesZh(issueNums);
           return (
             <li key={photo.id} className="flex items-start gap-2">
               {statusIcon(photo.qualityStatus)}
               <span>
                 照片 {index + 1}
                 {range ? `：${range}` : ""}
+                {issueRange ? `（${issueRange}可信度較低）` : ""}
                 {photo.qualityStatus === "checking" ? "（檢查中…）" : ""}
                 {photo.qualityError ? ` — ${photo.qualityError}` : ""}
               </span>

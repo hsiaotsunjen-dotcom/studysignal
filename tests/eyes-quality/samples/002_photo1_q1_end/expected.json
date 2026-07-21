@@ -1,0 +1,31 @@
+{
+  "id": "002_photo1_q1_end",
+  "sampleId": "002_photo1_q1_end",
+  "description": "Single-page crop (photo 1 only). Must recover Q1=end. Extra invented answers count as hallucinations.",
+  "enabled": true,
+  "subject": "English",
+  "grade": "elementary",
+  "language": "en",
+  "difficulty": "Easy",
+  "imageQuality": [
+    "Handwriting",
+    "Worksheet",
+    "English"
+  ],
+  "providerNotes": "Partial capture of worksheet 001. Ground truth focuses on the known visible answer (Q1), not full inventory.",
+  "photos": ["photo1.jpg"],
+  "questionCount": 1,
+  "expectedQuestionCount": 1,
+  "expectedQuestionNumbers": [1],
+  "expectedAnswers": [
+    {
+      "questionNumber": 1,
+      "studentAnswer": "end",
+      "minConfidence": 0.5
+    }
+  ],
+  "expectedBlanks": [],
+  "expectedConfidenceMin": 0.4,
+  "expectedConfidenceMax": 1,
+  "expectedOverview": "1. end"
+}
