@@ -14,8 +14,9 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "StudySignal",
-  description: "孩子每天學習。你每天都知道。",
+  title: "StudySignal — 孩子每天學習。你每天都知道。",
+  description:
+    "StudySignal is a Family Learning Hub. Students learn every day. Parents stay informed every day.",
 };
 
 export const viewport: Viewport = {
@@ -24,7 +25,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function V1Layout({ children }: { children: React.ReactNode }) {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div
       className={`${nunito.variable} ${nunitoSans.variable} ss-v1 min-h-dvh antialiased`}

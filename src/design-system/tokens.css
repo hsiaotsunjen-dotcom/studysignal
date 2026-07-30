@@ -113,6 +113,27 @@ html:has(.ss-v1) body {
   width: 100%;
 }
 
+@keyframes ss-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ss-v1 .ss-page-enter {
+  animation: ss-page-enter 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-v1 .ss-page-enter {
+    animation: none;
+  }
+}
+
 .ss-v1 .ss-bg {
   background-color: var(--ss-bg);
 }

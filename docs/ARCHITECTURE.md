@@ -54,7 +54,9 @@ StudySignal 是一個以 **Next.js 15 App Router** 為核心的 **全端 Web 應
 
 | 路徑 | 用途 |
 |------|------|
-| `/` | 主應用（`StudySignalHome`，`layout="talk"`） |
+| `/` | 家長導向 Landing（開始免費使用／家長登入） |
+| `/app` | 學生 Talk 主應用（`StudySignalHome`） |
+| `/v1/*` | 暖色設計系統原型：學生首頁、家長中心、註冊／引導 |
 | `/voice-test` | TTS／系統語音除錯 |
 | `/speech-test` | 語音辨識實驗（開發用） |
 

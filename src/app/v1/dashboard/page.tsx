@@ -1,105 +1,113 @@
-import Link from "next/link";
-import { Camera, Mic, Play } from "lucide-react";
+"use client";
 
-import {
-  SsAppShell,
-  SsButton,
-  SsCard,
-  SsPageHeader,
-  SsProgressBar,
-} from "@/design-system";
-import {
-  mockDashboard,
-  mockGoals,
-  mockStudent,
-} from "@/design-system/mock/data";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+import { SsAppShell, SsButton, SsCard } from "@/design-system";
+import { mockStudent, mockStudentHome } from "@/design-system/mock/data";
+import { readParentSession } from "@/lib/parentSession";
+
+function timeGreetingFallback() {
+  const h = new Date().getHours();
+  if (h < 12) return "早安";
+  if (h < 18) return "午安";
+  return "晚安";
+}
 
 export default function StudentDashboardPage() {
-  const nextGoal = mockGoals.find((g) => g.status !== "done");
+  const home = mockStudentHome;
+  const [name, setName] = useState(mockStudent.name);
+
+  useEffect(() => {
+    const session = readParentSession();
+    if (session?.student?.name) setName(session.student.name);
+  }, []);
+
+  const greeting = useMemo(
+    () => home.greeting || timeGreetingFallback(),
+    [home.greeting],
+  );
+
+  const allDone = home.tasks.every((t) => t.status === "done");
 
   return (
     <SsAppShell>
-      <SsPageHeader
-        title={`今天好嗎，${mockStudent.name}`}
-        subtitle={`${mockStudent.grade} · ${mockDashboard.focusSubject}`}
-        action={
-          <Link
-            href="/v1"
-            className="text-xs font-medium text-[var(--ss-ai)] hover:underline"
-          >
-            AI 夥伴
-          </Link>
-        }
-      />
-
-      <SsCard className="mb-4">
-        <SsProgressBar
-          value={mockDashboard.todayProgress}
-          label="今日進度"
-        />
+      {/* 1. Warm greeting */}
+      <header className="mb-10 pt-2">
+        <p className="text-sm text-[var(--ss-fg-muted)]">{greeting}</p>
+        <h1
+          className="mt-1.5 text-[2rem] font-semibold leading-tight tracking-tight text-[var(--ss-fg)]"
+          style={{
+            fontFamily:
+              "var(--font-ss-display), var(--font-ss-sans), system-ui",
+          }}
+        >
+          {name}
+        </h1>
         <p className="mt-3 text-sm text-[var(--ss-fg-muted)]">
-          已完成 {mockDashboard.completedGoals} / {mockDashboard.totalGoals}{" "}
-          個目標
+          連續 {home.streakDays} 天 · 今天大約 {home.todayMinutesPlanned}{" "}
+          分鐘
         </p>
-      </SsCard>
+      </header>
 
-      <SsCard className="mb-4 border-[var(--ss-ai)]/15 bg-[var(--ss-ai-soft)]/40">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ss-ai)]">
-          AI 建議
+      {/* 2–4. One dominant surface: prepared today + path + begin + encouragement */}
+      <SsCard className="mb-12 px-6 py-8 sm:px-7 sm:py-9">
+        <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+          今天
         </p>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-[var(--ss-fg)]">
-          {mockDashboard.aiTip}
-        </p>
-      </SsCard>
+        <h2
+          className="mt-2 text-xl font-semibold leading-snug tracking-tight text-[var(--ss-fg)] sm:text-[1.35rem]"
+          style={{
+            fontFamily:
+              "var(--font-ss-display), var(--font-ss-sans), system-ui",
+          }}
+        >
+          {home.planReadyCopy}
+        </h2>
 
-      <SsCard className="mb-6">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-[var(--ss-fg)]">
-            今日目標
-          </h2>
-          <Link
-            href="/v1/goals"
-            className="text-sm font-medium text-[var(--ss-primary)] hover:underline"
-          >
-            查看全部
-          </Link>
-        </div>
-        {nextGoal ? (
-          <div>
-            <p className="font-medium text-[var(--ss-fg)]">{nextGoal.title}</p>
-            <p className="mt-1 text-sm text-[var(--ss-fg-muted)]">
-              {nextGoal.detail} · 約 {nextGoal.minutes} 分鐘
-            </p>
-            <Link href="/v1/flow" className="mt-4 block">
-              <SsButton className="w-full">
-                <Play className="h-4 w-4" aria-hidden />
-                繼續學習
-              </SsButton>
-            </Link>
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--ss-fg-muted)]">今天的目標都完成了</p>
-        )}
-      </SsCard>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/v1/flow" className="block">
-          <SsCard className="flex flex-col items-center gap-2 py-5 text-center transition active:scale-[0.98]">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ss-primary-soft)] text-[var(--ss-primary)]">
-              <Camera className="h-5 w-5" aria-hidden />
+        <p className="mt-6 text-[15px] leading-[1.7] text-[var(--ss-fg-muted)]">
+          {home.todayPath.map((item, i) => (
+            <span key={item.title}>
+              {i > 0 ? (
+                <span className="text-[var(--ss-border)]"> · </span>
+              ) : null}
+              <span className="text-[var(--ss-fg)]">{item.title}</span>
+              <span className="text-[var(--ss-fg-muted)]">
+                {" "}
+                {item.detail}
+              </span>
             </span>
-            <span className="text-sm font-medium">拍作業</span>
-          </SsCard>
+          ))}
+        </p>
+
+        {/* 3. Only one obvious next action */}
+        <Link href="/v1/flow" className="mt-8 block">
+          <SsButton className="w-full" disabled={allDone}>
+            {allDone ? "今天已經完成了" : "開始今天"}
+          </SsButton>
         </Link>
-        <Link href="/v1/flow" className="block">
-          <SsCard className="flex flex-col items-center gap-2 py-5 text-center transition active:scale-[0.98]">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ss-ai-soft)] text-[var(--ss-ai)]">
-              <Mic className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="text-sm font-medium">開口說</span>
-          </SsCard>
-        </Link>
-      </div>
+
+        {/* 4–5. Encouragement + finish line */}
+        <p className="mt-6 text-center text-sm leading-relaxed text-[var(--ss-fg-muted)]">
+          {home.companionLine}
+        </p>
+      </SsCard>
+
+      {/* Supporting whisper — no equal-weight cards */}
+      <footer className="space-y-5 border-t border-[var(--ss-border)]/60 pt-8 pb-2">
+        <p className="text-sm leading-relaxed text-[var(--ss-fg-muted)]">
+          <span className="text-[var(--ss-fg)]">{home.todaySignal}</span>
+        </p>
+        <p className="text-xs leading-relaxed text-[var(--ss-fg-muted)]">
+          昨天 · {home.yesterday.subjects.join("、")} ·{" "}
+          {home.yesterday.minutes} 分鐘
+          <br />
+          {home.yesterday.encouragement}
+        </p>
+        <p className="text-xs leading-relaxed text-[var(--ss-fg-muted)]">
+          明天 · {home.tomorrowPreview.join("、")}
+        </p>
+      </footer>
     </SsAppShell>
   );
 }

@@ -19,7 +19,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StudySignal",
-  description: "Your study companion — organized by level and subject.",
+  description:
+    "Students learn. Parents stay informed. Your child learns every day. You know every day.",
 };
 
 export const viewport: Viewport = {

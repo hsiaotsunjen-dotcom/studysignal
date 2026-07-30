@@ -1,0 +1,110 @@
+import { mockHeroReport } from "@/design-system/mock/data";
+
+type ReportData = typeof mockHeroReport;
+
+/**
+ * Notebook-style daily learning report.
+ * The visual parents buy for — calm, readable, reassuring.
+ */
+export function DailyReportPreview({
+  data = mockHeroReport,
+  className = "",
+  compact = false,
+}: {
+  data?: ReportData;
+  className?: string;
+  compact?: boolean;
+}) {
+  return (
+    <article
+      className={`ss-bg-elevated overflow-hidden rounded-[var(--ss-radius-lg)] border border-[var(--ss-border)] shadow-[var(--ss-shadow-card)] ${className}`}
+      aria-label="每日學習報告預覽"
+    >
+      <div
+        className={`border-b border-[var(--ss-border)]/70 ${compact ? "px-5 py-4" : "px-6 py-5"}`}
+      >
+        <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+          Today&apos;s Learning
+        </p>
+        <h3
+          className={`mt-1 font-semibold tracking-tight text-[var(--ss-fg)] ${compact ? "text-lg" : "text-xl"}`}
+          style={{
+            fontFamily:
+              "var(--font-ss-display), var(--font-ss-sans), system-ui",
+          }}
+        >
+          {data.title}
+        </h3>
+        <p className="mt-2 text-sm text-[var(--ss-fg-muted)]">
+          學生{" "}
+          <span className="font-medium text-[var(--ss-fg)]">
+            {data.studentName}
+          </span>
+        </p>
+      </div>
+
+      <div className={`space-y-5 ${compact ? "px-5 py-4" : "px-6 py-5"}`}>
+        <section>
+          <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+            完成
+          </p>
+          <ul className="mt-2.5 space-y-2">
+            {data.completed.map((item) => (
+              <li
+                key={item.label}
+                className="flex items-baseline justify-between gap-3 text-[15px]"
+              >
+                <span className="text-[var(--ss-fg)]">
+                  <span className="mr-2 text-[var(--ss-primary)]" aria-hidden>
+                    ✓
+                  </span>
+                  {item.label}
+                </span>
+                <span className="shrink-0 text-sm text-[var(--ss-fg-muted)]">
+                  {item.detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="border-t border-[var(--ss-border)]/60 pt-4">
+          <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+            觀察
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {data.observations.map((line) => (
+              <li
+                key={line}
+                className="text-[15px] leading-relaxed text-[var(--ss-fg)]"
+              >
+                {line}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="border-t border-[var(--ss-border)]/60 pt-4">
+          <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+            明天
+          </p>
+          <ul className="mt-2.5 space-y-2">
+            {data.tomorrow.map((item) => (
+              <li
+                key={item.subject}
+                className="flex items-baseline justify-between gap-3 text-[15px]"
+              >
+                <span className="text-[var(--ss-fg)]">{item.subject}</span>
+                {item.detail ? (
+                  <span className="shrink-0 text-sm text-[var(--ss-fg-muted)]">
+                    {item.detail}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </article>
+  );
+}

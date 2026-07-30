@@ -11,3 +11,4 @@ export {
 export { SsBottomTab } from "@/design-system/components/SsBottomTab";
 export { SsPageHeader } from "@/design-system/components/SsPageHeader";
 export { SsAppShell } from "@/design-system/components/SsAppShell";
+export { DailyReportPreview } from "@/design-system/components/DailyReportPreview";

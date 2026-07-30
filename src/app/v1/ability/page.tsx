@@ -47,6 +47,12 @@ export default function AbilityMapPage() {
           </li>
         ))}
       </ul>
+
+      <Link href="/v1/dashboard" className="mt-8 block">
+        <SsButton variant="ghost" className="w-full">
+          回到今天
+        </SsButton>
+      </Link>
     </SsAppShell>
   );
 }

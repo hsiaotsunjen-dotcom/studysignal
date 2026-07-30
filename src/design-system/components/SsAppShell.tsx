@@ -11,7 +11,7 @@ export function SsAppShell({
   return (
     <div className="ss-v1 ss-bg mx-auto flex min-h-dvh w-full max-w-lg flex-col">
       <main
-        className={`flex-1 px-[var(--ss-space-4)] pt-[var(--ss-space-6)] sm:px-[var(--ss-space-6)] ${
+        className={`ss-page-enter flex-1 px-[var(--ss-space-4)] pt-[var(--ss-space-6)] sm:px-[var(--ss-space-6)] ${
           showTab ? "pb-28" : "pb-[var(--ss-space-10)]"
         }`}
       >

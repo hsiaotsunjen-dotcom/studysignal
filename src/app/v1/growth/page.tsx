@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import {
   SsAppShell,
+  SsButton,
   SsCard,
   SsPageHeader,
 } from "@/design-system";
@@ -48,6 +51,12 @@ export default function GrowthMapPage() {
           </li>
         ))}
       </ol>
+
+      <Link href="/v1/dashboard" className="mt-8 block">
+        <SsButton variant="ghost" className="w-full">
+          回到今天
+        </SsButton>
+      </Link>
     </SsAppShell>
   );
 }

@@ -1,9 +1,10 @@
 # StudySignal Product Architecture
 
 > 產品架構文件：說明 StudySignal 是什麼、系統如何分層、資料與 AI 職責如何分工。  
+> **長期產品哲學（北極星）：** [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)  
 > UI 細節見 [`UI_DESIGN_V1.md`](./UI_DESIGN_V1.md)。技術／API／資料庫細節可另見 `ARCHITECTURE.md`、`API.md`、`DATABASE.md`。
 
-**版本：** V1  
+**版本：** V1.1  
 **狀態：** Draft — 產品與架構對齊用  
 **對象：** 產品、工程、設計
 
@@ -11,23 +12,38 @@
 
 ## Core Concept
 
-StudySignal 是 **AI Learning Agent**。
+StudySignal 是 **AI Learning Operating System for Families（家庭學習作業系統）**。
 
-它**不是**聊天機器人。
+它**不是** AI Tutor，也**不是**聊天機器人。
 
-| 聊天機器人 | StudySignal AI Learning Agent |
-|------------|-------------------------------|
-| 等使用者發問 | **主動規劃**每日學習 |
+| AI Tutor / Chatbot | StudySignal Learning OS |
+|--------------------|-------------------------|
+| 等使用者發問、給答案 | **持續觀察、發現 Signals、調整計畫** |
 | 對話即產品 | 對話只是學習流程中的一種手段 |
-| 無長期目標結構 | 有 Goals → Flow → Ability → Growth |
-| 難向家長交代 | 有 Parent Center 與報告閉環 |
+| 無長期節奏 | Daily / Weekly / Monthly 三層承諾 |
+| 難向家長交代 | 家長感到「像老師安靜陪伴」，而非讀分析報表 |
+| 賣 AI 能力 | 賣 **Confidence**：理解、進步、知道下一步 |
 
-**一句話：** AI 幫學生決定「今天學什麼、怎麼學、下一步是什麼」，並讓家長看見成長。
+**三位一體：** Students learn. AI analyzes. Parents understand.
+
+**一句話：** AI accompanies every learning session, discovers learning signals, continuously improves learning — and parents always understand the journey.
+
+> StudySignal is where learning becomes visible.
+
+詳見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
+
+### AI 責任節奏（架構對齊）
+
+| 節奏 | AI 產出 |
+|------|---------|
+| Daily | 觀察、弱點／優勢、下一步、調整明日計畫、家長日報 |
+| Weekly | 進度評估、更新 Growth Signals、調整策略 |
+| Monthly | Growth Report、長期比較、成就、下一階段目標 |
 
 ### TODO
-- [ ] 補齊產品原則與反模式（Anti-patterns）清單
-- [ ] 與定位文案／官網敘事對齊
-
+- [ ] Growth Signals 資料模型與自動發現管線
+- [ ] Daily / Weekly / Monthly 報告產物對齊哲學四問（今天／進步／關注／下一步）
+- [ ] 與官網敘事對齊（不賣 AI、賣信心）
 ---
 
 ## Architecture

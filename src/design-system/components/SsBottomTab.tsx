@@ -2,20 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BookOpen,
-  Home,
-  Sparkles,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { BookOpen, Home, Users } from "lucide-react";
 
+/** V0 demo nav — only the core journey surfaces */
 const tabs = [
   { href: "/v1/dashboard", label: "今天", icon: Home },
   { href: "/v1/flow", label: "學習", icon: BookOpen },
-  { href: "/v1/ability", label: "能力", icon: Sparkles },
-  { href: "/v1/growth", label: "成長", icon: TrendingUp },
-  { href: "/v1/parent", label: "我的", icon: Users },
+  { href: "/v1/parent", label: "家長", icon: Users },
 ] as const;
 
 export function SsBottomTab() {
@@ -32,7 +25,9 @@ export function SsBottomTab() {
           const active =
             href === "/v1/dashboard"
               ? pathname === "/v1/dashboard" || pathname.startsWith("/v1/goals")
-              : pathname === href || pathname.startsWith(href);
+              : href === "/v1/parent"
+                ? pathname.startsWith("/v1/parent")
+                : pathname === href || pathname.startsWith(href);
           return (
             <li key={href} className="flex-1">
               <Link

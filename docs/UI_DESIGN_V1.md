@@ -10,22 +10,27 @@
 
 ## 1. Design Philosophy
 
-StudySignal 是 **AI Learning Agent**，不是一般的 AI Chatbot。畫面應傳達「陪伴學習、清晰引導」，而非「無限對話」。
+> 產品北極星：[`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)
+
+StudySignal 是 **AI Learning Operating System for Families**。畫面讓學習變得可見，讓家長安心——不是展示 AI，也不是分析儀表板。
+
+家長應感覺：**有一位經驗豐富的老師，安靜地看著孩子。**
 
 | 原則 | 說明 |
 |------|------|
-| **AI Learning Agent** | UI 強調目標、進度、下一步；聊天只是學習流程中的一種互動，不是產品中心。 |
-| **Mobile First** | 優先設計手機單欄體驗；桌面為加強版，不倒過來做。 |
-| **Simple** | 單屏單一主要任務；減少同屏競爭資訊。 |
-| **Calm** | 低視覺噪音；避免刺眼對比、過度動畫、資訊堆疊。 |
-| **Warm** | 溫暖、友善的色溫與語氣；像老師陪伴，不像冷冰冰工具。 |
-| **Human-centered** | 文案與流程以學生／家長的真實情境為先，不堆技術詞。 |
-| **Learning-focused** | 每個畫面回答：今天學什麼、做到哪、下一步是什麼。 |
+| **Warm · Calm · Minimal · Trustworthy · Hopeful** | 溫暖、平靜、極簡、可信、充滿希望。 |
+| **Reduce anxiety** | 每一個畫面都降低焦慮。禁止壓力、排名、不必要圖表。 |
+| **Four parent questions** | 今天發生什麼？哪裡進步？哪裡需關注？下一步是什麼？ |
+| **Signals ≠ scores** | 呈現有意義的學習訊號，而非分數堆疊。 |
+| **Daily / Weekly / Monthly** | 對齊三個承諾：learned today · improving · growing。 |
+| **Confidence, not AI** | 賣的是信心與理解，不是科技炫耀或代寫。 |
+| **Mobile First** | 優先手機單欄；桌面為加強版。 |
+| **Notebook, not dashboard** | 像 premium learning journal，而非監控中心或遊戲 UI。 |
 
 ### TODO
-- [ ] 補齊「禁止樣式」清單（例如：儀表板風首屏、過度卡片巢狀）
+- [ ] 補齊「禁止樣式」清單（儀表板風、排名、焦慮圖表、過度卡片巢狀）
+- [ ] 家長四問對應到各螢幕資訊架構
 - [ ] 與品牌文案語氣指南對齊
-
 ---
 
 ## 2. Design Language
@@ -260,16 +265,26 @@ V1 元件庫範圍如下。實作時保持同一套圓角、陰影與色 token�
 
 學生端是產品核心。每個畫面都應服務「今日學習」與「長期能力成長」。
 
-### 7.1 Dashboard
+### 7.1 Student Home（Dashboard V2）
 
-**目的：** 一眼看到今天狀態與下一步。
+**情緒順序（比資訊更重要）：**
+1. 溫暖問候  
+2. AI 已準備好今天  
+3. 只有一個明顯下一步  
+4. AI 鼓勵  
+5. 做完今天就結束  
 
-建議區塊：
-- 問候／學生名稱
-- 今日進度（Progress Bar 或 Ring）
-- Today's Goals 摘要卡
-- 快捷入口：繼續學習、拍作業、開口說（依產品階段）
-- AI 一句話建議（藍點綴，短句）
+**感覺：** Apple Health / Apple Journal — 不是 Notion、不是 Trello、不是任務清單。
+
+**視覺：**
+- **唯一主卡**：「今天」— 佔頁面視覺主導
+- 今日路徑以**柔和敘事**呈現（科目與時間），**不要** checklist、狀態標籤、難度徽章、打勾列
+- 單一 CTA：「開始今天」
+- 昨天／今日訊號／明天：頁底**小聲**文字，不用等權重卡片
+
+**禁止：** 多個等權重卡片、任務管理感、讓學生決定「從哪開始」。
+
+學生情緒目標：「我不用想。我只要開始。」
 
 ### 7.2 Today's Goals
 
@@ -280,14 +295,24 @@ V1 元件庫範圍如下。實作時保持同一套圓角、陰影與色 token�
 - 主 CTA：開始／繼續
 - 完成後給溫暖回饋，不製造焦慮
 
-### 7.3 Learning Flow
+### 7.3 Daily Learning Session
 
-**目的：** 實際學習過程（練習、對話、作業回饋等）。
+**目的：** StudySignal 最重要的體驗。不是通用 AI 聊天，而是老師坐在旁邊引導。
 
-- 步驟可見（目前第幾步／共幾步）
-- 主內容區 + 必要時 AI Chat Bubble
-- Camera／Microphone 依任務出現，不常駐干擾
-- 結束時回到 Goals 或成長回饋
+**情緒流程：**
+1. Welcome back  
+2. 一句話說明今日目標  
+3. 一次只引導一小步  
+4. 成功後鼓勵  
+5. 難度自動／溫和調整  
+6. 卡住時簡化，不直接給答案  
+7. 短慶祝  
+8. 產生今日 Learning Signals  
+9. 摘要送到家長中心  
+
+**原則：** AI 帶領；學生只專注當下這一步。平靜、鼓勵、個人化。不堆資訊、不開聊天串。
+
+**UI：** 教師旁白（非 bubble 對話牆）+ 極淡進度 + 單一主行動。可「稍後繼續」回 Student Home。
 
 ### 7.4 Ability Map
 
@@ -345,28 +370,24 @@ V1 元件庫範圍如下。實作時保持同一套圓角、陰影與色 token�
 
 ```mermaid
 flowchart TD
-  Launch[App Launch] --> StudentDash[Student Dashboard]
-  StudentDash --> Goals[Today's Goals]
-  Goals --> Flow[Learning Flow]
-  Flow --> Goals
-  Flow --> StudentDash
-  StudentDash --> Ability[Ability Map]
-  StudentDash --> Growth[Growth Map]
-  StudentDash --> Parent{Parent Center?}
-  Parent -->|Yes| ParentDash[Parent Dashboard]
+  Launch[App Launch] --> StudentHome[Student Home V2]
+  StudentHome -->|開始今日學習| Flow[Learning Flow]
+  Flow --> StudentHome
+  StudentHome --> Ability[Ability Map]
+  StudentHome --> Growth[Growth Map]
+  StudentHome --> ParentChoice{切換家長?}
+  ParentChoice -->|Yes| ParentDash[Parent Center]
+  ParentChoice -->|No| StudentHome
   ParentDash --> Reports[Reports]
   ParentDash --> Email[Email Summary]
-  Reports --> ParentDash
-  Email --> ParentDash
-  ParentDash --> StudentDash
 ```
 
 ### 9.2 學生日常路徑
 
-1. 打開 App → **Dashboard** 看今日狀態  
-2. 進入 **Today's Goals** 選任務  
-3. 進入 **Learning Flow** 完成學習  
-4. 回到 Goals／Dashboard 更新進度  
+1. 打開 App → **Student Home** — 計畫已準備好  
+2. 按 **開始今日學習** → Learning Flow  
+3. 完成後回到 Student Home  
+4. 一眼看到昨天／今日訊號／明天預告 — 不必自己決定下一步
 5. 偶爾查看 **Ability Map**／**Growth Map** 理解成長  
 
 ### 9.3 家長路徑

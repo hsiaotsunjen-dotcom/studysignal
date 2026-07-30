@@ -1,8 +1,9 @@
 # StudySignal 產品規格書
 
-> **最後更新：** 2026-06-29  
-> **相關文件：** [`PROJECT_STATUS.md`](./PROJECT_STATUS.md)、[`ROADMAP.md`](./ROADMAP.md)、[`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`DATABASE.md`](./DATABASE.md)  
-> **文件性質：** 產品願景與功能規格（非技術 API 手冊）
+> **最後更新：** 2026-07-30  
+> **相關文件：** [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)（**長期方向北極星**）、[`PROJECT_STATUS.md`](./PROJECT_STATUS.md)、[`ROADMAP.md`](./ROADMAP.md)、[`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`DATABASE.md`](./DATABASE.md)、[`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md)  
+> **文件性質：** 產品願景與功能規格（非技術 API 手冊）  
+> **優先順序：** 哲學與定位衝突時，以 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) 為準。
 
 ---
 
@@ -16,15 +17,54 @@
 
 ---
 
-## 1. 產品使命
+## 1. 產品使命（摘要）
 
-**讓每一位台灣學生，都能在真實情境中練習英文，並看見自己的學習訊號如何隨時間變清晰。**
+> 完整長期哲學見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
 
-StudySignal 不是「幫你寫完作業」的工具，而是 **AI 英語學習夥伴**：透過對話、口說、圖片與結構化回饋，陪伴學生在課堂之外持續練習，並把進步轉化為可理解、可追蹤的 **Signals（學習訊號）**。
+**StudySignal is where learning becomes visible.**
+
+StudySignal 不是 AI Tutor。  
+StudySignal 是 **AI Learning Operating System for Families（家庭學習作業系統）**。
+
+| 角色 | 一句話 |
+|------|--------|
+| Student | Learns every day. |
+| Parent | Understands progress and growth. |
+| AI | Plans · Guides · Observes · Analyzes · Adjusts · Reports. |
+
+**三個承諾**
+
+| 節奏 | 承諾 |
+|------|------|
+| Daily | Your child learned today. |
+| Weekly | Your child is improving. |
+| Monthly | Your child is growing. |
+
+**我們賣的是信心（Confidence）**——不是 AI、不是代寫。家長離開時應感到：
+
+> 我理解孩子怎麼學。孩子正在進步。我知道下一步。
+
+### Signal 的意義
+
+Signal **不是分數**。Signal 是 AI 持續發現的有意義學習指標（一致性、口說信心、單字成長、薄弱概念、錯後恢復……）。AI 自動發現，家長不必自己分析數據。
+
+### 產品結構
+
+```text
+家長 → 家長帳號 → 學生 → AI（規劃／引導／觀察）→ 每日學習 → 訊號與報告 → 家長中心
+```
 
 | 面向 | 狀態 |
 |------|------|
-| 使命陳述與產品定位 | ✅ 已定義 |
+| 產品哲學北極星 | ✅ [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) |
+| 行銷 Landing（報告預覽在 Hero） | ✅ `/` |
+| 學生首頁 Student Home V2（今日計畫／單一 CTA） | ✅ `/v1/dashboard` |
+| Daily Learning Session（引導式，非聊天） | ✅ `/v1/flow` |
+| **V0 Demo 端到端路徑** | ✅ 見 [`V0_DEMO.md`](./V0_DEMO.md) |
+| 家長帳號 → 學生檔案 → 引導設定 | 🟡 原型流程（localStorage） |
+| 家長中心（旗艦：今日／成長／下一步） | 🟡 UI 原型 |
+| 每日／每週／每月報告節奏 | 🟡 每日預覽；週／月 ⚪ |
+| Growth Signals 自動發現與更新 | ⚪ 未來規劃 |
 | 可對外正式營運的 Production 產品 | ⚪ 未來規劃（V1.0） |
 
 ---
@@ -76,7 +116,9 @@ StudySignal 不是「幫你寫完作業」的工具，而是 **AI 英語學習�
 
 | 回應 | 狀態 |
 |------|------|
-| 家長模式、每日報告 | ⚪ 未來規劃（V1.5） |
+| 家長中心（今日學習／本週／連續／科目／優弱勢／觀察／下一步／日報／月成長） | 🟡 旗艦 UI 原型（`/v1/parent`） |
+| 每日 Email 報告（筆記風格 Premium） | 🟡 預覽（`/v1/parent/email`） |
+| 真實寄送與排程 | ⚪ 未來規劃 |
 
 ### 問題六：補習與 AI 工具淪為「代寫機」
 
@@ -102,11 +144,13 @@ StudySignal 不是「幫你寫完作業」的工具，而是 **AI 英語學習�
 
 ### 訊號可見（Signals Visible）
 
-把學習成果整理成 **可讀、可比較** 的訊號，讓學生（與未來的家長）看見進步軌跡。
+**Signal 不是分數。** Signal 是 AI 發現的有意義學習指標（一致性、信心、薄弱概念、錯後恢復……），持續更新，並自動呈現給家長——家長不必自己分析數據。
+
+詳見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
 
 | 狀態 |
 |------|
-| 🟡 Signals 分頁與分析 JSON 已有；持久化與長期趨勢 ⚪ 未來規劃 |
+| 🟡 既有 Signals 分析 JSON／分頁；Growth Signals、家長敘事化呈現與長期更新 ⚪ 未來規劃 |
 
 ### 行動裝置優先（Mobile First）
 
@@ -142,17 +186,21 @@ StudySignal 不是「幫你寫完作業」的工具，而是 **AI 英語學習�
 
 ---
 
-## 4. AI Tutor 的定位
+## 4. AI Tutor 的定位（能力層，非產品定位）
 
-### 產品定義
+> **產品定位**是 Family Learning OS，見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。  
+> 本節描述學生端既有能力：**對話式引導練習**——是系統的一部分，不是整個產品。
 
-**AI Tutor 是 StudySignal 的英文家教角色**：在 Talk 分頁與學生進行 **英文對話**，協助理解、練習表達、解讀作業圖片，並以 **短句、對話式、結尾追問** 維持互動。
+### 能力定義
+
+**AI Tutor（Talk）是 Learning OS 內的引導練習角色**：在 Talk 分頁與學生進行 **英文對話**，協助理解、練習表達、解讀作業圖片，並以 **短句、對話式、結尾追問** 維持互動。它屬於 AI「Guides」職責，不代表產品等於家教聊天。
 
 ### 不做的事
 
 - 不取代真人教師的班級管理與情感支持。
 - 不主動代寫完整作業答案。
 - 不以中文為預設回覆語言（除非學生明確要求）。
+- **不對外作為品牌主敘事**（我們不賣「AI 家教」）。
 
 ### 功能邊界（產品規格）
 
@@ -163,14 +211,14 @@ StudySignal 不是「幫你寫完作業」的工具，而是 **AI 英語學習�
 | 對話歷史帶入模型 | ✅ 已完成 | 維持上下文 |
 | 幫我找英文 | ✅ 已完成 | **獨立流程**，非 Tutor 對話本體 |
 | 結構化學習分析 | ✅ 已完成 | 由「分析」按鈕 → Signals，非 Tutor 聊天氣泡 |
-| AI 學伴（主動記憶學習目標） | ⚪ 未來規劃 | V1.0 |
-| 多科目 Tutor（國文、數學等） | ⚪ 未來規劃 | V2.0 |
+| 觀察行為／發現 Growth Signals | ⚪ 未來規劃 | Learning OS 核心 |
+| 多科目引導練習 | ⚪ 未來規劃 | V2.0 |
 
 ### 與其他模組的關係
 
 ```
 學生輸入
-    ├── CHAT ──────────────► AI Tutor（對話）
+    ├── CHAT ──────────────► 引導練習（Talk／對話）
     ├── 幫我找英文 ─────────► 翻譯輔助（填 Composer，再可 CHAT）
     └── 分析 ──────────────► Signals（結構化回饋，非聊天）
 ```
