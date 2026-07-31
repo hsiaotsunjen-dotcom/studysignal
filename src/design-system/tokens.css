@@ -1,35 +1,36 @@
 /**
- * StudySignal V1 Design System — CSS tokens
- * Source of truth: docs/UI_DESIGN_V1.md
+ * StudySignal Design System — CSS tokens
+ * Source of truth: docs/DESIGN_SYSTEM.md
  *
- * Visual language: Midori MD / MUJI / Apple Books / warm Notion paper.
- * Goal: premium notebook for long study sessions — not software chrome.
- * Never use pure white (#FFFFFF) for surfaces or on-primary text.
+ * Warm · Minimal · Calm · Premium · Friendly · Trustworthy
+ * Quiet wooden desk in a library — not tech chrome.
+ * Never use pure white (#FFFFFF) for page or card surfaces.
  */
 
 html:has(.ss-v1) {
   color-scheme: light;
 
-  /* Desk paper — warm, dimmed, low glare */
-  --ss-bg: #d9cebc;
-  /* Notebook page — only a step lighter than the desk */
-  --ss-bg-elevated: #e6dccb;
-  /* Warm ink — soft contrast, not pure black */
-  --ss-fg: #3a332c;
-  --ss-fg-muted: #73685c;
-  /* Hairline paper edge — almost melts into the desk */
-  --ss-border: #cbbfae;
+  /* Warm beige desk */
+  --ss-bg: #f8f5ef;
+  /* Soft cream surface */
+  --ss-bg-elevated: #fcfbf8;
+  /* Dark gray ink */
+  --ss-fg: #2b2b2b;
+  --ss-fg-muted: #6b6b6b;
+  /* Soft warm edge — no heavy borders */
+  --ss-border: #e8e2d8;
 
-  /* Brand — green kept; soft fills warmed into the paper */
-  --ss-primary: #2f9e6b;
-  --ss-primary-hover: #278a5c;
-  --ss-primary-soft: #cfe0d3;
-  --ss-on-primary: #f0e9dc;
-  --ss-ai: #4a7eb8;
-  --ss-ai-soft: #d5dde8;
-  --ss-warning: #b8892a;
-  --ss-danger: #a85a4c;
-  --ss-success: #2a8a5c;
+  /* Calm blue primary */
+  --ss-primary: #4f8ef7;
+  --ss-primary-hover: #3e7de8;
+  --ss-primary-soft: #e3edfd;
+  --ss-on-primary: #fcfbf8;
+  /* Companion accent stays in the same calm blue family */
+  --ss-ai: #4f8ef7;
+  --ss-ai-soft: #e8f1fe;
+  --ss-warning: #d4a24c;
+  --ss-danger: #c47a6f;
+  --ss-success: #5ba88a;
 
   --ss-space-1: 0.25rem;
   --ss-space-2: 0.5rem;
@@ -41,16 +42,16 @@ html:has(.ss-v1) {
   --ss-space-10: 2.5rem;
   --ss-space-12: 3rem;
 
+  /* 12 / 16 / 20 / 24px */
   --ss-radius-sm: 0.75rem;
   --ss-radius-md: 1rem;
   --ss-radius-lg: 1.25rem;
   --ss-radius-xl: 1.5rem;
   --ss-radius-full: 9999px;
 
-  /* Almost invisible — page resting on paper, not a floating panel */
-  --ss-shadow-soft: 0 1px 2px rgba(58, 48, 36, 0.04);
-  --ss-shadow-card: 0 1px 2px rgba(58, 48, 36, 0.035),
-    0 1px 3px rgba(58, 48, 36, 0.025);
+  --ss-shadow-soft: 0 1px 2px rgba(43, 43, 43, 0.04);
+  --ss-shadow-card: 0 1px 3px rgba(43, 43, 43, 0.04),
+    0 4px 12px rgba(43, 43, 43, 0.03);
 }
 
 html:has(.ss-v1) body {
@@ -60,21 +61,21 @@ html:has(.ss-v1) body {
 }
 
 .ss-v1 {
-  --ss-bg: #d9cebc;
-  --ss-bg-elevated: #e6dccb;
-  --ss-fg: #3a332c;
-  --ss-fg-muted: #73685c;
-  --ss-border: #cbbfae;
+  --ss-bg: #f8f5ef;
+  --ss-bg-elevated: #fcfbf8;
+  --ss-fg: #2b2b2b;
+  --ss-fg-muted: #6b6b6b;
+  --ss-border: #e8e2d8;
 
-  --ss-primary: #2f9e6b;
-  --ss-primary-hover: #278a5c;
-  --ss-primary-soft: #cfe0d3;
-  --ss-on-primary: #f0e9dc;
-  --ss-ai: #4a7eb8;
-  --ss-ai-soft: #d5dde8;
-  --ss-warning: #b8892a;
-  --ss-danger: #a85a4c;
-  --ss-success: #2a8a5c;
+  --ss-primary: #4f8ef7;
+  --ss-primary-hover: #3e7de8;
+  --ss-primary-soft: #e3edfd;
+  --ss-on-primary: #fcfbf8;
+  --ss-ai: #4f8ef7;
+  --ss-ai-soft: #e8f1fe;
+  --ss-warning: #d4a24c;
+  --ss-danger: #c47a6f;
+  --ss-success: #5ba88a;
 
   --ss-space-1: 0.25rem;
   --ss-space-2: 0.5rem;
@@ -92,18 +93,18 @@ html:has(.ss-v1) body {
   --ss-radius-xl: 1.5rem;
   --ss-radius-full: 9999px;
 
-  --ss-shadow-soft: 0 1px 2px rgba(58, 48, 36, 0.04);
-  --ss-shadow-card: 0 1px 2px rgba(58, 48, 36, 0.035),
-    0 1px 3px rgba(58, 48, 36, 0.025);
+  --ss-shadow-soft: 0 1px 2px rgba(43, 43, 43, 0.04);
+  --ss-shadow-card: 0 1px 3px rgba(43, 43, 43, 0.04),
+    0 4px 12px rgba(43, 43, 43, 0.03);
 
   color-scheme: light;
   background-color: var(--ss-bg);
-  /* Quiet desk light — no bright wash */
+  /* Quiet warm wash — not a tech gradient */
   background-image: linear-gradient(
-    165deg,
-    #e0d4c2 0%,
-    var(--ss-bg) 42%,
-    #d2c5b0 100%
+    180deg,
+    #faf7f1 0%,
+    var(--ss-bg) 48%,
+    #f3efe6 100%
   );
   background-attachment: fixed;
   color: var(--ss-fg);

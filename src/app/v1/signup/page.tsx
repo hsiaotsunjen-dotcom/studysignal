@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import {
   SsAppShell,
@@ -11,8 +11,16 @@ import {
   SsInput,
   SsPageHeader,
 } from "@/design-system";
-import { saveParentAccount } from "@/lib/parentSession";
+import {
+  getAuthSession,
+  pathForOnboardingStep,
+  signUp,
+} from "@/lib/authClient";
 
+/**
+ * PRD-001 Signup — POST /api/auth/signup only.
+ * Validation messages come from the backend; no client-side rule duplicates.
+ */
 export default function ParentSignupPage() {
   const router = useRouter();
   const [parentName, setParentName] = useState("");
@@ -20,53 +28,66 @@ export default function ParentSignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  function onSubmit(e: FormEvent) {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const session = await getAuthSession();
+        if (cancelled) return;
+        if (session) {
+          router.replace(pathForOnboardingStep(session.onboardingStep));
+          return;
+        }
+      } catch {
+        // Stay on signup if session check fails.
+      } finally {
+        if (!cancelled) setChecking(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const name = parentName.trim();
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (!name) {
-      setError("請輸入家長姓名");
-      return;
+    if (submitting) return;
+    setError("");
+    setSubmitting(true);
+    try {
+      const session = await signUp({
+        parentName,
+        email,
+        password,
+        confirmPassword,
+      });
+      router.push(pathForOnboardingStep(session.onboardingStep));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "無法建立帳號，請稍后再試。");
+      setSubmitting(false);
     }
-    if (!trimmedEmail || !trimmedEmail.includes("@")) {
-      setError("請輸入有效的家長 Email");
-      return;
-    }
-    if (password.length < 6) {
-      setError("密碼至少需要 6 個字元");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("兩次輸入的密碼不一致");
-      return;
-    }
-
-    saveParentAccount({
-      parentName: name,
-      parentEmail: trimmedEmail,
-      password,
-    });
-    router.push("/v1/student/new");
   }
 
   return (
     <SsAppShell showTab={false}>
       <SsPageHeader
         title="建立家長帳號"
-        subtitle="家長帳號是主要帳號。建立後再為孩子建立學生檔案——您每天都會知道孩子學了什麼。"
+        subtitle="家長帳號是家庭的主要帳號。建立後我們會請你確認信箱，再一起邀請孩子。"
         backHref="/"
       />
 
       <SsCard>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
               家長姓名
             </span>
             <SsInput
               type="text"
+              name="parentName"
               autoComplete="name"
               placeholder="例如：王媽媽"
               value={parentName}
@@ -74,7 +95,7 @@ export default function ParentSignupPage() {
                 setParentName(e.target.value);
                 setError("");
               }}
-              required
+              disabled={checking || submitting}
               autoFocus
             />
           </label>
@@ -84,6 +105,7 @@ export default function ParentSignupPage() {
             </span>
             <SsInput
               type="email"
+              name="email"
               autoComplete="email"
               placeholder="parent@email.com"
               value={email}
@@ -91,7 +113,7 @@ export default function ParentSignupPage() {
                 setEmail(e.target.value);
                 setError("");
               }}
-              required
+              disabled={checking || submitting}
             />
           </label>
           <label className="block">
@@ -100,15 +122,15 @@ export default function ParentSignupPage() {
             </span>
             <SsInput
               type="password"
+              name="password"
               autoComplete="new-password"
-              placeholder="至少 6 個字元"
+              placeholder="設定一組密碼"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 setError("");
               }}
-              required
-              minLength={6}
+              disabled={checking || submitting}
             />
           </label>
           <label className="block">
@@ -117,6 +139,7 @@ export default function ParentSignupPage() {
             </span>
             <SsInput
               type="password"
+              name="confirmPassword"
               autoComplete="new-password"
               placeholder="再輸入一次密碼"
               value={confirmPassword}
@@ -124,22 +147,23 @@ export default function ParentSignupPage() {
                 setConfirmPassword(e.target.value);
                 setError("");
               }}
-              required
-              minLength={6}
+              disabled={checking || submitting}
             />
           </label>
           {error ? (
-            <p className="text-sm text-[var(--ss-danger)]">{error}</p>
+            <p className="text-sm text-[var(--ss-danger)]" role="alert">
+              {error}
+            </p>
           ) : null}
-          <SsButton type="submit" className="w-full">
-            建立帳號並繼續
+          <SsButton
+            type="submit"
+            className="w-full"
+            disabled={checking || submitting}
+          >
+            {submitting ? "建立中…" : "建立帳號並繼續"}
           </SsButton>
         </form>
       </SsCard>
-
-      <p className="mt-4 text-center text-xs leading-relaxed text-[var(--ss-fg-muted)]">
-        V0 示範：帳號僅保存在此裝置的 localStorage，尚未連接真實登入服務。
-      </p>
 
       <p className="mt-4 text-center text-sm text-[var(--ss-fg-muted)]">
         已有帳號？{" "}
