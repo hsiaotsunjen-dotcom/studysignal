@@ -23,6 +23,9 @@
 *.pem
 /certificates/
 
+# local auth / domain persistence (PRD-001)
+/.data/
+
 # debug artifacts (Q1 handwriting investigation)
 /debug/
 yarn-debug.log*
