@@ -1,7 +1,7 @@
 # StudySignal API
 
 > **最後更新：** 2026-06-29  
-> **相關文件：** [`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`ROADMAP.md`](./ROADMAP.md)、[`開發環境安裝手冊.md`](./開發環境安裝手冊.md)  
+> **相關文件：** [`ARCHITECTURE.md`](./ARCHITECTURE.md)（系統架構來源真理）、[`ROADMAP.md`](./ROADMAP.md)、[`開發環境安裝手冊.md`](./開發環境安裝手冊.md)
 > **文件性質：** API 契約與架構說明（非 OpenAPI 自動產生檔）
 
 ---

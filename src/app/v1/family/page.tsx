@@ -87,9 +87,9 @@ export default function CreateFamilyPage() {
       />
 
       <SsCard>
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={onSubmit} className="space-y-5" noValidate>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               家庭名稱
             </span>
             <SsInput

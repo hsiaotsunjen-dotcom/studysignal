@@ -17,60 +17,63 @@ export type PlanTaskStatus = "todo" | "doing" | "done";
 export const mockStudentHome = {
   greeting: "早安",
   streakDays: 5,
-  todayMinutesPlanned: 38,
-  planReadyCopy: "今天的學習，我已經幫你準備好了。",
-  /** Soft companion line — encouragement, not a tip stack */
-  companionLine: "你只要跟著開始就好。做完今天，就可以休息了。",
-  /** Today’s path — shown as a calm sequence, not a checklist */
+  todayMinutesPlanned: 35,
+  /** Hero — journal opening, not a dashboard */
+  planReadyCopy: "今天的學習，\n我已經替你準備好了。",
+  heroSupport: "完成今天，\n就是今天最大的進步。",
+  companionLine: "慢慢來就好。我一直在。",
+  /** Today’s journey first — not percentages */
   todayPath: [
-    { title: "英語口說", detail: "約 8 分鐘" },
-    { title: "數學複習", detail: "約 10 分鐘" },
-    { title: "單字", detail: "15 個" },
-    { title: "自然", detail: "約 5 分鐘" },
+    { emoji: "🎤", title: "英文口說", detail: "8分鐘" },
+    { emoji: "📖", title: "閱讀", detail: "10分鐘" },
+    { emoji: "🧮", title: "數學", detail: "12分鐘" },
+    { emoji: "🌱", title: "複習", detail: "5分鐘" },
   ],
-  /** Kept for progress logic; not shown as task statuses */
   tasks: [
     {
       id: "t1",
-      title: "英語口說",
-      detail: "8 分鐘",
+      title: "英文口說",
+      detail: "8分鐘",
       difficulty: "適中" as PlanDifficulty,
-      status: "done" as PlanTaskStatus,
+      status: "todo" as PlanTaskStatus,
     },
     {
       id: "t2",
-      title: "數學複習",
-      detail: "10 分鐘",
-      difficulty: "挑戰" as PlanDifficulty,
-      status: "doing" as PlanTaskStatus,
+      title: "閱讀",
+      detail: "10分鐘",
+      difficulty: "適中" as PlanDifficulty,
+      status: "todo" as PlanTaskStatus,
     },
     {
       id: "t3",
-      title: "單字",
-      detail: "15 個",
-      difficulty: "輕鬆" as PlanDifficulty,
+      title: "數學",
+      detail: "12分鐘",
+      difficulty: "挑戰" as PlanDifficulty,
       status: "todo" as PlanTaskStatus,
     },
     {
       id: "t4",
-      title: "自然",
-      detail: "5 分鐘",
+      title: "複習",
+      detail: "5分鐘",
       difficulty: "輕鬆" as PlanDifficulty,
       status: "todo" as PlanTaskStatus,
     },
   ],
   yesterday: {
-    subjects: ["英語口說", "作業檢查"],
+    subjects: ["英文口說", "閱讀"],
     minutes: 28,
-    encouragement: "昨天很專心，完整句說得更自然了。",
+    encouragement: "昨天進步很多，今天我們再往前一步。",
   },
-  /** Prefer a single warm insight on the home surface */
-  todaySignal: "你的發音越來越清楚了。",
+  todaySignal: "昨天進步很多，今天我們再往前一步。",
   todaySignals: [
-    "你的發音越來越清楚了。",
-    "分數還需要多一點練習，今天會慢慢帶你。",
+    "昨天進步很多，今天我們再往前一步。",
+    "今天先完成閱讀，之後再挑戰口說吧。",
   ],
-  tomorrowPreview: ["英語對話", "閱讀", "作業複習"],
+  tomorrowPreview: ["英文對話", "閱讀", "溫和複習"],
+  successMoment: {
+    title: "太棒了！",
+    body: "今天的旅程完成了。\n好好休息，\n明天我們再一起努力。",
+  },
 };
 
 /** @deprecated Prefer mockStudentHome — kept for goals page */
@@ -79,7 +82,7 @@ export const mockDashboard = {
   completedGoals: 2,
   totalGoals: 4,
   focusSubject: "英語口說",
-  aiTip: "昨天的發音練習很棒。今天可以挑戰更自然的完整句子。",
+  aiTip: "昨天進步很多，今天我們再往前一步。",
 };
 
 export type GoalStatus = "todo" | "doing" | "done";
@@ -160,7 +163,7 @@ export const mockDailySession = {
   focus: "英語口說",
   fromPlan: "今天的學習計畫 · 英語口說",
   goalSentence: "今天我們一起把一句英文說得更清楚、更完整。",
-  welcomeLine: "歡迎回來。我已經準備好今天的練習了。",
+  welcomeLine: "歡迎回來。今天的練習，我已經替你準備好了。",
   steps: [
     {
       id: "step1",
@@ -181,16 +184,17 @@ export const mockDailySession = {
       sampleResponse: "This afternoon, the boy is flying a kite in the park.",
     },
   ],
-  celebrateLine: "今天這一段，你完成得很溫柔、也很專心。",
+  celebrateLine:
+    "太棒了！今天的旅程完成了。好好休息，明天我們再一起努力。",
   signals: [
-    "口說完整度提升：能說出含時間的完整句。",
-    "遇到困難時願意放慢重來，恢復力不錯。",
+    "今天比剛開始更自然了。這就是進步。",
+    "剛剛遇到一點難的時候，你願意慢慢重來——很好的嘗試。",
   ],
   parentSummary: {
-    happened: "完成英語口說引導練習，說出含時間的完整句子。",
-    improved: "發音更清楚，句子結構更完整。",
-    attention: "較長句仍需多一點時間組織，明天會溫和複習。",
-    next: "明天：短對話練習 + 溫和複習今天的句型。",
+    happened: "今天一起完成了英文口說練習，說出含時間的完整句子。",
+    improved: "今天的專注力很好，句子也比昨天更完整。",
+    attention: "接下來可以多練習把想法慢慢組成較長句。",
+    next: "明天我們先做一小段對話，再輕輕複習今天的句型。",
   },
 };
 
@@ -207,25 +211,25 @@ export const mockGrowth = [
     id: "m1",
     date: "本週",
     title: "連續練習 4 天",
-    detail: "口說任務完成率提升",
+    detail: "口說比上週更自然了",
   },
   {
     id: "m2",
     date: "上週",
     title: "第一次獨立完成聽力小測",
-    detail: "答對 5 / 6 題",
+    detail: "大部分題目都穩穩完成了",
   },
   {
     id: "m3",
     date: "兩週前",
     title: "過去式單元啟動",
-    detail: "從認句子開始建立安全感",
+    detail: "從認句子開始，一步一步建立安全感",
   },
 ];
 
 /** Hero / notebook daily report — what parents buy for */
 export const mockHeroReport = {
-  title: "今日學習",
+  title: "今日學習日記",
   studentName: "小宇",
   completed: [
     { label: "英語口說", detail: "15 分鐘" },
@@ -233,8 +237,8 @@ export const mockHeroReport = {
     { label: "單字", detail: "34 個" },
   ],
   observations: [
-    "口說信心明顯提升。",
-    "分數運算還需要多練習。",
+    "今天的口說比昨天更自然了。",
+    "接下來可以多練習分數，我們一起慢慢來。",
   ],
   tomorrow: [
     { subject: "英語", detail: "10 分鐘" },
@@ -257,13 +261,14 @@ export const mockParent = {
     { subject: "數學", progress: 0.54, note: "分數單元進行中" },
     { subject: "單字", progress: 0.68, note: "本週新增 34 字" },
   ],
-  strengths: ["口說句子越來越完整", "願意主動重說一次"],
-  weaknesses: ["分數運算仍需提醒", "長句時容易停頓"],
+  strengths: ["口說句子比以前更完整", "願意主動再試一次"],
+  weaknesses: ["分數還可以再多一點練習", "長句時可以慢慢想再開口"],
   aiObservations: [
-    "今天練習時專注度不錯，中途只短暫離開一次。",
-    "看圖說句子已能穩定說出完整句，可開始加上時間與地點。",
+    "今天的專注力很好。",
+    "看圖說句子已經能穩穩說出完整句；接下來可以試著加上時間與地點。",
   ],
-  recommendedNextStep: "明天先花 10 分鐘複習分數，再做一段短口說。",
+  recommendedNextStep:
+    "我建議明天我們先輕輕複習分數約 10 分鐘，再一起做一小段口說。",
   tomorrowRecommendations: [
     "分數短練習 10 分鐘",
     "口說：用昨天學的單字描述日常",
@@ -274,15 +279,15 @@ export const mockParent = {
     { id: "e3", date: "週二", preview: "連續第 3 天完成口說練習" },
   ],
   monthlyGrowth: [
-    { label: "本月活躍天數", value: "18 天" },
-    { label: "完成學習時長", value: "6.4 小時" },
-    { label: "最明顯進步", value: "口說完整度" },
+    { label: "本月一起學習", value: "18 天" },
+    { label: "累積學習時光", value: "6.4 小時" },
+    { label: "最明顯進步", value: "口說更完整了" },
   ],
   highlights: [
-    "主動完成看圖說句子，句子完整度提高",
-    "聽力小測穩定在 80% 以上",
+    "主動完成看圖說句子，句子比以前更完整",
+    "聽力小測越來越穩了",
   ],
-  watchouts: ["文法練習偶有跳過，建議本週補一次短練習"],
+  watchouts: ["文法練習這週可以再補一小段，我們一起慢慢來"],
   emailOn: true,
   emailFrequency: "每日晚上",
 };
@@ -303,8 +308,8 @@ export const mockDailyEmail = {
   vocabularyLearned: ["kite", "park", "afternoon"],
   studyDurationMinutes: 28,
   observations: [
-    "口說信心明顯提升。",
-    "分數運算還需要多練習。",
+    "今天的口說比昨天更自然了。",
+    "接下來可以多練習分數，我們一起慢慢來。",
   ],
   tomorrowPlan: [
     { subject: "英語", detail: "10 分鐘" },

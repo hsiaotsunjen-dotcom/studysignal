@@ -1,7 +1,7 @@
 # StudySignal 資料模型規劃
 
 > **最後更新：** 2026-06-29  
-> **相關文件：** [`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`API.md`](./API.md)、[`ROADMAP.md`](./ROADMAP.md)  
+> **相關文件：** [`ARCHITECTURE.md`](./ARCHITECTURE.md)（系統架構來源真理）、[`API.md`](./API.md)、[`ROADMAP.md`](./ROADMAP.md)
 > **文件性質：** 資料庫／持久化層規劃（非現有 ORM schema）
 
 ---

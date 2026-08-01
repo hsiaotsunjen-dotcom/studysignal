@@ -1,8 +1,9 @@
 # StudySignal Product Architecture
 
 > 產品架構文件：說明 StudySignal 是什麼、系統如何分層、資料與 AI 職責如何分工。  
-> **長期產品哲學（北極星）：** [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)  
-> UI 細節見 [`UI_DESIGN_V1.md`](./UI_DESIGN_V1.md)。技術／API／資料庫細節可另見 `ARCHITECTURE.md`、`API.md`、`DATABASE.md`。
+> **產品來源真理（北極星）：** [`PRODUCT.md`](./PRODUCT.md)  
+> **系統架構來源真理：** [`ARCHITECTURE.md`](./ARCHITECTURE.md)  
+> UI 細節見 [`UI_DESIGN_V1.md`](./UI_DESIGN_V1.md)、[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)。技術／API／資料庫細節可另見 `API.md`、`DATABASE.md`。
 
 **版本：** V1.1  
 **狀態：** Draft — 產品與架構對齊用  
@@ -30,7 +31,7 @@ StudySignal 是 **AI Learning Operating System for Families（家庭學習作業
 
 > StudySignal is where learning becomes visible.
 
-詳見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
+詳見 [`PRODUCT.md`](./PRODUCT.md)。
 
 ### AI 責任節奏（架構對齊）
 
@@ -277,8 +278,8 @@ flowchart LR
 | 文件 | 用途 |
 |------|------|
 | [`UI_DESIGN_V1.md`](./UI_DESIGN_V1.md) | UI 設計規格 |
-| [`PRODUCT.md`](./PRODUCT.md) | 既有產品說明（需逐步與本文對齊） |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | 技術架構 |
+| [`PRODUCT.md`](./PRODUCT.md) | 產品來源真理 |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | 系統架構來源真理（產品視角） |
 | [`ROADMAP.md`](./ROADMAP.md) | 路線圖 |
 | [`DATABASE.md`](./DATABASE.md) | 資料庫規劃 |
 | [`API.md`](./API.md) | API 說明 |

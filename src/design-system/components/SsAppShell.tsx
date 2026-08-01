@@ -1,6 +1,10 @@
 import { SsBottomTab } from "@/design-system/components/SsBottomTab";
 import type { ReactNode } from "react";
 
+/**
+ * Page shell inside the root phone frame (max-w-lg).
+ * Do not add another max-w-lg or AtmosphereProvider here.
+ */
 export function SsAppShell({
   children,
   showTab = true,
@@ -9,10 +13,10 @@ export function SsAppShell({
   showTab?: boolean;
 }) {
   return (
-    <div className="ss-v1 ss-bg mx-auto flex min-h-dvh w-full max-w-lg flex-col">
+    <div className="relative flex min-h-dvh w-full flex-col">
       <main
-        className={`ss-page-enter flex-1 px-[var(--ss-space-4)] pt-[var(--ss-space-6)] sm:px-[var(--ss-space-6)] ${
-          showTab ? "pb-28" : "pb-[var(--ss-space-10)]"
+        className={`ss-page-enter flex-1 px-[1.35rem] pt-[3.75rem] sm:px-8 ${
+          showTab ? "pb-[7.5rem]" : "pb-[var(--ss-space-12)]"
         }`}
       >
         {children}

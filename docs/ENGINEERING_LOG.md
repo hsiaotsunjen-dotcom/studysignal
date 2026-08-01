@@ -149,6 +149,42 @@ Each entry includes: **ID**, **Date**, **Decision**, **Reason**, **Status** (`Ac
 
 ---
 
+### DEC-011
+
+| Field | Value |
+|-------|--------|
+| **ID** | DEC-011 |
+| **Date** | 2026-08-01 |
+| **Decision** | Replace Theme System with Study Atmospheres (`AtmosphereProvider`, `data-atmosphere`, `studysignal.atmosphere`). Four atmospheres ship first (Warm Paper, Night Study, Forest Focus, Ocean Calm); picker replaces binary toggle; new atmospheres are registry + token block only. |
+| **Reason** | Atmospheres are emotional learning environments, not light/dark themes; architecture must stay future-ready without component churn. |
+| **Status** | Active |
+
+---
+
+### DEC-012
+
+| Field | Value |
+|-------|--------|
+| **ID** | DEC-012 |
+| **Date** | 2026-08-01 |
+| **Decision** | Brand Experience (PRD-011): UI voice is companion/journal — never dashboard/KPI language. Hero opens with prepared-today copy; CTAs use「開始今天的旅程」; system words map to emotional microcopy (Progress→今天完成了, Recommendation→AI 建議). |
+| **Reason** | Students should feel “I want to study”; parents should feel “my child is accompanied.” Visual/emotion only — no new product functionality. |
+| **Status** | Active |
+
+---
+
+### DEC-013
+
+| Field | Value |
+|-------|--------|
+| **ID** | DEC-013 |
+| **Date** | 2026-08-01 |
+| **Decision** | Brand Voice Constitution (`docs/BRAND_VOICE.md`) is canonical for all student/parent/AI copy. Progress UI uses journey phrases (never “73%”); atmospheres carry `voiceMood` + `voiceLine` (Rule 9). |
+| **Reason** | StudySignal is an AI learning companion — every word must teach, encourage, guide, and never judge. |
+| **Status** | Active |
+
+---
+
 # Role Completions
 
 Record when an AI_TEAM role finishes its scoped work for a PRD task.  

@@ -11,8 +11,8 @@ export function SsCard({
 }) {
   return (
     <div
-      className={`ss-bg-elevated rounded-[var(--ss-radius-lg)] border border-[var(--ss-border)]/70 shadow-[var(--ss-shadow-card)] ${
-        padding ? "p-[var(--ss-space-5)] sm:p-[var(--ss-space-6)]" : ""
+      className={`ss-card ss-card-lift rounded-[var(--ss-radius-xl)] border border-[var(--ss-border)]/45 shadow-[var(--ss-shadow-card)] ${
+        padding ? "px-6 py-7 sm:px-8 sm:py-8" : ""
       } ${className}`}
       {...props}
     >

@@ -1,0 +1,5 @@
+/**
+ * Apply stored atmosphere before React hydrates — prevents flash + keeps
+ * selection across hard navigations. Keep in sync with atmospheres.ts.
+ */
+export const atmosphereInitScript = `(function(){try{var k='studysignal.atmosphere';var legacy='studysignal.theme';var ids=['warm-paper','night-study','forest-focus','ocean-calm'];var t=localStorage.getItem(k);if(ids.indexOf(t)<0){t=localStorage.getItem(legacy);}if(ids.indexOf(t)<0)t='warm-paper';var root=document.documentElement;root.setAttribute('data-atmosphere',t);root.setAttribute('data-theme',t);root.style.colorScheme=t==='night-study'?'dark':'light';var colors={'warm-paper':'#F6F1E8','night-study':'#181715','forest-focus':'#EEF5EE','ocean-calm':'#EDF7FA'};var meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',colors[t]||colors['warm-paper']);}catch(e){document.documentElement.setAttribute('data-atmosphere','warm-paper');document.documentElement.setAttribute('data-theme','warm-paper');}})();`;

@@ -1,61 +1,55 @@
 # StudySignal UI Design V1
 
-> 第一版 UI 設計規格。所有前端畫面、元件與互動應以此文件為準，變更時請先更新本文件再改程式。
+> 第一版 UI 設計規格。視覺系統以 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) 為準。  
+> 產品哲學：[`PRODUCT.md`](./PRODUCT.md)
 
-**版本：** V1  
-**狀態：** Draft — 可作為開發依據，細節可持續補充  
+**版本：** V1.1  
+**狀態：** Active — Design System 已落地 tokens  
 **對象：** 產品、設計、前端
 
 ---
 
 ## 1. Design Philosophy
 
-> 產品北極星：[`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)
+> 完整視覺規範見 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)。
 
-StudySignal 是 **AI Learning Operating System for Families**。畫面讓學習變得可見，讓家長安心——不是展示 AI，也不是分析儀表板。
-
-家長應感覺：**有一位經驗豐富的老師，安靜地看著孩子。**
+StudySignal 幫助學生**獨立思考**，而不是直接給答案。畫面應像耐心的 AI 學伴、安靜圖書館裡乾淨的木桌——介面退到後方，讓學生專注學習。
 
 | 原則 | 說明 |
 |------|------|
-| **Warm · Calm · Minimal · Trustworthy · Hopeful** | 溫暖、平靜、極簡、可信、充滿希望。 |
-| **Reduce anxiety** | 每一個畫面都降低焦慮。禁止壓力、排名、不必要圖表。 |
-| **Four parent questions** | 今天發生什麼？哪裡進步？哪裡需關注？下一步是什麼？ |
-| **Signals ≠ scores** | 呈現有意義的學習訊號，而非分數堆疊。 |
-| **Daily / Weekly / Monthly** | 對齊三個承諾：learned today · improving · growing。 |
-| **Confidence, not AI** | 賣的是信心與理解，不是科技炫耀或代寫。 |
-| **Mobile First** | 優先手機單欄；桌面為加強版。 |
-| **Notebook, not dashboard** | 像 premium learning journal，而非監控中心或遊戲 UI。 |
+| **Warm · Minimal · Calm · Premium · Friendly · Trustworthy** | 整體風格六字。 |
+| **Simplicity over decoration** | 設計決策永遠選簡單，不選裝飾。 |
+| **Every element has a purpose** | 不改善學習的元素就刪除。 |
+| **Reduce stress, increase focus** | 每一個畫面降低焦慮。 |
+| **Mobile First** | 手機優先；桌面只是放大版。 |
+| **Students: want to keep learning** | 情感目標。 |
+| **Parents: can trust this AI** | 情感目標。 |
 
-### TODO
-- [ ] 補齊「禁止樣式」清單（儀表板風、排名、焦慮圖表、過度卡片巢狀）
-- [ ] 家長四問對應到各螢幕資訊架構
-- [ ] 與品牌文案語氣指南對齊
+### 禁止
+
+- 科技產品感、遊戲 UI、賽博龐克、霓虹、玻璃擬態  
+- 純白背景、冰冷技術感、複雜資訊牆  
+
 ---
 
 ## 2. Design Language
 
-視覺語言定位：**Modern Minimal + Warm Learning**。
+視覺語言定位：**Warm Minimal Education**（見 Design System）。
 
 | 元素 | 規範 |
 |------|------|
-| 背景 | 米白色（暖中性底），避免純白刺眼與深色預設主題 |
-| 主色 | 綠色 — 成長、安心、完成感 |
-| AI 點綴 | 少量藍色 — 僅用於 AI／Agent 相關提示與圖示 |
-| 留白 | 大留白；區塊之間呼吸感優先於資訊密度 |
-| 結構 | Card-based：內容以卡片承載，一卡一事 |
-| 圓角 | Rounded Corner — 友善、可親近 |
-| 陰影 | Soft Shadow — 輕量層級，不用厚重多層陰影 |
-| 整體 | Modern Minimal — 少邊框、少裝飾線、少徽章堆疊 |
+| 背景 | Warm beige `#F8F5EF` |
+| 表面 | Soft cream `#FCFBF8` |
+| 主色 | Calm blue `#4F8EF7` |
+| 文字 | Dark gray `#2B2B2B` |
+| 留白 | 大留白；呼吸感優先於密度 |
+| 圓角 | 16–20px |
+| 陰影 | Soft subtle only |
+| 邊框 | 輕或無；禁止厚重邊框 |
 
-### 氛圍參考（文字描述）
+### 氛圍
 
-- 像安靜的書桌與溫暖的檯燈，而不是監控中心。
-- 進度可見但不焦慮；AI 出現時是「引導」，不是「接管整個螢幕」。
-
-### TODO
-- [ ] 產出 Figma / 設計稿連結
-- [ ] 補桌面與手機關鍵畫面 mock 清單
+像坐在安靜圖書館的乾淨木桌前——不是監控中心，不是科技展台。
 
 ---
 
@@ -99,41 +93,24 @@ StudySignal 是 **AI Learning Operating System for Families**。畫面讓學習�
 
 ## 4. Color System
 
-以 **米白底 + 綠主色 + 藍 AI 點綴** 建立語意色。以下為 V1 建議 token（實作時轉為 CSS variables）。
+> 完整色票見 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)。實作：`src/design-system/tokens.css`。
 
-### 基礎色
-
-| Token | 建議方向 | 用途 |
-|-------|----------|------|
-| `--color-bg` | 米白 / 暖灰白 | 頁面背景 |
-| `--color-bg-elevated` | 近白卡片面 | Card、Modal 表面 |
-| `--color-fg` | 深暖灰（非純黑） | 主要文字 |
-| `--color-fg-muted` | 中灰 | 次要文字 |
-| `--color-border` | 低對比暖灰邊 | 分隔、輸入框 |
-
-### 品牌與語意
-
-| Token | 色相 | 用途 |
-|-------|------|------|
-| `--color-primary` | 綠 | 主 CTA、進度完成、成功 |
-| `--color-primary-soft` | 淺綠底 | Chip、輕量強調區 |
-| `--color-ai` | 藍 | AI 氣泡邊、Agent 圖示、AI 提示 |
-| `--color-ai-soft` | 淡藍底 | AI 相關背景帶 |
-| `--color-warning` | 柔和琥珀 | 提醒（非錯誤） |
-| `--color-danger` | 柔和紅 | 錯誤、破壞性操作 |
-| `--color-success` | 與 primary 同系或更深綠 | 完成狀態 |
+| Token | Hex | 用途 |
+|-------|-----|------|
+| `--ss-bg` | `#F8F5EF` | 頁面背景 |
+| `--ss-bg-elevated` | `#FCFBF8` | Card / Surface |
+| `--ss-primary` | `#4F8EF7` | 主 CTA、焦點 |
+| `--ss-fg` | `#2B2B2B` | 主要文字 |
+| `--ss-success` | Soft green | 完成 |
+| `--ss-warning` | Soft amber | 提醒 |
+| `--ss-danger` | Muted red | 錯誤 |
 
 ### 使用規則
 
-1. **綠色**承載「學習進度／完成／行動」。
-2. **藍色**僅標示「這是 AI／Agent」；不要整頁藍。
-3. 背景保持米白；深色模式 **V1 不做**（TODO）。
-4. 避免高飽和紫系預設主題與霓虹光暈。
-
-### TODO
-- [ ] 寫死 hex／oklch 色票表
-- [ ] WCAG AA 對比驗證（文字／按鈕）
-- [ ] 家長報告列印／Email 安全色
+1. **Calm blue** 承載主要行動與陪伴感。  
+2. **Success green** 只表示完成／成長，不當整頁主題。  
+3. 背景保持暖米色；**禁止純白**。  
+4. 禁止霓虹、玻璃擬態、高飽和賽博色。
 
 ---
 

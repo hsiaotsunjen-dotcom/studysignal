@@ -68,24 +68,30 @@ export default function SignupSuccessPage() {
             {error}
           </p>
         ) : (
-          <ul className="space-y-3 text-sm leading-relaxed text-[var(--ss-fg)]">
+          <ul className="space-y-5 text-[15px] text-[var(--ss-fg)]">
             <li>
-              <span className="text-[var(--ss-fg-muted)]">家長帳號</span>
-              <p className="mt-0.5 font-medium">
+              <span className="text-[13px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+                家長帳號
+              </span>
+              <p className="mt-1 font-semibold tracking-tight">
                 {checking
                   ? "讀取中…"
                   : session?.parent.displayName || session?.parent.email}
               </p>
             </li>
             <li>
-              <span className="text-[var(--ss-fg-muted)]">家庭</span>
-              <p className="mt-0.5 font-medium">
+              <span className="text-[13px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+                家庭
+              </span>
+              <p className="mt-1 font-semibold tracking-tight">
                 {checking ? "讀取中…" : session?.family?.name ?? "—"}
               </p>
             </li>
             <li>
-              <span className="text-[var(--ss-fg-muted)]">已邀請的孩子</span>
-              <p className="mt-0.5 font-medium">
+              <span className="text-[13px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+                已邀請的孩子
+              </span>
+              <p className="mt-1 font-semibold tracking-tight">
                 {checking
                   ? "讀取中…"
                   : session?.student
@@ -99,7 +105,7 @@ export default function SignupSuccessPage() {
         )}
 
         <SsButton
-          className="mt-6 w-full"
+          className="mt-8 w-full"
           disabled={checking}
           onClick={() => router.push("/")}
         >

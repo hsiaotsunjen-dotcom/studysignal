@@ -9,10 +9,10 @@ export function SsCameraButton({
     <button
       type="button"
       aria-label="拍作業"
-      className={`inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--ss-primary)] text-[var(--ss-on-primary)] shadow-[var(--ss-shadow-soft)] transition active:scale-95 touch-manipulation ${className}`}
+      className={`inline-flex h-[3.5rem] w-[3.5rem] items-center justify-center rounded-full bg-[var(--ss-primary)] text-[var(--ss-on-primary)] shadow-[var(--ss-shadow-soft)] transition duration-200 ease-out active:scale-[0.97] touch-manipulation ${className}`}
       {...props}
     >
-      <Camera className="h-6 w-6" strokeWidth={2} />
+      <Camera className="h-[22px] w-[22px]" strokeWidth={1.85} />
     </button>
   );
 }
@@ -26,14 +26,14 @@ export function SsMicButton({
     <button
       type="button"
       aria-label={active ? "停止錄音" : "開始說話"}
-      className={`inline-flex h-14 w-14 items-center justify-center rounded-full shadow-[var(--ss-shadow-soft)] transition active:scale-95 touch-manipulation ${
+      className={`inline-flex h-[3.5rem] w-[3.5rem] items-center justify-center rounded-full shadow-[var(--ss-shadow-soft)] transition duration-200 ease-out active:scale-[0.97] touch-manipulation ${
         active
-          ? "bg-[var(--ss-ai)] text-[var(--ss-on-primary)] ring-4 ring-[var(--ss-ai-soft)]"
-          : "ss-bg-elevated text-[var(--ss-fg)] border border-[var(--ss-border)]"
+          ? "bg-[var(--ss-ai)] text-[var(--ss-on-primary)] ring-[3px] ring-[var(--ss-ai-soft)]"
+          : "ss-bg-elevated text-[var(--ss-fg)] border border-[var(--ss-border)]/80"
       } ${className}`}
       {...props}
     >
-      <Mic className="h-6 w-6" strokeWidth={2} />
+      <Mic className="h-[22px] w-[22px]" strokeWidth={1.85} />
     </button>
   );
 }

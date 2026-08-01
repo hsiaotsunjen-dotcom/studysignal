@@ -92,9 +92,9 @@ export default function CreateStudentPage() {
       />
 
       <SsCard>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-5">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               學生暱稱
             </span>
             <SsInput
@@ -106,11 +106,11 @@ export default function CreateStudentPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               年級
             </span>
             <select
-              className="ss-bg-elevated min-h-11 w-full rounded-[var(--ss-radius-md)] border border-[var(--ss-border)] px-4 py-2.5 text-base text-[var(--ss-fg)] outline-none focus:border-[var(--ss-primary)] focus:ring-2 focus:ring-[var(--ss-primary)]/20"
+              className="ss-card min-h-[3.25rem] w-full rounded-[var(--ss-radius-lg)] border border-[var(--ss-border)]/80 px-[1.125rem] py-3.5 text-[15px] text-[var(--ss-fg)] outline-none transition duration-200 focus:border-[var(--ss-primary)]/45 focus:ring-[3px] focus:ring-[var(--ss-primary)]/12"
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
             >

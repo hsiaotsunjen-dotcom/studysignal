@@ -1,9 +1,9 @@
-# StudySignal 產品哲學（長期方向）
+# StudySignal 產品哲學（補充筆記）
 
-> **地位：** 產品北極星。所有功能、路線圖、文案與設計決策以此為準。  
-> **性質：** 長期方向定義——不是 UI 規格、不是單次改版說明。  
-> **最後更新：** 2026-07-30  
-> **相關：** [`PRODUCT.md`](./PRODUCT.md)、[`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md)、[`UI_DESIGN_V1.md`](./UI_DESIGN_V1.md)
+> **注意：** 產品來源真理已改為 [`PRODUCT.md`](./PRODUCT.md)。  
+> 本文件保留 Learning OS / Signals / 節奏等擴充說明；**衝突時以 [`PRODUCT.md`](./PRODUCT.md) 為準。**  
+> **最後更新：** 2026-07-31  
+> **相關：** [`PRODUCT.md`](./PRODUCT.md)、[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)、[`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md)
 
 ---
 

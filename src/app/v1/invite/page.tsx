@@ -85,9 +85,9 @@ export default function InviteStudentPage() {
       />
 
       <SsCard>
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={onSubmit} className="space-y-5" noValidate>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               孩子姓名
             </span>
             <SsInput
@@ -105,7 +105,7 @@ export default function InviteStudentPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               年級（選填）
             </span>
             <SsInput

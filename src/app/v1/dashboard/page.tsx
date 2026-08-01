@@ -32,80 +32,106 @@ export default function StudentDashboardPage() {
 
   return (
     <SsAppShell>
-      {/* 1. Warm greeting */}
-      <header className="mb-10 pt-2">
-        <p className="text-sm text-[var(--ss-fg-muted)]">{greeting}</p>
-        <h1
-          className="mt-1.5 text-[2rem] font-semibold leading-tight tracking-tight text-[var(--ss-fg)]"
-          style={{
-            fontFamily:
-              "var(--font-ss-display), var(--font-ss-sans), system-ui",
-          }}
+      {allDone ? (
+        <SsCard className="ss-card-lift mb-12 !px-7 !py-10 sm:!px-9 sm:!py-12">
+          <p className="text-center text-3xl" aria-hidden>
+            🎉
+          </p>
+          <h1
+            className="mt-5 text-center text-[1.85rem] font-semibold text-[var(--ss-fg)]"
+            style={{
+              fontFamily:
+                "var(--font-ss-display), var(--font-ss-sans), system-ui",
+              letterSpacing: "var(--ss-tracking-display)",
+              lineHeight: "var(--ss-leading-tight)",
+            }}
+          >
+            {home.successMoment.title}
+          </h1>
+          <p
+            className="mx-auto mt-5 max-w-[16rem] whitespace-pre-line text-center text-[16px] text-[var(--ss-fg-muted)]"
+            style={{ lineHeight: "var(--ss-leading-body)" }}
+          >
+            {home.successMoment.body}
+          </p>
+          <Link href="/v1/journey" className="mt-9 block">
+            <SsButton variant="secondary" className="w-full">
+              看看今天的旅程
+            </SsButton>
+          </Link>
+        </SsCard>
+      ) : (
+        <>
+          <header className="mb-9 pt-1">
+            <h1
+              className="whitespace-pre-line text-[1.85rem] font-semibold text-[var(--ss-fg)] sm:text-[2.05rem]"
+              style={{
+                fontFamily:
+                  "var(--font-ss-display), var(--font-ss-sans), system-ui",
+                letterSpacing: "var(--ss-tracking-display)",
+                lineHeight: "1.28",
+              }}
+            >
+              {greeting}，{name}。
+              {"\n"}
+              {home.planReadyCopy}
+            </h1>
+            <p
+              className="mt-5 whitespace-pre-line text-[15px] text-[var(--ss-fg-muted)]"
+              style={{ lineHeight: "var(--ss-leading-body)" }}
+            >
+              {home.heroSupport}
+            </p>
+          </header>
+
+          <SsCard className="ss-card-lift mb-10 !px-6 !py-8 sm:!px-8 sm:!py-9">
+            <p className="ss-label">今天的旅程</p>
+            <ul className="mt-5 space-y-4" aria-label="今天的學習行程">
+              {home.todayPath.map((item) => (
+                <li
+                  key={item.title}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <span className="flex items-center gap-3 text-[16px] font-medium text-[var(--ss-fg)]">
+                    <span className="text-[1.15rem] leading-none" aria-hidden>
+                      {item.emoji}
+                    </span>
+                    {item.title}
+                  </span>
+                  <span className="shrink-0 text-[14px] tabular-nums text-[var(--ss-fg-muted)]">
+                    {item.detail}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <Link href="/v1/flow" className="mt-9 block">
+              <SsButton className="w-full">開始今天的旅程</SsButton>
+            </Link>
+
+            <p
+              className="mt-6 text-center text-[14px] text-[var(--ss-fg-muted)]"
+              style={{ lineHeight: "var(--ss-leading-body)" }}
+            >
+              {home.companionLine}
+            </p>
+          </SsCard>
+        </>
+      )}
+
+      <footer className="space-y-4 border-t border-[var(--ss-border)]/45 pt-9 pb-2">
+        <p
+          className="text-[14px] text-[var(--ss-fg)]"
+          style={{ lineHeight: "var(--ss-leading-body)" }}
         >
-          {name}
-        </h1>
-        <p className="mt-3 text-sm text-[var(--ss-fg-muted)]">
-          連續 {home.streakDays} 天 · 今天大約 {home.todayMinutesPlanned}{" "}
-          分鐘
+          {home.todaySignal}
         </p>
-      </header>
-
-      {/* 2–4. One dominant surface: prepared today + path + begin + encouragement */}
-      <SsCard className="mb-12 px-6 py-8 sm:px-7 sm:py-9">
-        <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
-          今天
-        </p>
-        <h2
-          className="mt-2 text-xl font-semibold leading-snug tracking-tight text-[var(--ss-fg)] sm:text-[1.35rem]"
-          style={{
-            fontFamily:
-              "var(--font-ss-display), var(--font-ss-sans), system-ui",
-          }}
+        <p
+          className="text-[12px] text-[var(--ss-fg-muted)]"
+          style={{ lineHeight: "var(--ss-leading-body)" }}
         >
-          {home.planReadyCopy}
-        </h2>
-
-        <p className="mt-6 text-[15px] leading-[1.7] text-[var(--ss-fg-muted)]">
-          {home.todayPath.map((item, i) => (
-            <span key={item.title}>
-              {i > 0 ? (
-                <span className="text-[var(--ss-border)]"> · </span>
-              ) : null}
-              <span className="text-[var(--ss-fg)]">{item.title}</span>
-              <span className="text-[var(--ss-fg-muted)]">
-                {" "}
-                {item.detail}
-              </span>
-            </span>
-          ))}
-        </p>
-
-        {/* 3. Only one obvious next action */}
-        <Link href="/v1/flow" className="mt-8 block">
-          <SsButton className="w-full" disabled={allDone}>
-            {allDone ? "今天已經完成了" : "開始今天"}
-          </SsButton>
-        </Link>
-
-        {/* 4–5. Encouragement + finish line */}
-        <p className="mt-6 text-center text-sm leading-relaxed text-[var(--ss-fg-muted)]">
-          {home.companionLine}
-        </p>
-      </SsCard>
-
-      {/* Supporting whisper — no equal-weight cards */}
-      <footer className="space-y-5 border-t border-[var(--ss-border)]/60 pt-8 pb-2">
-        <p className="text-sm leading-relaxed text-[var(--ss-fg-muted)]">
-          <span className="text-[var(--ss-fg)]">{home.todaySignal}</span>
-        </p>
-        <p className="text-xs leading-relaxed text-[var(--ss-fg-muted)]">
           昨天 · {home.yesterday.subjects.join("、")} ·{" "}
           {home.yesterday.minutes} 分鐘
-          <br />
-          {home.yesterday.encouragement}
-        </p>
-        <p className="text-xs leading-relaxed text-[var(--ss-fg-muted)]">
-          明天 · {home.tomorrowPreview.join("、")}
         </p>
       </footer>
     </SsAppShell>

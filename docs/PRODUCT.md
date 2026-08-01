@@ -1,517 +1,112 @@
-# StudySignal 產品規格書
+# StudySignal Product
 
-> **最後更新：** 2026-07-30  
-> **相關文件：** [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)（**長期方向北極星**）、[`PROJECT_STATUS.md`](./PROJECT_STATUS.md)、[`ROADMAP.md`](./ROADMAP.md)、[`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`DATABASE.md`](./DATABASE.md)、[`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md)  
-> **文件性質：** 產品願景與功能規格（非技術 API 手冊）  
-> **優先順序：** 哲學與定位衝突時，以 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) 為準。
+> **Canonical product source of truth.**  
+> Every product, design, and AI task must align with this document.  
+> Visual system: [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)  
+> Brand voice: [`BRAND_VOICE.md`](./BRAND_VOICE.md)  
+> Project constitution: [`PROJECT_RULES.md`](./PROJECT_RULES.md)  
+> AI collaboration workflow: [`AI_TEAM.md`](./AI_TEAM.md)  
+> Engineering memory: [`ENGINEERING_LOG.md`](./ENGINEERING_LOG.md)  
+> Definition of Ready: [`DEFINITION_OF_READY.md`](./DEFINITION_OF_READY.md)  
+> Definition of Done: [`DEFINITION_OF_DONE.md`](./DEFINITION_OF_DONE.md)  
+> System architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md)  
+> Implementation status / roadmap: [`PROJECT_STATUS.md`](./PROJECT_STATUS.md), [`ROADMAP.md`](./ROADMAP.md)  
+> **Last updated:** 2026-07-31
 
----
-
-## 狀態圖例
-
-| 標記 | 意義 |
-|------|------|
-| ✅ **目前已完成** | Beta 已上線或可穩定使用的產品能力 |
-| 🟡 **開發中** | 已有基礎實作，體驗或完整度尚待加強 |
-| ⚪ **未來規劃** | 尚未實作，已納入 Roadmap |
-
----
-
-## 1. 產品使命（摘要）
-
-> 完整長期哲學見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
-
-**StudySignal is where learning becomes visible.**
-
-StudySignal 不是 AI Tutor。  
-StudySignal 是 **AI Learning Operating System for Families（家庭學習作業系統）**。
-
-| 角色 | 一句話 |
-|------|--------|
-| Student | Learns every day. |
-| Parent | Understands progress and growth. |
-| AI | Plans · Guides · Observes · Analyzes · Adjusts · Reports. |
-
-**三個承諾**
-
-| 節奏 | 承諾 |
-|------|------|
-| Daily | Your child learned today. |
-| Weekly | Your child is improving. |
-| Monthly | Your child is growing. |
-
-**我們賣的是信心（Confidence）**——不是 AI、不是代寫。家長離開時應感到：
-
-> 我理解孩子怎麼學。孩子正在進步。我知道下一步。
-
-### Signal 的意義
-
-Signal **不是分數**。Signal 是 AI 持續發現的有意義學習指標（一致性、口說信心、單字成長、薄弱概念、錯後恢復……）。AI 自動發現，家長不必自己分析數據。
-
-### 產品結構
-
-```text
-家長 → 家長帳號 → 學生 → AI（規劃／引導／觀察）→ 每日學習 → 訊號與報告 → 家長中心
-```
-
-| 面向 | 狀態 |
-|------|------|
-| 產品哲學北極星 | ✅ [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) |
-| 行銷 Landing（報告預覽在 Hero） | ✅ `/` |
-| 學生首頁 Student Home V2（今日計畫／單一 CTA） | ✅ `/v1/dashboard` |
-| Daily Learning Session（引導式，非聊天） | ✅ `/v1/flow` |
-| **V0 Demo 端到端路徑** | ✅ 見 [`V0_DEMO.md`](./V0_DEMO.md) |
-| 家長帳號 → 學生檔案 → 引導設定 | 🟡 原型流程（localStorage） |
-| 家長中心（旗艦：今日／成長／下一步） | 🟡 UI 原型 |
-| 每日／每週／每月報告節奏 | 🟡 每日預覽；週／月 ⚪ |
-| Growth Signals 自動發現與更新 | ⚪ 未來規劃 |
-| 可對外正式營運的 Production 產品 | ⚪ 未來規劃（V1.0） |
+When product decisions conflict with feature ideas, status docs, or implementation convenience — **this document wins**.
 
 ---
 
-## 2. 想解決的教育問題
+# Vision
 
-### 問題一：英文學了卻不敢開口
+StudySignal is an AI learning companion that helps students become **independent learners** instead of depending on AI for answers.
 
-許多學生背了單字、考了試，卻缺乏 **安全、可重複練習** 的口說環境；在班上怕犯錯，回家又沒有對象練習。
-
-| 回應 | 狀態 |
-|------|------|
-| Talk 分頁 AI 對話 + 語音輸入 + TTS | ✅ 已完成 |
-| 平板 HTTPS 麥克風實機流程 | ✅ 已完成 |
-| 發音分析與練習引導完整化 | 🟡 開發中 |
-
-### 問題二：不知道「哪裡還可以更好」
-
-傳統批改只給分數或對錯，學生難以理解 **語法、用詞、流暢度、發音** 各自的差距與下一步該練什麼。
-
-| 回應 | 狀態 |
-|------|------|
-| Signals 結構化分析（語法／詞彙／流暢度） | ✅ 已完成 |
-| 發音評分（語音提交） | 🟡 開發中 |
-| 長期弱項追蹤與能力地圖 | ⚪ 未來規劃 |
-
-### 問題三：中文腦、英文嘴——表達卡關
-
-學生心裡是中文，要開口說英文時常卡在「不知道怎麼講」。
-
-| 回應 | 狀態 |
-|------|------|
-| 「幫我找英文」：中文語意 → 英文草稿填回輸入框 | ✅ 已完成 |
-| 學生編輯後再 CHAT，不代為完成對話 | ✅ 已完成 |
-
-### 問題四：作業與課本脫離練習情境
-
-練習常與真實作業、課本內容脫節；學生需要能 **拍照、提問、在情境中學**。
-
-| 回應 | 狀態 |
-|------|------|
-| 對話附圖（Vision Tutor） | ✅ 已完成 |
-| 分析附圖（Vision Analyze） | ✅ 已完成 |
-| Tools 獨立 OCR／作業分析流程 | 🟡 開發中 |
-
-### 問題五：家長看不見學習過程
-
-家長想知道孩子是否有練習、弱項在哪，卻缺乏 **易懂、非專業術語** 的摘要。
-
-| 回應 | 狀態 |
-|------|------|
-| 家長中心（今日學習／本週／連續／科目／優弱勢／觀察／下一步／日報／月成長） | 🟡 旗艦 UI 原型（`/v1/parent`） |
-| 每日 Email 報告（筆記風格 Premium） | 🟡 預覽（`/v1/parent/email`） |
-| 真實寄送與排程 | ⚪ 未來規劃 |
-
-### 問題六：補習與 AI 工具淪為「代寫機」
-
-學生與家長擔心 AI 直接給答案，削弱思考與學習效果。
-
-| 回應 | 狀態 |
-|------|------|
-| Tutor／Analyze 引導式 prompt 設計 | ✅ 已完成 |
-| 產品原則「不直接給答案」寫入規格 | ✅ 已定義 |
-| 任務系統與學習歷程強化引導 | ⚪ 未來規劃 |
+The mission is **not** to replace teachers or parents.  
+The mission is to help students **learn how to think**.
 
 ---
 
-## 3. StudySignal 的核心理念
+# Problem
 
-### 在情境中學習（Learn in Context）
+Today's AI often gives answers too quickly.
 
-英文應在 **對話、口說、作業圖片** 中練習，而非僅靠單字表與題庫。
+Students become dependent instead of improving their thinking ability.
 
-| 狀態 |
-|------|
-| ✅ Talk 對話、語音、附圖已實作 |
+Parents cannot understand how their children are actually learning.
 
-### 訊號可見（Signals Visible）
-
-**Signal 不是分數。** Signal 是 AI 發現的有意義學習指標（一致性、信心、薄弱概念、錯後恢復……），持續更新，並自動呈現給家長——家長不必自己分析數據。
-
-詳見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。
-
-| 狀態 |
-|------|
-| 🟡 既有 Signals 分析 JSON／分頁；Growth Signals、家長敘事化呈現與長期更新 ⚪ 未來規劃 |
-
-### 行動裝置優先（Mobile First）
-
-以 **Android 平板與手機** 為主要使用情境；觸控、中文輸入、麥克風為一等公民。
-
-| 狀態 |
-|------|
-| ✅ 版面、HTTPS、平板測試流程已完成 |
-
-### 低成本、可持續（Low Cost First）
-
-優先使用瀏覽器 TTS、Web Speech API；雲端 AI 用在高價值環節（對話、分析、轉寫）。
-
-| 狀態 |
-|------|
-| ✅ TTS 與語音辨識策略已落實 |
-
-### AI 是家教，不是代寫機
-
-見第 5 節。
-
-| 狀態 |
-|------|
-| ✅ 已寫入 Tutor／Analyze 行為設計 |
-
-### 文件與架構先行
-
-重要流程文件化，便於協作與長期維護。
-
-| 狀態 |
-|------|
-| 🟡 架構、API、Roadmap、產品規格等已建立；部分運維文件仍占位 |
+StudySignal exists to solve these problems.
 
 ---
 
-## 4. AI Tutor 的定位（能力層，非產品定位）
+# Core Principles
 
-> **產品定位**是 Family Learning OS，見 [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md)。  
-> 本節描述學生端既有能力：**對話式引導練習**——是系統的一部分，不是整個產品。
-
-### 能力定義
-
-**AI Tutor（Talk）是 Learning OS 內的引導練習角色**：在 Talk 分頁與學生進行 **英文對話**，協助理解、練習表達、解讀作業圖片，並以 **短句、對話式、結尾追問** 維持互動。它屬於 AI「Guides」職責，不代表產品等於家教聊天。
-
-### 不做的事
-
-- 不取代真人教師的班級管理與情感支持。
-- 不主動代寫完整作業答案。
-- 不以中文為預設回覆語言（除非學生明確要求）。
-- **不對外作為品牌主敘事**（我們不賣「AI 家教」）。
-
-### 功能邊界（產品規格）
-
-| 能力 | 狀態 | 說明 |
-|------|------|------|
-| 多輪英文對話 | ✅ 已完成 | CHAT → Tutor 回覆 + TTS |
-| 含圖作業／課本解讀 | ✅ 已完成 | Vision 送入對話 |
-| 對話歷史帶入模型 | ✅ 已完成 | 維持上下文 |
-| 幫我找英文 | ✅ 已完成 | **獨立流程**，非 Tutor 對話本體 |
-| 結構化學習分析 | ✅ 已完成 | 由「分析」按鈕 → Signals，非 Tutor 聊天氣泡 |
-| 觀察行為／發現 Growth Signals | ⚪ 未來規劃 | Learning OS 核心 |
-| 多科目引導練習 | ⚪ 未來規劃 | V2.0 |
-
-### 與其他模組的關係
-
-```
-學生輸入
-    ├── CHAT ──────────────► 引導練習（Talk／對話）
-    ├── 幫我找英文 ─────────► 翻譯輔助（填 Composer，再可 CHAT）
-    └── 分析 ──────────────► Signals（結構化回饋，非聊天）
-```
+- **Guide, don't answer.**
+- **Encourage thinking before explaining.**
+- **Adapt to every student's level.**
+- **Reduce learning anxiety.**
+- **Build long-term learning habits.**
+- **Learning is more important than finishing homework.**
 
 ---
 
-## 5. AI 不直接給答案，而是引導學生思考
+# AI Tutor Principles
 
-這是 StudySignal 的 **產品紅線**，貫穿 Tutor、分析與輔助功能。
+The AI Tutor is patient.
 
-### Tutor 對話
+The AI Tutor never laughs at mistakes.
 
-| 原則 | 實作狀態 |
-|------|----------|
-| 回覆短句、對話式，結尾 **一個 genuine 追問** | ✅ 已完成（system prompt） |
-| 引導學生用自己的話表達，而非丟出長篇範文 | ✅ 已完成 |
-| 含圖時解讀與 walk through，延續對話而非一次給完整解答 | ✅ 已完成 |
+The AI Tutor asks questions before giving explanations.
 
-### 「幫我找英文」
+The AI Tutor celebrates progress instead of scores.
 
-| 原則 | 實作狀態 |
-|------|----------|
-| 只產出 **一句** 可開口說的英文草稿 | ✅ 已完成 |
-| 填回輸入框，**不**自動送入聊天、**不** TTS | ✅ 已完成 |
-| 學生必須編輯、確認後再 CHAT | ✅ 已完成 |
-
-### Signals 分析
-
-| 原則 | 實作狀態 |
-|------|----------|
-| `whyNot100` 採 **學生原文 → 改寫 → 說明** 三段式 | ✅ 已完成 |
-| 提供 `tutorModelAnswer` 三層版本（學生版／較好版／母語感版）供 **對照學習**，非代寫提交 | ✅ 已完成 |
-| 禁止空泛「還可以更好」式回饋 | ✅ 已完成（prompt 約束） |
-
-### 未來強化（規劃）
-
-| 項目 | 狀態 |
-|------|------|
-| 任務系統：引導「練習 X 字詞再對話」 | ⚪ 未來規劃 |
-| 家長可見的「引導式學習」說明 | ⚪ 未來規劃 |
-| 解題類科目（數學）步驟引導、非直接給最終答案 | ⚪ 未來規劃（V2.0） |
+**Full voice constitution:** [`BRAND_VOICE.md`](./BRAND_VOICE.md) — Teach · Encourage · Guide · Never judge.
 
 ---
 
-## 6. 家長模式
+# Parent Experience
 
-### 產品願景
+Parents should understand:
 
-讓家長以 **低負擔、高理解度** 的方式看見孩子的學習：練了幾次、弱項在哪、建議在家怎麼陪練——**不需讀完整聊天紀錄**。
-
-### 規劃功能
-
-| 功能 | 狀態 | 說明 |
-|------|------|------|
-| 家長帳號與學生綁定 | ⚪ 未來規劃 | 需 User／Parent／Student 資料模型 |
-| 唯讀檢視 Signals 摘要 | ⚪ 未來規劃 | 無法修改學生對話 |
-| 每日學習報告 | ⚪ 未來規劃 | 對話次數、分析次數、弱項、建議練習 |
-| 推播或 Email 通知 | ⚪ 未來規劃 | 可選 |
-| 隱私與未成年人資料保護 | ⚪ 未來規劃 | 合規設計必備 |
-
-### 現況
-
-- 無帳號系統；所有使用皆為單機 session。
-- Tools 分頁有學制／科目 UI，**無**家長入口。
-- 目標版本：**V1.5**（見 [`ROADMAP.md`](./ROADMAP.md)）。
-
-### 設計原則（規格）
-
-1. **摘要優先**：家長看趨勢與建議，不看逐字聊天。
-2. **鼓勵而非監控**：語氣支持親子溝通，而非 surveillance。
-3. **學生為主體**：家長模式不取代學生自主練習。
+- What the child learned.
+- What improved.
+- What still needs practice.
+- What today's learning signal means.
 
 ---
 
-## 7. Learning Analytics
+# Product Values
 
-### 產品定義
-
-**Learning Analytics** 將分散的學習事件（對話、分析、任務完成）聚合為 **可決策的洞察**：使用頻率、弱項分佈、分數趨勢、進步曲線。
-
-### 規劃指標（範例）
-
-| 指標類別 | 範例 | 狀態 |
-|----------|------|------|
-| 參與度 | 每週對話輪數、分析次數 | ⚪ 未來規劃 |
-| 能力維度 | 語法／詞彙／流暢度／發音平均分趨勢 | ⚪ 未來規劃 |
-| 弱項標籤 | 重複錯誤類型（時態、介系詞等） | ⚪ 未來規劃 |
-| 練習建議 | 「下週多練發音 focus 字詞」 | 🟡 單次分析已有 `learningSummary`；跨週聚合 ⚪ |
-
-### 現況
-
-| 項目 | 狀態 |
-|------|------|
-| 單次 `/api/analyze` 內 `learningSummary`、`tutorComment` | ✅ 已完成 |
-| 前端 Signals 歷史（最多 5 筆，無跨日） | 🟡 開發中 |
-| 後端聚合、儀表板、家長報告數據管線 | ⚪ 未來規劃（V2.0） |
-| 資料模型 `learning_analytics_snapshots` | ⚪ 未來規劃（見 [`DATABASE.md`](./DATABASE.md)） |
-
-### 使用對象
-
-- **學生**：看見自己的進步（未來）。
-- **家長**：每日／每週報告（V1.5 起）。
-- **產品團隊**：改善 prompt 與功能優先順序（內部）。
+- Warm
+- Trustworthy
+- Calm
+- Simple
+- Human
 
 ---
 
-## 8. Signals 的概念
+# Decision Rule
 
-### 什麼是 Signal（學習訊號）？
+Whenever there is a product decision:
 
-**Signal 是 StudySignal 將一次學習輸入（文字、語音轉寫、聊天彙整、圖片）轉化後的結構化回饋**，讓「感覺好像有進步」變成 **可閱讀、可重複查看** 的具體訊號。
+**Choose the option that improves learning rather than adding more features.**
 
-產品名 **StudySignal** 即意指：**讓學習訊號（Signals）清晰可見（visible）**。
-
-### 一次 Signal 通常包含
-
-| 區塊 | 內容 | 狀態 |
-|------|------|------|
-| **Grammar** | 分數、優點、待改進、範例 | ✅ 已完成 |
-| **Vocabulary** | 同上 | ✅ 已完成 |
-| **Fluency** | 句子流暢與自然度 | ✅ 已完成 |
-| **Expression** | 溝通、語氣（較長內容時） | ✅ 已完成（可選欄位） |
-| **Pronunciation** | 語音提交時的評分與回饋 | 🟡 開發中 |
-| **Pronunciation Focus** | 3 個練習字詞 + IPA（US/UK） | ✅ 已完成 |
-| **Image Insights** | 圖片 OCR 與視覺摘要（繁中） | ✅ 已完成 |
-| **Tutor Comment** | 做得好／最大機會／下次試試 | ✅ 已完成 |
-| **Tutor Model Answer** | 三層英文改寫對照 | ✅ 已完成 |
-
-### 產品流程
-
-```
-Talk：學生輸入 → 按「分析」
-        ↓
-   /api/analyze
-        ↓
-Signals 分頁：AnalyzeFeedbackPanel 呈現
-        ↓
-可點字 TTS 練習發音
-```
-
-### 現況與限制
-
-| 項目 | 狀態 |
-|------|------|
-| Signals 分頁 UI | ✅ 已完成 |
-| 與 Talk 連動（分析按鈕） | ✅ 已完成 |
-| Session 內歷史最多 5 筆 | 🟡 開發中（暫存，重整即失） |
-| 跨 session 持久化、家長可見 | ⚪ 未來規劃 |
-
-### 與「聊天氣泡」的區別
-
-- **Tutor 聊天**：即時對話、英文氣泡、TTS。
-- **Signals**：結構化學習報告、繁中解釋為主、適合 **回顧與比較**。
-
-兩者互補，不互相取代。
+**If a feature does not improve learning, remove it.**
 
 ---
 
-## 9. 學習能力地圖
+## Related documents
 
-### 產品定義
-
-**能力地圖**將學生長期累積的 Signals 與 Learning Analytics，視覺化為 **grammar、vocabulary、fluency、pronunciation**（及未來科目維度）的 **輪廓與變化曲線**，回答：「我哪裡變強了？哪裡還需要練？」
-
-### 規劃呈現（概念）
-
-| 元素 | 說明 | 狀態 |
-|------|------|------|
-| 雷達圖／趨勢線 | 四維能力隨時間 | ⚪ 未來規劃 |
-| 弱項熱區 | 重複錯誤類型標記 | ⚪ 未來規劃 |
-| 與任務系統連動 | 地圖弱項 → 自動派任務 | ⚪ 未來規劃 |
-| 家長簡化版 | 一頁看懂「這個月進步」 | ⚪ 未來規劃 |
-
-### 現況
-
-| 項目 | 狀態 |
-|------|------|
-| 單次分析內各維度 **分數**（0–100） | ✅ 已完成 |
-| Signals 分頁列表式回顧 | 🟡 開發中（無圖表、無長期） |
-| 能力地圖 UI 與資料聚合 | ⚪ 未來規劃（V2.0） |
-
-### 資料前提
-
-能力地圖依賴 **學習歷程持久化** 與 **Learning Analytics** 管線；見 [`DATABASE.md`](./DATABASE.md) 中 `signals`、`learning_analytics_snapshots`。
-
----
-
-## 10. 未來產品方向
-
-以下對照 [`ROADMAP.md`](./ROADMAP.md)，標示各方向狀態。
-
-### V1.0 — 英文核心產品完整化
-
-| 方向 | 狀態 |
-|------|------|
-| Tutor 完整對話體驗（錯誤處理、loading UX） | 🟡 開發中 |
-| 拍照分析產品化 | 🟡 開發中 |
-| 發音分析 UX 完整化 | 🟡 開發中 |
-| AI 學伴（個人化追問與目標） | ⚪ 未來規劃 |
-| Production 正式部署 | ⚪ 未來規劃 |
-
-### V1.5 — 持續學習與家長參與
-
-| 方向 | 狀態 |
-|------|------|
-| 家長模式 | ⚪ 未來規劃 |
-| 每日報告 | ⚪ 未來規劃 |
-| 學習歷程持久化 | ⚪ 未來規劃 |
-| 任務系統 | ⚪ 未來規劃 |
-| 徽章與成就 | ⚪ 未來規劃 |
-
-### V2.0 — AI 學習平台
-
-| 方向 | 狀態 |
-|------|------|
-| Learning Analytics 儀表板 | ⚪ 未來規劃 |
-| 能力地圖 | ⚪ 未來規劃 |
-| 多 AI Provider（Gemini、Claude、Grok、本地模型） | ⚪ 未來規劃 |
-| 多語言介面 | ⚪ 未來規劃 |
-| 多科目：國文、數學、自然 | ⚪ 未來規劃 |
-
-### 長期願景
-
-**StudySignal 成為 AI 學習平台**——以英語為起點，以 Signals 與能力地圖為核心，連結學生、家長與（未來）教育現場，且 AI 底座可替換、成本可控。
-
-| 項目 | 狀態 |
-|------|------|
-| 願景陳述 | ✅ 已定義 |
-| 平台化實現 | ⚪ 未來規劃 |
-
----
-
-## 附錄：產品現況一覽（Beta）
-
-### ✅ 目前已完成
-
-- Talk 英文對話（Chat）與 AI Tutor（含 Vision）
-- 幫我找英文（翻譯輔助，不代送對話）
-- 語法／詞彙／流暢度分析 → Signals 分頁
-- 發音練習字詞（文字分析分支）
-- 語音輸入、Whisper 後備、瀏覽器 TTS
-- 英美發音切換（en-US / en-GB）
-- 拍照／上傳、附圖對話與分析
-- Talk / Signals / 我的 三分頁
-- HTTPS 開發環境、Android 平板麥克風流程
-- Voice Test、Speech Test（開發／除錯）
-- 產品原則：引導式 AI、不直接給答案
-
-### 🟡 開發中
-
-- 發音分析（語音提交）完整 UX
-- 拍照分析獨立 Tools 流程
-- Signals session 歷史（5 筆暫存，無持久化）
-- 部分開發文件占位
-
-### ⚪ 未來規劃
-
-- 家長模式、每日報告、學習歷程
-- 任務、徽章、成就
-- Learning Analytics、能力地圖
-- AI 學伴、多科目、多 Provider
-- Production 營運與帳號系統
-
----
-
-## 附錄：目標使用者
-
-| 角色 | 現況 | 未來 |
-|------|------|------|
-| **學生**（國小～國中為主） | ✅ 主要使用者 | 個人化學習路徑 |
-| **家長** | 無專用介面 | ⚪ 家長模式 V1.5 |
-| **教師／機構** | 未服務 | ⚪ 長期延伸方向 |
-
----
-
-## 附錄：成功指標（規劃用，尚未量測）
-
-以下為產品成功時可觀察的指標，**目前無後端統計**：
-
-| 指標 | 說明 |
-|------|------|
-| 週活躍練習天數 | 學生每週至少開啟並完成一次對話或分析 |
-| Signals 回顧率 | 學生是否回頭看分析結果 |
-| 口說參與率 | 麥克風／語音分析使用比例 |
-| 家長報告開啟率 | V1.5 後 |
-| 弱項重複改善率 | V2.0 Analytics 後 |
-
----
-
-**請勿因閱讀本文件而修改任何 `.ts`、`.tsx`、`package.json` 或 Next.js 設定。**
-
-**本任務僅建立／更新 `docs/PRODUCT.md`。**
-
----
-
-*StudySignal — 讓學習訊號清晰可見。*
+| Document | Role |
+|----------|------|
+| [`PROJECT_RULES.md`](./PROJECT_RULES.md) | Project constitution — 10 non-negotiable rules |
+| [`AI_TEAM.md`](./AI_TEAM.md) | Permanent AI team roles & workflow |
+| [`ENGINEERING_LOG.md`](./ENGINEERING_LOG.md) | Canonical engineering memory (append-only) |
+| [`DEFINITION_OF_READY.md`](./DEFINITION_OF_READY.md) | When a task may start |
+| [`DEFINITION_OF_DONE.md`](./DEFINITION_OF_DONE.md) | When a task may be marked Complete |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | System architecture source of truth |
+| [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) | Visual & experience design source of truth |
+| [`BRAND_VOICE.md`](./BRAND_VOICE.md) | Brand Voice Constitution — all product copy |
+| [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) | Extended Learning OS / Signals notes (defers to this file) |
+| [`V0_DEMO.md`](./V0_DEMO.md) | V0 end-to-end demo path |
+| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | Implementation status |
+| [`ROADMAP.md`](./ROADMAP.md) | Delivery planning |

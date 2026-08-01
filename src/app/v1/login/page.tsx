@@ -84,9 +84,9 @@ export default function ParentLoginPage() {
       />
 
       <SsCard>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-5">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               家長 Email
             </span>
             <SsInput
@@ -102,7 +102,7 @@ export default function ParentLoginPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-[var(--ss-fg)]">
+            <span className="mb-2 block text-[13px] font-medium tracking-wide text-[var(--ss-fg)]">
               密碼
             </span>
             <SsInput

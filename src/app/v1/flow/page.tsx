@@ -100,16 +100,16 @@ export default function DailyLearningSessionPage() {
       return step.successEncourage;
     }
     if (phase === "struggle") {
-      return "沒關係，我們換一個更簡單的方式。不會直接給答案，我們一起慢慢來。";
+      return "很好的嘗試。我們換個方式試試——不會直接給答案，我們一起慢慢來。你快到了。";
     }
     if (phase === "celebrate") {
       return session.celebrateLine;
     }
     if (phase === "signals") {
-      return "我幫你整理了今天的學習訊號。";
+      return "我想跟你說說，今天你做得很好的地方。";
     }
     if (phase === "parent") {
-      return "今天的摘要已送到家長中心。爸媽會知道你今天真的有學習。";
+      return "爸媽今晚會收到今天的學習日記。他們會知道，你今天真的有好好學習。";
     }
     return "";
   }, [phase, name, session, step, simplified]);
@@ -192,9 +192,18 @@ export default function DailyLearningSessionPage() {
         />
 
         <div className="flex flex-1 flex-col">
+          {phase === "celebrate" ? (
+            <p className="mb-5 text-center text-3xl" aria-hidden>
+              🎉
+            </p>
+          ) : null}
+
           <TeacherVoice>
             {teacherText.split("\n").map((line, i) => (
-              <p key={`${phase}-${i}`} className={i > 0 ? "mt-3" : undefined}>
+              <p
+                key={`${phase}-${i}`}
+                className={`${i > 0 ? "mt-3" : ""} ${phase === "celebrate" ? "text-center" : ""}`}
+              >
                 {line}
               </p>
             ))}
@@ -239,7 +248,7 @@ export default function DailyLearningSessionPage() {
           {phase === "parent" ? (
             <SsCard className="mt-8">
               <p className="text-[11px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
-                送給家長的今日摘要
+                送給家長的今日日記
               </p>
               <dl className="mt-4 space-y-3 text-sm leading-relaxed">
                 <div>
@@ -344,13 +353,13 @@ export default function DailyLearningSessionPage() {
 
           {phase === "celebrate" ? (
             <SsButton className="w-full" onClick={goSignals}>
-              看看學習訊號
+              看看今天的收穫
             </SsButton>
           ) : null}
 
           {phase === "signals" ? (
             <SsButton className="w-full" onClick={sendToParent}>
-              送給家長今日摘要
+              送給家長今天的日記
             </SsButton>
           ) : null}
 
