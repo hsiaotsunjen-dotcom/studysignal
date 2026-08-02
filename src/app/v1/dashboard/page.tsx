@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { SsAppShell, SsButton, SsCard } from "@/design-system";
@@ -15,6 +16,7 @@ function timeGreetingFallback() {
 }
 
 export default function StudentDashboardPage() {
+  const router = useRouter();
   const home = mockStudentHome;
   const [name, setName] = useState(mockStudent.name);
 
@@ -105,9 +107,12 @@ export default function StudentDashboardPage() {
               ))}
             </ul>
 
-            <Link href="/v1/flow" className="mt-9 block">
-              <SsButton className="w-full">開始今天的旅程</SsButton>
-            </Link>
+            <SsButton
+              className="mt-9 w-full"
+              onClick={() => router.push("/app")}
+            >
+              開始今天的旅程
+            </SsButton>
 
             <p
               className="mt-6 text-center text-[14px] text-[var(--ss-fg-muted)]"

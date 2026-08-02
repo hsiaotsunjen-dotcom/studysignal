@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { SsButton, SsCard, SsProgressBar } from "@/design-system";
 import type { JourneyTask } from "@/design-system/mock/journey";
 
 export function JourneyTaskCard({ task }: { task: JourneyTask }) {
+  const router = useRouter();
+
   return (
     <section aria-label="接下來" className="mb-9 sm:mb-10">
       <SsCard className="ss-card-lift relative overflow-hidden !px-6 !py-8 sm:!px-8">
@@ -36,11 +38,13 @@ export function JourneyTaskCard({ task }: { task: JourneyTask }) {
           <SsProgressBar value={task.progress} label="今天完成了" />
         </div>
 
-        <Link href="/v1/flow" className="mt-7 block">
-          <SsButton type="button" className="w-full">
-            開始今天的旅程
-          </SsButton>
-        </Link>
+        <SsButton
+          type="button"
+          className="mt-7 w-full"
+          onClick={() => router.push("/app")}
+        >
+          開始今天的旅程
+        </SsButton>
       </SsCard>
     </section>
   );
