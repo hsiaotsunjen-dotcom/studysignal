@@ -12,6 +12,12 @@ import {
   SsPageHeader,
 } from "@/design-system";
 import {
+  DEMO_DASHBOARD_PATH,
+  enterDemoMode,
+  isDemoAuthEnabled,
+  mockParent,
+} from "@/lib/demoAuth";
+import {
   completeStudentSetup,
   readParentSession,
 } from "@/lib/parentSession";
@@ -24,6 +30,14 @@ export default function ParentLoginPage() {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+
+    // DEV MVP: skip credential checks — enter demo session.
+    if (isDemoAuthEnabled()) {
+      enterDemoMode();
+      router.push(DEMO_DASHBOARD_PATH);
+      return;
+    }
+
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !trimmed.includes("@")) {
       setError("請輸入有效的家長 Email");
@@ -79,7 +93,11 @@ export default function ParentLoginPage() {
     <SsAppShell showTab={false}>
       <SsPageHeader
         title="家長登入"
-        subtitle="使用註冊的家長 Email 與密碼登入。"
+        subtitle={
+          isDemoAuthEnabled()
+            ? `Development Mode — 可直接進入（${mockParent.email}）`
+            : "使用註冊的家長 Email 與密碼登入。"
+        }
         backHref="/"
       />
 
@@ -98,7 +116,7 @@ export default function ParentLoginPage() {
                 setEmail(e.target.value);
                 setError("");
               }}
-              required
+              required={!isDemoAuthEnabled()}
             />
           </label>
           <label className="block">
@@ -114,14 +132,14 @@ export default function ParentLoginPage() {
                 setPassword(e.target.value);
                 setError("");
               }}
-              required
+              required={!isDemoAuthEnabled()}
             />
           </label>
           {error ? (
             <p className="text-sm text-[var(--ss-danger)]">{error}</p>
           ) : null}
           <SsButton type="submit" className="w-full">
-            登入
+            {isDemoAuthEnabled() ? "進入 Dashboard（Demo）" : "登入"}
           </SsButton>
         </form>
       </SsCard>

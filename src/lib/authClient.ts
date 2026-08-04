@@ -1,7 +1,16 @@
 /**
  * Thin client for PRD-001 auth APIs.
  * No business rules — surfaces backend JSON as-is.
+ *
+ * Development: see `demoAuth.ts` — session reads short-circuit so MVP can
+ * skip real signup without deleting production auth.
  */
+
+import {
+  enterDemoMode,
+  getDemoAuthSession,
+  isDemoAuthEnabled,
+} from "@/lib/demoAuth";
 
 export type OnboardingStep =
   | "verify_email"
@@ -72,6 +81,11 @@ function errorMessage(data: unknown, fallback: string): string {
 }
 
 export async function getAuthSession(): Promise<AuthSession | null> {
+  // DEV MVP: skip real session API; keep production path below untouched.
+  if (isDemoAuthEnabled()) {
+    return getDemoAuthSession();
+  }
+
   const res = await fetch("/api/auth/session", {
     method: "GET",
     credentials: "include",
@@ -122,6 +136,11 @@ export async function signUp(input: {
   password: string;
   confirmPassword: string;
 }): Promise<AuthSession> {
+  // DEV MVP: no API / email verification — seed mock parent and continue.
+  if (isDemoAuthEnabled()) {
+    return enterDemoMode();
+  }
+
   const data = await postAuth(
     "/api/auth/signup",
     input,

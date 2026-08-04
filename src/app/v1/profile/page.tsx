@@ -15,6 +15,7 @@ import {
   pathForOnboardingStep,
   updateProfile,
 } from "@/lib/authClient";
+import { useDemoAuthBypass } from "@/lib/useDemoAuthBypass";
 
 /**
  * PRD-001 Parent profile — POST /api/auth/profile.
@@ -22,12 +23,14 @@ import {
  */
 export default function ParentProfilePage() {
   const router = useRouter();
+  const demoBypass = useDemoAuthBypass();
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    if (demoBypass) return;
     let cancelled = false;
     (async () => {
       try {
@@ -55,7 +58,15 @@ export default function ParentProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, demoBypass]);
+
+  if (demoBypass) {
+    return (
+      <SsAppShell showTab={false}>
+        <p className="text-sm text-[var(--ss-fg-muted)]">Demo Mode…</p>
+      </SsAppShell>
+    );
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

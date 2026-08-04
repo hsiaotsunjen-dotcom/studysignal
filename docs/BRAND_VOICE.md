@@ -1,10 +1,12 @@
 # StudySignal Brand Voice Constitution
 
-> **地位：** 所有文案、AI 話語、家長報告語氣的憲法。  
+> **地位：** 所有文案、AI 話語、家長報告**語氣**的憲法。  
+> **人格／倫理／思考（先於說話）：** [`prd/PRD-000-StudySignal-Constitution.md`](./prd/PRD-000-StudySignal-Constitution.md) §11 AI Identity · §14 AI Ethics  
 > **產品：** [`PRODUCT.md`](./PRODUCT.md)  
 > **視覺：** [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)  
 > **PRD：** [`prd/PRD-012-Brand-Voice.md`](./prd/PRD-012-Brand-Voice.md)  
-> **最後更新：** 2026-08-01
+> **最後更新：** 2026-08-04  
+> **順序：** 先有 PRD-000 的思考與人格，再寫本文件的遣詞。
 
 ---
 
@@ -12,7 +14,7 @@
 
 StudySignal is **not** tutoring software.  
 StudySignal is **not** a homework checker.  
-StudySignal is an **AI learning companion**.
+StudySignal is a **Family AI Learning OS** — the AI speaks as a **家庭學習教練**.
 
 Every word should make students feel:
 

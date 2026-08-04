@@ -5,9 +5,10 @@
 > AI models, APIs, databases, and frameworks may change. **This architecture should remain stable.**  
 > Product: [`PRODUCT.md`](./PRODUCT.md) · Rules: [`PROJECT_RULES.md`](./PROJECT_RULES.md) · Design: [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)  
 > Technical contracts (APIs / data): [`API.md`](./API.md), [`DATABASE.md`](./DATABASE.md)  
-> **Last updated:** 2026-07-31
+> **Product constitution:** [`prd/PRD-000-StudySignal-Constitution.md`](./prd/PRD-000-StudySignal-Constitution.md) — if this file conflicts with PRD-000, **PRD-000 wins**.  
+> **Last updated:** 2026-08-05
 
-When architecture decisions conflict with temporary implementation choices — **this document wins**.
+When architecture decisions conflict with temporary implementation choices — **this document wins** (subject to PRD-000).
 
 ---
 
@@ -20,23 +21,40 @@ It connects three continuous roles:
 | Role | Job |
 |------|-----|
 | **Student** | Learns every day with guided practice |
-| **AI Tutor** | Plans, guides, observes, adapts, and reports — without giving answers away |
+| **AI Coach / Tutor** | Plans, guides, observes, updates Student Model, adapts, and reports — without giving answers away |
 | **Parent** | Understands progress, growth, and what to do next |
 
 The system is not a chatbot wrapper.  
-It is a **closed learning loop**:
+It is a **closed learning loop** grounded in Learning Signals and Student Model (PRD-000 §17–§18):
+
+```text
+Learning Signals
+  → Student Model          (understand the learner)
+  → Knowledge Graph        (understand the knowledge)
+  → Understanding
+  → Planning               (Learning Engine)
+  → Today's Journey
+  → Reflection
+  → Growth
+  → New Learning Signals
+```
+
+Decision priority: **Understanding > Long-term growth > Efficiency** (PRD-000 §20).  
+Persistent Memory layers (session → daily → weekly → long-term / goal / parent / growth) make each day build on yesterday (PRD-000 §21) — not raw chat logs.
+
+Household / product entry still wraps that loop:
 
 ```text
 Parent account
-  → Student profile
-    → Learning Engine prepares today
-      → Tutor / Homework sessions
-        → Learning Signals
+  → Student (household)
+    → Learning Engine reads Student Model / prepares today
+      → Tutor / Homework sessions (Today's Journey)
+        → Learning Signals → Student Model update
           → Student Dashboard
-          → Parent Report
+          → Parent Report (Parent Insight)
 ```
 
-**Stability principle:** Modules communicate by responsibility (plan, guide, observe, report). The Learning Engine and reports must not depend on any specific AI vendor or backend shape.
+**Stability principle:** Modules communicate by responsibility (observe, understand, plan, guide, reflect, report). The Learning Engine and reports must not depend on any specific AI vendor or backend shape.
 
 ---
 
@@ -93,12 +111,26 @@ Helps the student think through homework; does not complete it for them.
 ### Learning Engine
 **Responsibility:** The system's brain.  
 - Observes learning behavior  
-- Discovers Learning Signals (not raw scores)  
-- Builds and adapts daily / weekly / monthly plans  
+- Discovers Learning Signals (not raw scores; observation ≠ judgment)  
+- **Updates the Student Model** (evolving understanding — not a static profile or grade sheet)  
+- Builds and adapts daily / weekly / monthly plans from that understanding  
 - Chooses next exercises and difficulty  
 - Feeds Tutor, Homework, Dashboard, and Parent Report  
 
 This module must stay model-agnostic: swap AI providers without changing product meaning.
+
+### Student Model（概念層）
+**Responsibility:** The AI’s continuously evolving understanding of the student.  
+Fed by Learning Signals; read by Planning / Today's Journey / Reflection.  
+Not a database synonym, not a résumé, not a scorecard — see PRD-000 §18.
+
+### Knowledge Graph（概念層）
+**Responsibility:** The AI’s understanding of the knowledge world — prerequisites, concept links, difficulty, dependencies, misconceptions, progression, cross-domain connections.  
+Not a textbook table of contents — see PRD-000 §19.
+
+### Memory（概念層）
+**Responsibility:** Persistent understanding across time (session / daily / weekly / long-term / goal / parent / growth).  
+Purpose: each day builds on yesterday — see PRD-000 §21.
 
 ### Dashboard
 **Responsibility:** Student Home — the calm daily entry.  
@@ -150,11 +182,12 @@ Landing
 
 ```text
 Dashboard (Student Home)
-  → Start Today's Learning
-    → Tutor and/or Homework (session guided by Learning Engine)
-      → Learning Signals (produced by Learning Engine)
-        → Back to Dashboard
-        → Parent Report updated for Parent
+  → Start Today's Journey
+    → Tutor and/or Homework (guided by Learning Engine + Student Model)
+      → Learning Signals
+        → Student Model update
+          → Back to Dashboard
+          → Parent Report updated for Parent
 ```
 
 ### Cross-role navigation

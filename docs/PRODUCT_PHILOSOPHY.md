@@ -1,9 +1,9 @@
 # StudySignal 產品哲學（補充筆記）
 
-> **注意：** 產品來源真理已改為 [`PRODUCT.md`](./PRODUCT.md)。  
-> 本文件保留 Learning OS / Signals / 節奏等擴充說明；**衝突時以 [`PRODUCT.md`](./PRODUCT.md) 為準。**  
-> **最後更新：** 2026-07-31  
-> **相關：** [`PRODUCT.md`](./PRODUCT.md)、[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)、[`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md)
+> **注意：** 最高產品憲法為 [`prd/PRD-000-StudySignal-Constitution.md`](./prd/PRD-000-StudySignal-Constitution.md)；摘要見 [`PRODUCT.md`](./PRODUCT.md)。  
+> 本文件保留 Learning OS / Signals / 節奏等擴充說明；**衝突時以 PRD-000 → PRODUCT.md 為準。**  
+> **最後更新：** 2026-08-05  
+> **相關：** [`PRODUCT.md`](./PRODUCT.md)、[`ARCHITECTURE.md`](./ARCHITECTURE.md)、[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)
 
 ---
 
@@ -16,13 +16,22 @@ AI 遠不止回答問題。它持續：
 
 - 觀察學習行為
 - 發現學習訊號（Signals）
-- 調整學習計畫
+- **更新 Student Model**（對學生持續演化的理解）
+- 調整學習計畫（Today's Journey）
 - 讓家長始終知情
+
+**Learning OS 共同基礎（PRD-000 v1.4）：**
+
+```text
+Learning Signals → Student Model → Knowledge Graph
+  → Understanding → Planning → Today's Journey
+  → Reflection → Growth → New Learning Signals
+```
 
 **一句話結構：**
 
 > Students learn.  
-> AI analyzes.  
+> AI understands the learner and the knowledge.  
 > Parents understand.
 
 ---

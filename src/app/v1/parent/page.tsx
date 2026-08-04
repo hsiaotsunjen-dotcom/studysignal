@@ -11,7 +11,12 @@ import {
   SsPageHeader,
   SsProgressBar,
 } from "@/design-system";
-import { mockParent, mockStudent } from "@/design-system/mock/data";
+import { mockParent as mockParentReport, mockStudent } from "@/design-system/mock/data";
+import {
+  enterDemoMode,
+  isDemoAuthEnabled,
+  mockParent as demoParent,
+} from "@/lib/demoAuth";
 import {
   readDailySessionResult,
   type DailySessionResult,
@@ -22,18 +27,25 @@ export default function ParentCenterPage() {
   const [liveSession, setLiveSession] = useState<DailySessionResult | null>(
     null,
   );
-  const [parentEmail, setParentEmail] = useState("");
-  const [parentName, setParentName] = useState("");
+  const [parentEmail, setParentEmail] = useState(demoParent.email);
+  const [parentName, setParentName] = useState(demoParent.name);
 
   useEffect(() => {
+    if (isDemoAuthEnabled()) {
+      enterDemoMode();
+      setParentEmail(demoParent.email);
+      setParentName(demoParent.name);
+    } else {
+      const session = readParentSession();
+      if (session?.parentEmail) setParentEmail(session.parentEmail);
+      if (session?.parentName) setParentName(session.parentName);
+    }
     setLiveSession(readDailySessionResult());
-    const session = readParentSession();
-    if (session?.parentEmail) setParentEmail(session.parentEmail);
-    if (session?.parentName) setParentName(session.parentName);
   }, []);
 
   const studentName = liveSession?.studentName ?? mockStudent.name;
-  const displayEmail = parentEmail || "parent@email.com";
+  const displayEmail = parentEmail || demoParent.email;
+  const mockParent = mockParentReport;
 
   return (
     <SsAppShell>

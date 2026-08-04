@@ -14,6 +14,7 @@ import {
   pathForOnboardingStep,
   type AuthSession,
 } from "@/lib/authClient";
+import { useDemoAuthBypass } from "@/lib/useDemoAuthBypass";
 
 /**
  * PRD-001 First success screen — no Tutor / Homework / Dashboard.
@@ -21,11 +22,13 @@ import {
  */
 export default function SignupSuccessPage() {
   const router = useRouter();
+  const demoBypass = useDemoAuthBypass();
   const [session, setSession] = useState<AuthSession | null>(null);
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    if (demoBypass) return;
     let cancelled = false;
     (async () => {
       try {
@@ -53,7 +56,15 @@ export default function SignupSuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, demoBypass]);
+
+  if (demoBypass) {
+    return (
+      <SsAppShell showTab={false}>
+        <p className="text-sm text-[var(--ss-fg-muted)]">Demo Mode…</p>
+      </SsAppShell>
+    );
+  }
 
   return (
     <SsAppShell showTab={false}>

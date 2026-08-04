@@ -21,6 +21,7 @@ import {
   type AtmosphereMeta,
 } from "@/design-system/atmosphere/atmospheres";
 import { SsAtmospherePicker } from "@/design-system/components/SsAtmospherePicker";
+import { SsDemoModeBadge } from "@/design-system/components/SsDemoModeBadge";
 
 type AtmosphereContextValue = {
   atmosphere: AtmosphereId;
@@ -78,6 +79,7 @@ export function AtmosphereProvider({ children }: { children: ReactNode }) {
         {/* Phone / content column — picker is positioned inside this, never the viewport */}
         <div className="ss-phone-frame relative mx-auto min-h-dvh w-full max-w-lg">
           {children}
+          <SsDemoModeBadge />
           <SsAtmospherePicker />
         </div>
       </div>

@@ -185,6 +185,18 @@ Each entry includes: **ID**, **Date**, **Decision**, **Reason**, **Status** (`Ac
 
 ---
 
+### DEC-014
+
+| Field | Value |
+|-------|--------|
+| **ID** | DEC-014 |
+| **Date** | 2026-08-04 |
+| **Decision** | Adopt `docs/prd/PRD-000-StudySignal-Constitution.md` as the complete product constitution (v1.4): Signals, Student Model, Knowledge Graph, Learning Engine, Memory, Success Metrics (autonomy / less needed AI), Appendix A Never-Break principles. Shared OS loop mandatory for PRD-001+. PRODUCT.md and ARCHITECTURE.md defer to PRD-000 on conflict. |
+| **Reason** | Align the company on AI Learning Center / Learning OS (coach-first, multi-subject, non-chat identity) before further feature work. |
+| **Status** | Active |
+
+---
+
 # Role Completions
 
 Record when an AI_TEAM role finishes its scoped work for a PRD task.  

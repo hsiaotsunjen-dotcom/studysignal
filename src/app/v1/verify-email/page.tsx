@@ -17,6 +17,7 @@ import {
   verifyEmail,
   type AuthSession,
 } from "@/lib/authClient";
+import { useDemoAuthBypass } from "@/lib/useDemoAuthBypass";
 
 /**
  * PRD-001 Email verification — identical journey for simulated or real mail (AC7).
@@ -24,6 +25,7 @@ import {
  */
 export default function VerifyEmailPage() {
   const router = useRouter();
+  const demoBypass = useDemoAuthBypass();
   const [session, setSession] = useState<AuthSession | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +35,7 @@ export default function VerifyEmailPage() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    if (demoBypass) return;
     let cancelled = false;
     (async () => {
       try {
@@ -60,7 +63,15 @@ export default function VerifyEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, demoBypass]);
+
+  if (demoBypass) {
+    return (
+      <SsAppShell showTab={false}>
+        <p className="text-sm text-[var(--ss-fg-muted)]">Demo Mode…</p>
+      </SsAppShell>
+    );
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

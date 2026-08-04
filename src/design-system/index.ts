@@ -12,6 +12,7 @@ export { SsBottomTab } from "@/design-system/components/SsBottomTab";
 export { SsPageHeader } from "@/design-system/components/SsPageHeader";
 export { SsAppShell } from "@/design-system/components/SsAppShell";
 export { SsAtmospherePicker } from "@/design-system/components/SsAtmospherePicker";
+export { SsDemoModeBadge } from "@/design-system/components/SsDemoModeBadge";
 export { DailyReportPreview } from "@/design-system/components/DailyReportPreview";
 export {
   AtmosphereProvider,

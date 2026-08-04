@@ -16,6 +16,10 @@ import {
   pathForOnboardingStep,
   signUp,
 } from "@/lib/authClient";
+import {
+  DEMO_DASHBOARD_PATH,
+  isDemoAuthEnabled,
+} from "@/lib/demoAuth";
 
 /**
  * PRD-001 Signup — POST /api/auth/signup only.
@@ -34,6 +38,11 @@ export default function ParentSignupPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // DEV: keep signup UI available; do not bounce into real onboarding.
+      if (isDemoAuthEnabled()) {
+        if (!cancelled) setChecking(false);
+        return;
+      }
       try {
         const session = await getAuthSession();
         if (cancelled) return;
@@ -64,6 +73,10 @@ export default function ParentSignupPage() {
         password,
         confirmPassword,
       });
+      if (isDemoAuthEnabled()) {
+        router.push(DEMO_DASHBOARD_PATH);
+        return;
+      }
       router.push(pathForOnboardingStep(session.onboardingStep));
     } catch (err) {
       setError(err instanceof Error ? err.message : "無法建立帳號，請稍后再試。");

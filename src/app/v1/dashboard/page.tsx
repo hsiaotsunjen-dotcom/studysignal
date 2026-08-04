@@ -6,6 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SsAppShell, SsButton, SsCard } from "@/design-system";
 import { mockStudent, mockStudentHome } from "@/design-system/mock/data";
+import {
+  enterDemoMode,
+  getDemoParentSession,
+  isDemoAuthEnabled,
+  mockParent,
+} from "@/lib/demoAuth";
 import { readParentSession } from "@/lib/parentSession";
 
 function timeGreetingFallback() {
@@ -19,10 +25,19 @@ export default function StudentDashboardPage() {
   const router = useRouter();
   const home = mockStudentHome;
   const [name, setName] = useState(mockStudent.name);
+  const [parentLabel, setParentLabel] = useState(mockParent.name);
 
   useEffect(() => {
+    if (isDemoAuthEnabled()) {
+      enterDemoMode();
+      const demo = getDemoParentSession();
+      setName(demo.student?.name ?? mockStudent.name);
+      setParentLabel(mockParent.name);
+      return;
+    }
     const session = readParentSession();
     if (session?.student?.name) setName(session.student.name);
+    if (session?.parentName) setParentLabel(session.parentName);
   }, []);
 
   const greeting = useMemo(
@@ -84,6 +99,15 @@ export default function StudentDashboardPage() {
             >
               {home.heroSupport}
             </p>
+            {isDemoAuthEnabled() ? (
+              <p className="mt-2 text-[12px] text-[var(--ss-fg-hint)]">
+                {mockParent.name} · {mockParent.email}
+              </p>
+            ) : parentLabel ? (
+              <p className="mt-2 text-[12px] text-[var(--ss-fg-hint)]">
+                {parentLabel}
+              </p>
+            ) : null}
           </header>
 
           <SsCard className="ss-card-lift mb-10 !px-6 !py-8 sm:!px-8 sm:!py-9">

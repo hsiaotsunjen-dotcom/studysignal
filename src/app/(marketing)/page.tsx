@@ -10,10 +10,15 @@ import {
   getAuthSession,
   resolveOnboardingPath,
 } from "@/lib/authClient";
+import {
+  DEMO_DASHBOARD_PATH,
+  enterDemoMode,
+  isDemoAuthEnabled,
+} from "@/lib/demoAuth";
 
 /**
  * PRD-001 Landing — invite Parent into Authentication.
- * One primary CTA; secondary login link. No Tutor / Dashboard / Parent Center.
+ * Development Mode: primary CTA seeds a mock session and opens Dashboard.
  */
 export default function LandingPage() {
   const router = useRouter();
@@ -22,11 +27,15 @@ export default function LandingPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // DEV: do not resume real onboarding — stay on Landing until CTA.
+      if (isDemoAuthEnabled()) {
+        if (!cancelled) setResuming(false);
+        return;
+      }
       try {
         const session = await getAuthSession();
         if (cancelled) return;
         const path = resolveOnboardingPath(session);
-        // Resume incomplete signup; leave completed parents on Landing.
         if (path && session && session.onboardingStep !== "complete") {
           router.replace(path);
           return;
@@ -41,6 +50,15 @@ export default function LandingPage() {
       cancelled = true;
     };
   }, [router]);
+
+  function startJourney() {
+    if (isDemoAuthEnabled()) {
+      enterDemoMode();
+      router.push(DEMO_DASHBOARD_PATH);
+      return;
+    }
+    router.push("/v1/signup");
+  }
 
   return (
     <div className="flex min-h-dvh w-full flex-col px-[1.35rem] pb-20 pt-[3.75rem] sm:px-8">
@@ -86,7 +104,7 @@ export default function LandingPage() {
           <SsButton
             className="w-full"
             disabled={resuming}
-            onClick={() => router.push("/v1/signup")}
+            onClick={startJourney}
           >
             開始陪伴孩子
             <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />

@@ -9,6 +9,7 @@ import {
   ATMOSPHERES,
   type AtmosphereId,
 } from "@/design-system/atmosphere/atmospheres";
+import { isDemoAuthEnabled } from "@/lib/demoAuth";
 
 /**
  * Atmosphere trigger — top-right INSIDE `.ss-phone-frame` (max-w-lg).
@@ -20,6 +21,7 @@ export function SsAtmospherePicker({ className = "" }: { className?: string }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const demoMode = isDemoAuthEnabled();
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +49,10 @@ export function SsAtmospherePicker({ className = "" }: { className?: string }) {
       <div
         className="pointer-events-none absolute inset-x-0 top-0 z-[60]"
         style={{
-          paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+          // Sit below DEMO MODE chip when visible
+          paddingTop: demoMode
+            ? "max(2.35rem, calc(env(safe-area-inset-top) + 1.6rem))"
+            : "max(0.75rem, env(safe-area-inset-top))",
         }}
       >
         <div className="pointer-events-none flex justify-end px-[1.35rem] sm:px-8">

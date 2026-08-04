@@ -15,6 +15,7 @@ import {
   inviteStudent,
   pathForOnboardingStep,
 } from "@/lib/authClient";
+import { useDemoAuthBypass } from "@/lib/useDemoAuthBypass";
 
 /**
  * PRD-001 Invite student — POST /api/auth/invite-student.
@@ -22,6 +23,7 @@ import {
  */
 export default function InviteStudentPage() {
   const router = useRouter();
+  const demoBypass = useDemoAuthBypass();
   const [studentName, setStudentName] = useState("");
   const [grade, setGrade] = useState("");
   const [error, setError] = useState("");
@@ -29,6 +31,7 @@ export default function InviteStudentPage() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    if (demoBypass) return;
     let cancelled = false;
     (async () => {
       try {
@@ -55,7 +58,15 @@ export default function InviteStudentPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, demoBypass]);
+
+  if (demoBypass) {
+    return (
+      <SsAppShell showTab={false}>
+        <p className="text-sm text-[var(--ss-fg-muted)]">Demo Mode…</p>
+      </SsAppShell>
+    );
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
