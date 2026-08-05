@@ -1,14 +1,120 @@
-# PRD-000：StudySignal Constitution（產品憲法）
+# StudySignal Constitution  
+# 產品憲法
 
-> **地位：** StudySignal 最高層級產品文件。  
-> 未來所有 PRD、UI、Agent、功能、文案、度量——包括但不限於  
-> PRD-001 Agent Brain · PRD-002 Growth Blueprint · PRD-003 Learning Profile ·  
-> PRD-004 Planning Engine · PRD-005 Home IA——若與此衝突，**以本憲法為準**。  
+> **Version 2.0**  
+> StudySignal 最高層級產品文件。後續所有 PRD（含 [`PRD-001 Today's Journey Engine`](./PRD-001-Todays-Journey-Engine.md)）若與此衝突，**以本憲法為準**。  
 > **配套：** [`BRAND_VOICE.md`](../BRAND_VOICE.md) · [`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) · [`PRODUCT.md`](../PRODUCT.md) · [`PROJECT_RULES.md`](../PROJECT_RULES.md)  
-> **版本：** 1.4（Constitution Complete）  
 > **日期：** 2026-08-05  
-> **性質：** Product Constitution — 非功能規格、非畫面稿  
-> **預期壽命：** 五到十年內只應緩慢演化，不應隨功能搖擺
+> **性質：** 產品憲法——不是功能規格，不是畫面稿  
+> **預期壽命：** 五到十年內只應緩慢演化
+
+---
+
+# Opening Statement
+
+## 我們相信
+
+真正的學習，  
+始於被理解。
+
+> **True learning begins with being understood.**
+
+---
+
+教育，  
+不是先教知識。  
+教育，  
+是先理解孩子。
+
+每一位孩子，  
+都有不同的能力、  
+不同的節奏、  
+不同的夢想、  
+不同的情緒、  
+不同的故事。
+
+因此，  
+AI 的第一個工作，  
+不是教。  
+而是理解。
+
+---
+
+## StudySignal 的第一原則
+
+**先陪心，再陪學，最後陪成長。**
+
+```text
+Care
+  ↓
+Learn
+  ↓
+Grow
+```
+
+我們不只是打造一套 AI。  
+我們希望，每一位孩子，  
+都擁有一位真正理解自己的 AI 學習夥伴。
+
+這位 AI：  
+不急著回答。  
+不急著教。  
+不急著糾正。  
+而是先理解。
+
+---
+
+## 因此，StudySignal 並不是
+
+- AI Chat  
+- AI Search  
+- AI Tutor  
+- Study Assistant  
+
+## StudySignal 是
+
+> **A Personal Learning Companion.**  
+> 一位陪伴孩子成長的 AI。
+
+---
+
+## 我們相信的順序
+
+> **Relationship before Recommendation.**
+
+先建立理解，再提供建議。  
+先建立信任，再開始學習。
+
+---
+
+## 所以，我們這樣看自己的語言
+
+| 概念 | 不是 | 而是 |
+|------|------|------|
+| **Learning Signals** | 分數 | **理解** |
+| **Student Model** | 資料 | **理解** |
+| **Growth Blueprint** | 課表 | **理解** |
+| **Today's Journey** | 任務 | **陪伴** |
+
+---
+
+## 我們真正在建立的
+
+我們不是在建立一個 AI App。  
+我們正在建立：  
+**一段可以陪伴孩子數年的學習關係。**
+
+AI 只是工具。  
+理解，才是 StudySignal 的核心。
+
+---
+
+不是每一位孩子都需要一位最厲害的老師。  
+但每一位孩子，都值得擁有一位真正理解自己的學習夥伴。
+
+讀完這一頁，應能明白：  
+StudySignal 與其他 AI 教育產品最大的不同，  
+**不是模型，而是教育哲學。**
 
 ---
 
@@ -17,15 +123,13 @@
 > **先定義 AI 如何思考，再決定 AI 如何說話；  
 > 先定義產品如何運作，再決定畫面如何呈現。**
 
-Implication：
-
 | 順序 | 先完成 | 後決定 |
 |------|--------|--------|
 | 1 | Agent 目標、記憶、計畫、倫理邊界 | 語氣、文案、語音 |
 | 2 | Learning OS 資料流與引擎契約 | 頁面、元件、動效 |
 | 3 | 學生／家長成功定義 | 增長與變現手段 |
 
-違反此順序的 PRD（先畫 UI、先寫 prompt 腔調、先做聊天框）——退回。
+違反此順序的提案（先畫 UI、先寫腔調、先做聊天框）——退回。
 
 ---
 
@@ -34,10 +138,11 @@ Implication：
 在提出任何功能、畫面、Agent 行為或命名之前，先問：
 
 1. 這是否讓學生更會學習——而不只是更會使用 AI？  
-2. 這是否降低了「今天該做什麼」的決策成本？  
-3. 這是否讓家長更安心——而不是更焦慮？  
-4. 這是否讓人誤以為我們是聊天 App / 口說 App / 搜尋工具？  
-5. 我們是否先定義了「AI 如何思考／產品如何運作」，才討論說話與畫面？
+2. 這是否先理解孩子——而不只是先教知識？  
+3. 這是否降低了「今天該做什麼」的決策成本？  
+4. 這是否讓家長更安心——而不是更焦慮？  
+5. 這是否讓人誤以為我們是聊天 App／口說 App／搜尋工具？  
+6. 我們是否先定義了「AI 如何思考／產品如何運作」，才討論說話與畫面？
 
 任一題失敗——停止，重新設計。
 
@@ -47,7 +152,7 @@ Implication：
 
 | # | 章節 | 回答的問題 |
 |---|------|------------|
-| — | Meta Principle · 如何使用 | 設計順序與檢驗題 |
+| — | Opening · Meta · 如何使用 | 我們相信什麼；設計順序 |
 | 1 | Mission | 我們為何存在 |
 | 2 | Vision | 五年後成為什麼 |
 | 3 | Product Positioning | 是什麼／不是什麼 |
@@ -598,12 +703,12 @@ Learning Signals → Student Model → Knowledge Graph
 
 **下游 PRD 映射（示意）：**
 
-| 憲法模組 | 預期 PRD |
-|----------|----------|
-| Agent 思考／人格／倫理／Engine | PRD-001 Agent Brain |
+| 憲法模組 | 預期／已立 PRD |
+|----------|----------------|
+| Today's Journey／日決策落地 | **[`PRD-001 Today's Journey Engine`](./PRD-001-Todays-Journey-Engine.md)** |
 | Blueprint／Ability／Milestone | PRD-002 Growth Blueprint |
 | Profile／Signals／Student Model／Memory | PRD-003 Learning Profile |
-| Planning／Journey／Goal／Knowledge | PRD-004 Planning Engine |
+| Agent Brain／Knowledge／Planning 深化 | PRD-004（後續） |
 | Home 資訊架構 | PRD-005 Home IA |
 
 各 PRD 只能細化本 OS，不得改寫 OS 的存在理由。  
@@ -1171,6 +1276,6 @@ Memory 的目的**不是保存歷史**。
 
 ---
 
-*PRD-000 · StudySignal Constitution · v1.4 · Complete*  
+*PRD-000 · StudySignal Constitution · Version 2.0*  
 *All future product work — including PRD-001 and beyond — is downstream of this document.*  
 *The Principles We Never Break (Appendix A) are non-negotiable.*

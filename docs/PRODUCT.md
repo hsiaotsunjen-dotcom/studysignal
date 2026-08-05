@@ -165,7 +165,9 @@ Whenever there is a product decision:
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | System architecture source of truth |
 | [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) | Visual & experience design source of truth |
 | [`BRAND_VOICE.md`](./BRAND_VOICE.md) | Brand Voice Constitution — all product copy |
-| [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) | Extended Learning OS / Signals notes (defers to this file) |
+| [`prd/PRD-000-StudySignal-Constitution.md`](./prd/PRD-000-StudySignal-Constitution.md) | Product Constitution — highest authority |
+| [`prd/PRD-001-Todays-Journey-Engine.md`](./prd/PRD-001-Todays-Journey-Engine.md) | Today's Journey Engine — first Learning OS core system |
+| [`PRODUCT_PHILOSOPHY.md`](./PRODUCT_PHILOSOPHY.md) | Extended Learning OS / Signals notes (defers to PRD-000 / this file) |
 | [`V0_DEMO.md`](./V0_DEMO.md) | V0 end-to-end demo path |
 | [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | Implementation status |
 | [`ROADMAP.md`](./ROADMAP.md) | Delivery planning |
