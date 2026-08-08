@@ -57,9 +57,15 @@ export type SignalKind =
   | "demonstrated_uncertainty"
   | "reflected"
   | "completed_independently"
-  | "answer_seeking";
+  | "answer_seeking"
+  /** PRD-103 tutor signal bridge */
+  | "corrected_after_scaffold"
+  | "successful_application"
+  | "productive_struggle";
 
 export type ConfidenceLevel = "low" | "medium" | "high";
+
+export type LearningSignalWhere = "mission" | "app_tutor" | "onboarding";
 
 export type LearningSignal = {
   id: string;
@@ -68,8 +74,19 @@ export type LearningSignal = {
   observation: string;
   value: string | number | boolean;
   confidence: ConfidenceLevel;
-  source: "onboarding" | "diagnostic" | "self_report" | "mission" | "reflection";
+  source:
+    | "onboarding"
+    | "diagnostic"
+    | "self_report"
+    | "mission"
+    | "reflection"
+    | "tutor";
   createdAt: string;
+  /** Provenance — never raw chat transcript */
+  where?: LearningSignalWhere;
+  contextId?: string;
+  /** Stable fingerprint to prevent duplicate append after refresh */
+  eventKey?: string;
 };
 
 export type LearningGoal = {

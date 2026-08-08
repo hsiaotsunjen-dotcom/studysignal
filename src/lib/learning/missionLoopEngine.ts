@@ -14,6 +14,7 @@ import type {
   TomorrowSeed,
   TutorTurn,
 } from "@/lib/learning/missionTypes";
+import { recordTutorLearningEvent } from "@/lib/learning/tutorSignalBridge";
 import type {
   ConfidenceLevel,
   LearningSignal,
@@ -225,15 +226,7 @@ export function startMissionLoop(model: StudentModel): MissionLoopSession {
     learningState,
     attempts: [],
     tutorTurns: [],
-    signals: [
-      signal(
-        "attempted",
-        "Mission loop started",
-        mission.id,
-        "high",
-        "mission",
-      ),
-    ],
+    signals: [],
     reflection: null,
     tomorrowSeed: null,
     hintCount: 0,
@@ -278,22 +271,121 @@ export function recordStudentAttempt(
 
   const answerRequestCount = session.answerRequestCount + (asked ? 1 : 0);
   const attempts = [...session.attempts, attempt];
-  const signals: LearningSignal[] = [
-    ...session.signals,
-    signal("attempted", `Student produced a ${kind} attempt`, kind, "high"),
-  ];
 
-  if (asked) {
-    signals.push(
-      signal(
-        "answer_seeking",
-        "Student asked for a direct answer",
-        true,
-        "medium",
-      ),
-    );
+  /** PRD-103: meaningful events → canonical bridge (not one message = one signal) */
+  let signals: LearningSignal[] = [...session.signals];
+  let bridgeModel = session.studentModel;
+  let bridgeState = session.learningState;
+
+  const attemptEvt = recordTutorLearningEvent(
+    {
+      type: "ATTEMPT",
+      where: "mission",
+      contextId: session.mission.id,
+      text: trimmed,
+      quality: attempt.observedQuality,
+      askedForAnswer: asked,
+      evidenceId: attempt.id,
+    },
+    {
+      studentModel: bridgeModel,
+      learningState: bridgeState,
+      existingSignals: signals,
+    },
+  );
+  if (attemptEvt.accepted) {
+    signals = [...signals, ...attemptEvt.signals];
+    bridgeModel = attemptEvt.studentModel;
+    bridgeState = attemptEvt.learningState;
   }
-  if (attempt.observedQuality === "solid" || attempt.observedQuality === "partial") {
+
+  const previousAttempt = session.attempts[session.attempts.length - 1];
+  if (
+    (kind === "revision" || kind === "explanation") &&
+    previousAttempt &&
+    session.tutorTurns.length > 0
+  ) {
+    const correctionEvt = recordTutorLearningEvent(
+      {
+        type: "CORRECTION",
+        where: "mission",
+        contextId: session.mission.id,
+        text: trimmed,
+        previousText: previousAttempt.text,
+        scaffoldOccurred: true,
+        evidenceId: `${previousAttempt.id}->${attempt.id}`,
+      },
+      {
+        studentModel: bridgeModel,
+        learningState: bridgeState,
+        existingSignals: signals,
+      },
+    );
+    if (correctionEvt.accepted) {
+      signals = [...signals, ...correctionEvt.signals];
+      bridgeModel = correctionEvt.studentModel;
+      bridgeState = correctionEvt.learningState;
+    }
+  }
+
+  if (attempt.observedQuality === "thin" && attempts.length >= 2) {
+    const struggleEvt = recordTutorLearningEvent(
+      {
+        type: "STRUGGLE",
+        where: "mission",
+        contextId: session.mission.id,
+        text: trimmed,
+        struggleEvidence: "repeated_thin",
+        evidenceId: `struggle-${attempt.id}`,
+      },
+      {
+        studentModel: bridgeModel,
+        learningState: bridgeState,
+        existingSignals: signals,
+      },
+    );
+    if (struggleEvt.accepted) {
+      signals = [...signals, ...struggleEvt.signals];
+      bridgeModel = struggleEvt.studentModel;
+      bridgeState = struggleEvt.learningState;
+    }
+  }
+
+  if (
+    kind === "apply" &&
+    (attempt.observedQuality === "solid" ||
+      attempt.observedQuality === "partial") &&
+    !asked
+  ) {
+    const successEvt = recordTutorLearningEvent(
+      {
+        type: "SUCCESS",
+        where: "mission",
+        contextId: session.mission.id,
+        text: trimmed,
+        quality: attempt.observedQuality,
+        askedForAnswer: false,
+        independent:
+          session.hintCount <= 1 && session.answerRequestCount === 0,
+        evidenceId: `success-${attempt.id}`,
+      },
+      {
+        studentModel: bridgeModel,
+        learningState: bridgeState,
+        existingSignals: signals,
+      },
+    );
+    if (successEvt.accepted) {
+      signals = [...signals, ...successEvt.signals];
+      bridgeModel = successEvt.studentModel;
+      bridgeState = successEvt.learningState;
+    }
+  }
+
+  if (
+    attempt.observedQuality === "solid" ||
+    attempt.observedQuality === "partial"
+  ) {
     if (kind === "explanation" || /因為|because|why|所以/i.test(trimmed)) {
       signals.push(
         signal(
@@ -326,7 +418,7 @@ export function recordStudentAttempt(
   }
 
   const learningState = estimateStateAfterAttempt({
-    previous: session.learningState,
+    previous: bridgeState,
     attempt,
     answerRequestCount,
     attemptCount: attempts.length,
@@ -397,7 +489,7 @@ export function recordStudentAttempt(
     modelObservations: observations,
     phase: kind === "first_idea" ? "tutor_respond" : phase,
     studentModel: {
-      ...session.studentModel,
+      ...bridgeModel,
       learningState,
     },
     updatedAt: now(),
@@ -464,30 +556,53 @@ export function completeReflection(
   }
 
   const full: MissionReflection = { ...reflection, createdAt: now() };
-  const signals = [
-    ...session.signals,
-    signal("reflected", "Student completed mission reflection", true, "high", "reflection"),
-  ];
-  if (full.confidenceNow === "high") {
-    signals.push(
-      signal(
-        "demonstrated_confidence",
-        "Self-reported higher confidence after mission",
-        "high",
-        "medium",
-        "reflection",
-      ),
-    );
-  } else if (full.confidenceNow === "low") {
-    signals.push(
-      signal(
-        "demonstrated_uncertainty",
-        "Self-reported low confidence after mission",
-        "low",
-        "medium",
-        "reflection",
-      ),
-    );
+  let signals: LearningSignal[] = [...session.signals];
+  let bridgeModel = session.studentModel;
+  let bridgeState = session.learningState;
+
+  const reflectionEvt = recordTutorLearningEvent(
+    {
+      type: "REFLECTION",
+      where: "mission",
+      contextId: session.mission.id,
+      evidenceId: `reflection-${session.id}`,
+    },
+    {
+      studentModel: bridgeModel,
+      learningState: bridgeState,
+      existingSignals: signals,
+    },
+  );
+  if (reflectionEvt.accepted) {
+    signals = [...signals, ...reflectionEvt.signals];
+    bridgeModel = reflectionEvt.studentModel;
+    bridgeState = reflectionEvt.learningState;
+  }
+
+  const confidenceEvt = recordTutorLearningEvent(
+    {
+      type: "CONFIDENCE_CHANGE",
+      where: "mission",
+      contextId: session.mission.id,
+      confidenceLevel: full.confidenceNow,
+      confidenceDirection:
+        full.confidenceNow === "high"
+          ? "up"
+          : full.confidenceNow === "low"
+            ? "down"
+            : undefined,
+      evidenceId: `reflection-confidence-${session.id}`,
+    },
+    {
+      studentModel: bridgeModel,
+      learningState: bridgeState,
+      existingSignals: signals,
+    },
+  );
+  if (confidenceEvt.accepted) {
+    signals = [...signals, ...confidenceEvt.signals];
+    bridgeModel = confidenceEvt.studentModel;
+    bridgeState = confidenceEvt.learningState;
   }
 
   const independent =
@@ -511,9 +626,10 @@ export function completeReflection(
   else if (full.confidenceNow === "low") learningState = "Consolidating";
   else if (session.learningState === "Unproductive Struggle")
     learningState = "Recovering";
+  else if (bridgeState === "Productive Struggle") learningState = "Consolidating";
   else learningState = "Consolidating";
 
-  const updatedModel = applyModelUpdate(session.studentModel, {
+  const updatedModel = applyModelUpdate(bridgeModel, {
     signals,
     learningState,
     observations: session.modelObservations,

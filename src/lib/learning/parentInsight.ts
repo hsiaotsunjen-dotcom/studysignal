@@ -106,6 +106,12 @@ function strengthFromSignals(signals: LearningSignal[]): string[] {
   if (byKind("completed_independently").length > 0) {
     out.push("今天能以較少提示完成任務");
   }
+  if (byKind("corrected_after_scaffold").length > 0) {
+    out.push("在引導後願意修改自己的想法");
+  }
+  if (byKind("successful_application").length > 0) {
+    out.push("能把所學用在一小步應用上");
+  }
   if (
     byKind("preferred_interaction_mode").some((s) => s.value === "practice")
   ) {
@@ -127,10 +133,14 @@ function challengeFromModel(
   const thin = signals.find(
     (s) => s.kind === "explanation_quality" && s.value === "thin",
   );
+  const struggle = signals.find((s) => s.kind === "productive_struggle");
   const subject = model.goals.subject;
 
   if (model.learningState === "Orienting") {
     return `在「${subject}」上還在摸索從哪裡開始，容易覺得方向不清楚。`;
+  }
+  if (struggle) {
+    return `最近在「${subject}」上出現有意義的卡住——適合請孩子指出卡在哪一小步，而不是直接給答案。`;
   }
   if (thin) {
     return `說出推理過程時還比較簡短，遇到卡關可能不知道怎麼往下想。`;

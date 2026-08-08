@@ -136,6 +136,10 @@ import {
 } from "@/lib/sttLanguage";
 import { toTraditionalChineseForDisplay } from "@/lib/sttTraditionalChinese";
 import {
+  markAppTutorScaffolded,
+  recordAppTutorStudentMessage,
+} from "@/lib/learning/appTutorBridge";
+import {
   readTutorMissionSeed,
   welcomeFromMissionSeed,
 } from "@/lib/learning/tutorMissionSeed";
@@ -2375,6 +2379,14 @@ export function StudySignalHome({
             : {}),
         },
       ]);
+      // PRD-103: optional free-practice → Learning Signals (evidence only; not chat surveillance)
+      if (text) {
+        try {
+          recordAppTutorStudentMessage(text);
+        } catch {
+          // Bridge must never break Tutor UX
+        }
+      }
     }
 
     setChatItems((prev) => [
@@ -2463,6 +2475,13 @@ export function StudySignalHome({
             : m,
         ),
       );
+      if (!hasImages) {
+        try {
+          markAppTutorScaffolded();
+        } catch {
+          // ignore
+        }
+      }
       latMark("9_tts_start_requested", { replyChars: reply.length });
       // Sentence-chunk cloud TTS; never late Android SpeechSynthesis.
       speakTutorReplyChunkedFireAndForget(reply, selectedSpeechLang, {
