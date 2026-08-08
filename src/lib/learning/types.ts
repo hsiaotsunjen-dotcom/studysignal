@@ -48,7 +48,16 @@ export type SignalKind =
   | "persistence"
   | "transfer"
   | "self_report"
-  | "goal_clarity";
+  | "goal_clarity"
+  /** PRD-102 mission loop */
+  | "attempted"
+  | "asked_for_hint"
+  | "explained_reasoning"
+  | "demonstrated_confidence"
+  | "demonstrated_uncertainty"
+  | "reflected"
+  | "completed_independently"
+  | "answer_seeking";
 
 export type ConfidenceLevel = "low" | "medium" | "high";
 
@@ -59,7 +68,7 @@ export type LearningSignal = {
   observation: string;
   value: string | number | boolean;
   confidence: ConfidenceLevel;
-  source: "onboarding" | "diagnostic" | "self_report";
+  source: "onboarding" | "diagnostic" | "self_report" | "mission" | "reflection";
   createdAt: string;
 };
 

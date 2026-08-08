@@ -100,6 +100,12 @@ function strengthFromSignals(signals: LearningSignal[]): string[] {
   if (byKind("persistence").some((s) => s.value === true)) {
     out.push("面對追問時會再試一次");
   }
+  if (byKind("explained_reasoning").length > 0) {
+    out.push("願意說明自己的推理");
+  }
+  if (byKind("completed_independently").length > 0) {
+    out.push("今天能以較少提示完成任務");
+  }
   if (
     byKind("preferred_interaction_mode").some((s) => s.value === "practice")
   ) {
@@ -138,9 +144,23 @@ function challengeFromModel(
   return `剛開始建立節奏，還需要更多可觀察的練習來確認卡點。`;
 }
 
-function progressFromModel(model: StudentModel, mission: Mission | null): string {
+function progressFromModel(
+  model: StudentModel,
+  mission: Mission | null,
+  signals: LearningSignal[],
+): string {
   const name = model.identity.preferredName || "孩子";
   const subject = model.goals.subject;
+  const reflected = signals.some((s) => s.kind === "reflected");
+  const attempted = signals.some(
+    (s) => s.kind === "attempted" && s.source === "mission",
+  );
+  if (reflected) {
+    return `${name}完成了「${subject}」的今日任務，並留下反思——比只完成練習更靠近自主學習。`;
+  }
+  if (attempted && mission) {
+    return `${name}正在「${subject}」任務中練習提出自己的想法，而不只是等待答案。`;
+  }
   if (mission) {
     return `${name}已設定「${subject}」的學習方向，並有了第一個可觀察的學習任務。`;
   }
@@ -208,15 +228,21 @@ export function buildParentInsight(input: {
     status: "ready",
     studentDisplayName: studentModel.identity.preferredName || null,
     subject: studentModel.goals.subject,
-    progress: progressFromModel(studentModel, mission),
+    progress: progressFromModel(studentModel, mission, signals),
     strengths: strengths.slice(0, 3),
     currentChallenge: challengeFromModel(studentModel, signals),
     learningStateSummary: STATE_PARENT_COPY[studentModel.learningState],
     growthNote:
-      "這是初步觀察：真正的成長會隨著多次學習累積。目前請把焦點放在「願意嘗試」而不是成績。",
+      signals.some((s) => s.kind === "reflected")
+        ? "孩子今天有回頭看自己的學習。可以問他「哪裡變清楚了」，而不是問分數。"
+        : "這是初步觀察：真正的成長會隨著多次學習累積。目前請把焦點放在「願意嘗試」而不是成績。",
     supportNeeded: support,
     suggestedParentAction: action,
-    basedOn: input.basedOn ?? "onboarding",
+    basedOn:
+      input.basedOn ??
+      (signals.some((s) => s.source === "mission")
+        ? "learning_session"
+        : "onboarding"),
     generatedAt: new Date().toISOString(),
     privacy: { ...PRIVACY },
   };
@@ -229,11 +255,12 @@ export function parentInsightFromOnboardingSession(
   if (!session?.studentModel) {
     return emptyParentInsight();
   }
+  const fromMission = session.signals.some((s) => s.source === "mission");
   return buildParentInsight({
     studentModel: session.studentModel,
     signals: session.signals,
     mission: session.mission,
-    basedOn: "onboarding",
+    basedOn: fromMission ? "learning_session" : "onboarding",
   });
 }
 
