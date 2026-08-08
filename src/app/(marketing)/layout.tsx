@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "StudySignal — 孩子每天學習。你每天都知道。",
+  title: "StudySignal — AI Learning Companion",
   description:
     "StudySignal is a Family Learning Hub. Students learn every day. Parents stay informed every day.",
 };

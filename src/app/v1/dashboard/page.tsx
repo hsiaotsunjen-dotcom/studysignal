@@ -12,6 +12,10 @@ import {
   isDemoAuthEnabled,
   mockParent,
 } from "@/lib/demoAuth";
+import {
+  isOnboardingComplete,
+  readOnboardingSession,
+} from "@/lib/learning/onboardingStore";
 import { readParentSession } from "@/lib/parentSession";
 
 function timeGreetingFallback() {
@@ -133,7 +137,14 @@ export default function StudentDashboardPage() {
 
             <SsButton
               className="mt-9 w-full"
-              onClick={() => router.push("/app")}
+              onClick={() => {
+                const onboarding = readOnboardingSession();
+                if (!isOnboardingComplete(onboarding)) {
+                  router.push("/v1/learn/onboarding");
+                  return;
+                }
+                router.push("/v1/learn/mission");
+              }}
             >
               開始今天的旅程
             </SsButton>

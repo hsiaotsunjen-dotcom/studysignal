@@ -5,20 +5,16 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { DailyReportPreview, SsButton } from "@/design-system";
+import { SsButton } from "@/design-system";
 import {
   getAuthSession,
   resolveOnboardingPath,
 } from "@/lib/authClient";
-import {
-  DEMO_DASHBOARD_PATH,
-  enterDemoMode,
-  isDemoAuthEnabled,
-} from "@/lib/demoAuth";
+import { isDemoAuthEnabled } from "@/lib/demoAuth";
 
 /**
- * PRD-001 Landing — invite Parent into Authentication.
- * Development Mode: primary CTA seeds a mock session and opens Dashboard.
+ * Landing — dual audience entry.
+ * Student path is visually primary; parent is secondary supporter entry.
  */
 export default function LandingPage() {
   const router = useRouter();
@@ -27,7 +23,6 @@ export default function LandingPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // DEV: do not resume real onboarding — stay on Landing until CTA.
       if (isDemoAuthEnabled()) {
         if (!cancelled) setResuming(false);
         return;
@@ -51,15 +46,6 @@ export default function LandingPage() {
     };
   }, [router]);
 
-  function startJourney() {
-    if (isDemoAuthEnabled()) {
-      enterDemoMode();
-      router.push(DEMO_DASHBOARD_PATH);
-      return;
-    }
-    router.push("/v1/signup");
-  }
-
   return (
     <div className="flex min-h-dvh w-full flex-col px-[1.35rem] pb-20 pt-[3.75rem] sm:px-8">
       <header className="mb-11">
@@ -75,7 +61,7 @@ export default function LandingPage() {
           StudySignal
         </p>
         <p className="mt-2 text-[13px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
-          Family Learning Hub
+          AI Learning Companion
         </p>
       </header>
 
@@ -89,41 +75,57 @@ export default function LandingPage() {
             lineHeight: "var(--ss-leading-tight)",
           }}
         >
-          孩子每天學習。
+          先理解你怎麼學，
           <br />
-          你每天都知道。
+          再一起往前。
         </h1>
         <p
           className="mt-5 max-w-md text-[15px] text-[var(--ss-fg-muted)] sm:text-base"
           style={{ lineHeight: "var(--ss-leading-body)" }}
         >
-          AI 已經替孩子準備好今天的學習。家長每晚收到一份溫柔的學習日記。
+          學生擁有學習；家長支持成長。不是監看平台，而是學習夥伴。
         </p>
 
-        <div className="mt-9 flex flex-col gap-5">
-          <SsButton
-            className="w-full"
-            disabled={resuming}
-            onClick={startJourney}
-          >
-            開始陪伴孩子
-            <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
-          </SsButton>
-          <p className="text-center text-[14px] text-[var(--ss-fg-muted)]">
-            已有家長帳號？{" "}
-            <Link
-              href="/v1/login"
-              className="font-semibold text-[var(--ss-primary)] transition hover:opacity-80"
+        <div className="mt-10 flex flex-col gap-6">
+          {/* Primary — student */}
+          <div className="space-y-3">
+            <p className="text-[12px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
+              我是學生
+            </p>
+            <SsButton
+              className="w-full"
+              disabled={resuming}
+              onClick={() => router.push("/v1/learn/onboarding")}
             >
-              家長登入
-            </Link>
-          </p>
-        </div>
-      </section>
+              開始學習
+              <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </SsButton>
+          </div>
 
-      <section className="mt-12" aria-label="每日學習報告預覽">
-        <p className="ss-label mb-4">每晚送到信箱的學習日記</p>
-        <DailyReportPreview />
+          {/* Secondary — parent */}
+          <div className="space-y-3 border-t border-[var(--ss-border)]/45 pt-6">
+            <p className="text-[12px] font-medium tracking-wide text-[var(--ss-fg-hint)]">
+              我是家長
+            </p>
+            <SsButton
+              variant="secondary"
+              className="w-full"
+              disabled={resuming}
+              onClick={() => router.push("/v1/parent/entry")}
+            >
+              了解孩子的學習
+            </SsButton>
+            <p className="text-center text-[13px] text-[var(--ss-fg-hint)]">
+              已有帳號？{" "}
+              <Link
+                href="/v1/login"
+                className="font-medium text-[var(--ss-fg-muted)] underline-offset-2 hover:underline"
+              >
+                家長登入
+              </Link>
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="mt-16 border-t border-[var(--ss-border)]/60 pt-11">
@@ -136,13 +138,13 @@ export default function LandingPage() {
             lineHeight: "var(--ss-leading-snug)",
           }}
         >
-          孩子被溫柔陪伴。家長安心知道。
+          學習由孩子主導。家長被溫柔告知。
         </p>
         <p
           className="mt-3.5 text-[14px] text-[var(--ss-fg-muted)]"
           style={{ lineHeight: "var(--ss-leading-body)" }}
         >
-          不是儀表板，而是一份每天翻開的學習日記——知道孩子今天真的有學習。
+          家長看到的是進展、挑戰與可支持的方式——不是對話逐字稿，也不是分數排行。
         </p>
       </section>
     </div>

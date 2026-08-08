@@ -10,14 +10,17 @@ import {
   readParentSession,
 } from "@/lib/parentSession";
 
-/** Legacy route — fold into V0 path without dead ends */
+/**
+ * Legacy parent onboarding redirect.
+ * Student Learning OS onboarding lives at `/v1/learn/onboarding` (PRD-101).
+ */
 export default function OnboardingRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
     const session = readParentSession();
     if (!session?.parentEmail || !session.password) {
-      router.replace("/v1/signup");
+      router.replace("/v1/learn/onboarding");
       return;
     }
     if (!session.student) {

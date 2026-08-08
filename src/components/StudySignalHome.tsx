@@ -135,6 +135,10 @@ import {
   STT_WHISPER_LANGUAGE_AUTO,
 } from "@/lib/sttLanguage";
 import { toTraditionalChineseForDisplay } from "@/lib/sttTraditionalChinese";
+import {
+  readTutorMissionSeed,
+  welcomeFromMissionSeed,
+} from "@/lib/learning/tutorMissionSeed";
 
 const StudySignalSecureContextMicDiagLoader = dynamic(
   () =>
@@ -1053,6 +1057,23 @@ export function StudySignalHome({
     useState<DictationUiStatus>("idle");
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [chatItems, setChatItems] = useState<ChatListItem[]>(initialChatItems);
+  /** PRD-101: if onboarding handed off a mission, replace default welcome once. */
+  useEffect(() => {
+    const seed = readTutorMissionSeed();
+    if (!seed) return;
+    const welcome = welcomeFromMissionSeed(seed);
+    setChatItems((prev) => {
+      if (prev.length !== 1 || prev[0]?.id !== "welcome") return prev;
+      return [
+        {
+          id: "welcome",
+          role: "tutor",
+          body: welcome.body,
+          speechText: welcome.speechText,
+        },
+      ];
+    });
+  }, []);
   /** Welcome TTS once per session; cleared only via trash / clear chat. */
   const welcomeAutoSpokenRef = useRef(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
