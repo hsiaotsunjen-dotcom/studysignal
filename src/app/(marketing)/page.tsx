@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { StudentIdentityBar } from "@/components/landing/StudentIdentityBar";
 import { SsButton } from "@/design-system";
 import {
   getAuthSession,
@@ -18,7 +19,8 @@ import { isDemoAuthEnabled } from "@/lib/demoAuth";
  */
 export default function LandingPage() {
   const router = useRouter();
-  const [resuming, setResuming] = useState(true);
+  /** Parent session resume only — never block the primary student entry. */
+  const [resuming, setResuming] = useState(() => !isDemoAuthEnabled());
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +49,12 @@ export default function LandingPage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-dvh w-full flex-col px-[1.35rem] pb-20 pt-[3.75rem] sm:px-8">
+    <div className="flex min-h-dvh w-full flex-col px-[1.35rem] pb-20 pt-[1.75rem] sm:px-8 sm:pt-8">
+      {/* Step 1 — student identity (avatar + grade). Do not expand into courses yet. */}
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <StudentIdentityBar />
+      </div>
+
       <header className="mb-11">
         <p
           className="ss-display text-[1.75rem] font-semibold text-[var(--ss-fg)] sm:text-[2rem]"
@@ -87,19 +94,18 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-10 flex flex-col gap-6">
-          {/* Primary — student */}
+          {/* Primary — student: real link so entry is never stuck behind resuming/disabled */}
           <div className="space-y-3">
             <p className="text-[12px] font-medium tracking-wide text-[var(--ss-fg-muted)]">
               我是學生
             </p>
-            <SsButton
-              className="w-full"
-              disabled={resuming}
-              onClick={() => router.push("/v1/learn/onboarding")}
+            <Link
+              href="/v1/learn/subjects"
+              className="ss-btn-primary inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2.5 rounded-full px-7 py-3 text-[15px] font-semibold leading-none tracking-[-0.01em] shadow-[var(--ss-shadow-soft)] transition duration-300 ease-out hover:shadow-[var(--ss-shadow-card)] active:scale-[0.985] touch-manipulation"
             >
               開始學習
               <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
-            </SsButton>
+            </Link>
           </div>
 
           {/* Secondary — parent */}
