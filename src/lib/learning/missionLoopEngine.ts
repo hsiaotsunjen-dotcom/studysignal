@@ -206,7 +206,8 @@ export function estimateStateAfterAttempt(input: {
     if (hintCount === 0 && attemptCount >= 2) return "Independent";
     return previous === "Ready" ? "Ready" : "Building";
   }
-  if (previous === "Orienting" && attempt.observedQuality !== "empty") {
+  // "empty" already returned above — remaining qualities can leave Orienting.
+  if (previous === "Orienting") {
     return "Building";
   }
   return previous;

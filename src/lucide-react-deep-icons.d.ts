@@ -4,6 +4,12 @@ declare module "lucide-react/dist/esm/icons/audio-waveform.js" {
   export default Icon;
 }
 
+declare module "lucide-react/dist/esm/icons/arrow-left.js" {
+  import type { FC, SVGProps } from "react";
+  const Icon: FC<SVGProps<SVGSVGElement>>;
+  export default Icon;
+}
+
 declare module "lucide-react/dist/esm/icons/camera.js" {
   import type { FC, SVGProps } from "react";
   const Icon: FC<SVGProps<SVGSVGElement>>;

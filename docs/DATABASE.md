@@ -26,8 +26,11 @@ StudySignal **Beta 階段尚未引入資料庫**（無 Prisma、Drizzle、Supaba
 | `blob:` URL | 語音錄音預覽 | 🟡 記憶體／瀏覽器，重整即失 |
 | `localStorage` | 僅 Mic 診斷面板位置／收合 | ✅ 本機 UI 偏好 |
 | 伺服器 | 無 session／無 user 表 | ⚪ |
+| Knowledge Base 骨架 | `src/lib/knowledge-base/` — TS 關聯模型 + in-memory service（尚未接 SQL ORM） | 🟡 結構已建 |
 
 **目標（V1.5 起）：** 引入關聯式或文件型資料庫，將下方規劃表逐步實作；客戶端型別（如 `ChatListItem`、`AnalyzeFeedback`）作為 API／DB 契約參考。
+
+> **Knowledge Base：** 課綱／考題約束的知識圖譜骨架見 [`src/lib/knowledge-base/README.md`](../src/lib/knowledge-base/README.md)。目前無 Prisma／Supabase；以 TypeScript schema + `KnowledgeBaseService` 作為可遷移契約。
 
 ### 規劃 ER 關係（目標架構）
 
