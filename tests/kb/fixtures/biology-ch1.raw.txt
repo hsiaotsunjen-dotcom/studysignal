@@ -1,0 +1,15 @@
+TEST DATA ONLY — NOT A REAL TEXTBOOK.
+This tiny biology chapter fixture exists only to prove the Stage 2 pipeline:
+raw text -> checksum -> registered source -> normalized text -> provenance.
+Do not copy this wording into production curriculum or exam data.
+
+[CHAPTER] 第一章 細胞 TEST FIXTURE
+[PAGE 1]
+細胞是生物的基本單位。Cell is the basic unit of life.
+  trailing spaces follow here:    
+[PAGE 2]
+
+
+DNA 位於細胞核內，English text: nucleus contains DNA.
+
+[SECTION] 小結 TEST ONLY
