@@ -1,0 +1,153 @@
+{
+  "curricula": [
+    {
+      "active": true,
+      "educationLevelId": "lvl_senior-high",
+      "id": "cur_bio-senior-skeleton",
+      "name": "高中生物（骨架）",
+      "scopeDescription": "僅用於驗證 schema。正式課綱邊界與章節須由審核過的課綱／課本目錄匯入，禁止 AI 自行擴張至大學程度。",
+      "source": "internal-skeleton",
+      "subjectId": "sub_biology",
+      "version": "skeleton-0.1"
+    }
+  ],
+  "curriculumUnits": [
+    {
+      "curriculumId": "cur_bio-senior-skeleton",
+      "description": "骨架單元：細胞相關知識點容器（非正式完整課綱）",
+      "id": "unit_cell-basics",
+      "level": 1,
+      "order": 1,
+      "parentId": null,
+      "title": "細胞"
+    },
+    {
+      "curriculumId": "cur_bio-senior-skeleton",
+      "description": "骨架單元：遺傳相關知識點容器（非正式完整課綱）",
+      "id": "unit_genetics-intro",
+      "level": 1,
+      "order": 2,
+      "parentId": null,
+      "title": "遺傳"
+    }
+  ],
+  "educationLevels": [
+    {
+      "code": "senior_high",
+      "description": "高中學制層級（骨架；細部課綱版本另以 Curriculum 區分）",
+      "id": "lvl_senior-high",
+      "name": "高中"
+    }
+  ],
+  "examQuestions": [
+    {
+      "answer": "（佔位）例如細胞膜、細胞核等——正式答案以審核匯入為準。",
+      "difficulty": "intro",
+      "examSourceId": "exam_bio-placeholder-2024",
+      "explanation": "僅用於驗證 ExamQuestion → QuestionKnowledge → KnowledgeNode。",
+      "id": "q_bio-placeholder-1",
+      "questionNumber": "S1",
+      "questionText": "【骨架佔位題】請說出細胞的一項基本構造。",
+      "questionType": "short_answer"
+    }
+  ],
+  "examSources": [
+    {
+      "educationLevelId": "lvl_senior-high",
+      "examName": "生物考題來源佔位（非正式卷）",
+      "id": "exam_bio-placeholder-2024",
+      "sourceFile": null,
+      "sourceType": "other",
+      "sourceUrl": null,
+      "subjectId": "sub_biology",
+      "year": 2024
+    }
+  ],
+  "knowledgeNodes": [
+    {
+      "code": "BIO.CELL.STRUCTURE",
+      "curriculumUnitId": "unit_cell-basics",
+      "description": "骨架知識點：細胞的基本構造（佔位）",
+      "difficulty": "basic",
+      "id": "kn_bio-cell-structure",
+      "knowledgeType": "concept",
+      "order": 1,
+      "parentId": null,
+      "scopeStatus": "core",
+      "subjectId": "sub_biology",
+      "title": "細胞基本構造"
+    },
+    {
+      "code": "BIO.CELL.MEMBRANE",
+      "curriculumUnitId": "unit_cell-basics",
+      "description": "骨架知識點：細胞膜（佔位）",
+      "difficulty": "basic",
+      "id": "kn_bio-cell-membrane",
+      "knowledgeType": "concept",
+      "order": 2,
+      "parentId": "kn_bio-cell-structure",
+      "scopeStatus": "core",
+      "subjectId": "sub_biology",
+      "title": "細胞膜"
+    },
+    {
+      "code": "BIO.GEN.DNA",
+      "curriculumUnitId": "unit_genetics-intro",
+      "description": "骨架知識點：DNA（佔位）",
+      "difficulty": "basic",
+      "id": "kn_bio-dna-basics",
+      "knowledgeType": "terminology",
+      "order": 1,
+      "parentId": null,
+      "scopeStatus": "core",
+      "subjectId": "sub_biology",
+      "title": "DNA 基本概念"
+    }
+  ],
+  "knowledgeRelations": [
+    {
+      "id": "rel_cell-to-membrane",
+      "relationType": "prerequisite",
+      "sourceNodeId": "kn_bio-cell-structure",
+      "targetNodeId": "kn_bio-cell-membrane",
+      "weight": 1
+    }
+  ],
+  "learningObjectives": [
+    {
+      "id": "lo_cell-structure",
+      "knowledgeNodeId": "kn_bio-cell-structure",
+      "measurableCriteria": "能正確說出至少一項基本構造（骨架標準）",
+      "objective": "能辨識細胞的基本構造名稱"
+    }
+  ],
+  "learningResources": [
+    {
+      "description": "正式教材連結待課綱／課本目錄匯入後補上。",
+      "id": "lr_cell-notes",
+      "knowledgeNodeId": "kn_bio-cell-structure",
+      "resourceType": "notes",
+      "source": "internal-skeleton",
+      "title": "細胞構造筆記（佔位）",
+      "url": null
+    }
+  ],
+  "questionKnowledge": [
+    {
+      "id": "qk_s1-cell",
+      "knowledgeNodeId": "kn_bio-cell-structure",
+      "questionId": "q_bio-placeholder-1",
+      "relevance": 1,
+      "role": "primary"
+    }
+  ],
+  "subjects": [
+    {
+      "active": true,
+      "code": "biology",
+      "description": "StudySignal Knowledge Base — 生物（骨架起始科目）",
+      "id": "sub_biology",
+      "name": "生物"
+    }
+  ]
+}
