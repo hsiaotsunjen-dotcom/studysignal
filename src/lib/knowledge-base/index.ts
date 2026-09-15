@@ -61,6 +61,11 @@ export { loadBiologyMinimalSeed } from "./seed/loadSeed";
 
 export { kbId } from "./utils/ids";
 export { validateKnowledgeBaseSnapshot } from "./utils/validateSnapshot";
+export type { KbDocumentService } from "./query/kbDocumentService";
+export {
+  MemoryKbDocumentService,
+  createKbDocumentService,
+} from "./query/kbDocumentService";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
