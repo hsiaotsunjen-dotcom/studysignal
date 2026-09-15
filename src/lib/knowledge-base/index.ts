@@ -102,6 +102,17 @@ export {
   KB_RETRIEVAL_MAX_SNIPPETS_CAP,
   buildKbRetrievalResult,
 } from "./query/kbRetrieval";
+export type {
+  KbManifest,
+  KbManifestEntry,
+  KbManifestIssue,
+  KbManifestIssueKind,
+} from "./query/kbManifest";
+export {
+  KB_MANIFEST_VERSION,
+  buildKbManifest,
+  serializeKbManifest,
+} from "./query/kbManifest";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
