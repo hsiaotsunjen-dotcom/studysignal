@@ -66,6 +66,16 @@ export {
   MemoryKbDocumentService,
   createKbDocumentService,
 } from "./query/kbDocumentService";
+export type {
+  KbRepositoryLoadResult,
+  KbSkippedDocumentFile,
+} from "./query/kbFileDocumentRepository";
+export {
+  getKbFileDocumentById,
+  listKbDocumentFiles,
+  loadKbDocumentServiceFromDir,
+  loadKbDocumentsFromDir,
+} from "./query/kbFileDocumentRepository";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
