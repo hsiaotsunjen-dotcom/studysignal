@@ -50,3 +50,21 @@ export function isOnboardingComplete(session: OnboardingSession | null): boolean
       session.mission,
   );
 }
+
+/**
+ * True when an incomplete session is structurally valid to resume
+ * (e.g. mid-flow refresh). Completed sessions are not resumable here —
+ * callers should route them to mission instead.
+ *
+ * Fresh student entry (Landing → 開始學習) must NOT rely on this alone:
+ * pass `?entry=new` so init clears any leftover draft before create.
+ */
+export function isResumableOnboardingSession(
+  session: OnboardingSession | null,
+): boolean {
+  if (!session?.id || !session.phase || !session.draft || !session.uiStep) {
+    return false;
+  }
+  if (isOnboardingComplete(session)) return false;
+  return true;
+}

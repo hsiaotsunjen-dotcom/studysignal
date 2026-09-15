@@ -59,6 +59,7 @@ export function SsAtmospherePicker({ className = "" }: { className?: string }) {
           <button
             ref={triggerRef}
             type="button"
+            suppressHydrationWarning
             onClick={() => setOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={open}

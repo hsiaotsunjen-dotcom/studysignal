@@ -88,7 +88,7 @@ export default function ParentEntryPage() {
           <p>
             我是學生？{" "}
             <Link
-              href="/v1/learn/onboarding"
+              href="/v1/learn/onboarding?entry=new"
               className="font-semibold text-[var(--ss-primary)] hover:opacity-80"
             >
               開始學習
