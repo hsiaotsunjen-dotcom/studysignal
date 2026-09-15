@@ -76,6 +76,32 @@ export {
   loadKbDocumentServiceFromDir,
   loadKbDocumentsFromDir,
 } from "./query/kbFileDocumentRepository";
+export type {
+  KbEvidenceItem,
+  KbEvidencePack,
+  KbEvidenceQuery,
+} from "./query/kbEvidence";
+export {
+  KB_EVIDENCE_DEFAULT_LIMIT,
+  KB_EVIDENCE_MAX_LIMIT,
+  KB_EVIDENCE_MAX_QUERY_LENGTH,
+  buildKbEvidencePack,
+  normalizeEvidenceQuery,
+} from "./query/kbEvidence";
+export type {
+  KbRetrievalCitation,
+  KbRetrievalOptions,
+  KbRetrievalResult,
+} from "./query/kbRetrieval";
+export {
+  KB_RETRIEVAL_DEFAULT_MAX_EXCERPT_CHARS,
+  KB_RETRIEVAL_DEFAULT_MAX_ITEMS,
+  KB_RETRIEVAL_DEFAULT_MAX_SNIPPETS,
+  KB_RETRIEVAL_MAX_EXCERPT_CHARS_CAP,
+  KB_RETRIEVAL_MAX_ITEMS_CAP,
+  KB_RETRIEVAL_MAX_SNIPPETS_CAP,
+  buildKbRetrievalResult,
+} from "./query/kbRetrieval";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
