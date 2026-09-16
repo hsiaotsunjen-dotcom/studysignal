@@ -113,6 +113,19 @@ export {
   buildKbManifest,
   serializeKbManifest,
 } from "./query/kbManifest";
+export type {
+  KbCandidateRecord,
+  KbIngestionIssue,
+  KbIngestionResult,
+} from "./import/kbIngestionBoundary";
+export {
+  KB_INGESTION_ALLOWED_EXTENSIONS,
+  KB_INGESTION_MAX_CONTENT_LENGTH,
+  KB_INGESTION_MAX_PATH_LENGTH,
+  KB_INGESTION_MAX_TITLE_LENGTH,
+  KB_INGESTION_VERSION,
+  validateKbCandidateRecord,
+} from "./import/kbIngestionBoundary";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
