@@ -126,6 +126,8 @@ export {
   KB_INGESTION_VERSION,
   validateKbCandidateRecord,
 } from "./import/kbIngestionBoundary";
+export type { KbCandidateImportResult } from "./import/kbCandidateImport";
+export { KB_CANDIDATE_IMPORT_VERSION, importKbCandidate } from "./import/kbCandidateImport";
 export {
   findNodeByCode,
   resolveNodeCurriculumContext,
