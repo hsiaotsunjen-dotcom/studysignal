@@ -1,4 +1,24 @@
 {
   "version": 1,
-  "sources": []
+  "sources": [
+    {
+      "id": "src_biology-toc-e4bd17ca436d",
+      "subject": "biology",
+      "sourceType": "toc",
+      "title": "生物教材目錄（書名未提供；ShineDoc 掃描第4–6頁）",
+      "year": null,
+      "publisher": null,
+      "edition": null,
+      "originalFileName": "toc.md",
+      "sourcePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.md",
+      "checksum": "e4bd17ca436d8567c76d7e1c09a49b781cfa086d4b7f6ebcb1b839cbe61967f1",
+      "ocrEngine": "Codex visual transcription (no external OCR service)",
+      "language": "zh-Hant",
+      "importedAt": "2026-09-17T14:23:09.040Z",
+      "operator": "Codex",
+      "reviewer": null,
+      "notes": "正式生物教材目錄，僅目錄，不含教材正文或歷屆試題內容。視讀原圖轉錄；書名、出版社、版次、出版年未提供。原始掃描檔名、位置、SHA-256、章節及頁碼見 content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json。未經獨立人工覆核。",
+      "status": "normalized"
+    }
+  ]
 }

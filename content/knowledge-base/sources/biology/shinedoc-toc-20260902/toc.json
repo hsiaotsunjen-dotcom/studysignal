@@ -1,0 +1,581 @@
+{
+  "version": 1,
+  "sourceId": "src_biology-toc-e4bd17ca436d",
+  "documentId": "doc_786fb556b642",
+  "importedAt": "2026-09-17T14:23:09.040Z",
+  "subject": "biology",
+  "sourceType": "toc",
+  "materialStatus": "real-source",
+  "scope": "table-of-contents-only",
+  "book": {
+    "title": null,
+    "publisher": null,
+    "edition": null,
+    "publicationYear": null,
+    "metadataStatus": "not-provided-in-scans"
+  },
+  "originalDirectory": "C:\\Users\\tjhsi\\OneDrive\\文件\\ShineDoc\\sources",
+  "transcriptionPath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.md",
+  "transcriptionSha256": "e4bd17ca436d8567c76d7e1c09a49b781cfa086d4b7f6ebcb1b839cbe61967f1",
+  "transcriptionMethod": "Codex visual transcription from the three scanned images; dot leaders and layout whitespace omitted; wording, numbering and printed page references preserved.",
+  "reviewStatus": "agent-visual-check; independent-human-review-pending",
+  "scans": [
+    {
+      "originalFileName": "IMG_2026_09_02_23_43_41L.jpg",
+      "originalPath": "C:\\Users\\tjhsi\\OneDrive\\文件\\ShineDoc\\sources\\IMG_2026_09_02_23_43_41L.jpg",
+      "archivePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_43_41L.jpg",
+      "sha256": "ee7c467e8c91833bc22ac693e42ec1677cdd1a71ee2f640cd7b20a8d1d101c44",
+      "bytes": 567994,
+      "tocPrintedPage": 4
+    },
+    {
+      "originalFileName": "IMG_2026_09_02_23_43_41R.jpg",
+      "originalPath": "C:\\Users\\tjhsi\\OneDrive\\文件\\ShineDoc\\sources\\IMG_2026_09_02_23_43_41R.jpg",
+      "archivePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_43_41R.jpg",
+      "sha256": "81fb19ead6e7a577084f3ca3eb3ac9feb1edb1b5223273f9a1d4bac9504deb2a",
+      "bytes": 528929,
+      "tocPrintedPage": 5
+    },
+    {
+      "originalFileName": "IMG_2026_09_02_23_44_46L.jpg",
+      "originalPath": "C:\\Users\\tjhsi\\OneDrive\\文件\\ShineDoc\\sources\\IMG_2026_09_02_23_44_46L.jpg",
+      "archivePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_44_46L.jpg",
+      "sha256": "3e4a8a868a332e985e14417a27741ec0da0e040a617bf1a648d1ffaa94b57f76",
+      "bytes": 398259,
+      "tocPrintedPage": 6
+    }
+  ],
+  "boundaryEvidence": {
+    "originalFileName": "IMG_2026_09_02_23_44_46R.jpg",
+    "originalPath": "C:\\Users\\tjhsi\\OneDrive\\文件\\ShineDoc\\sources\\IMG_2026_09_02_23_44_46R.jpg",
+    "sha256": "53ee9bdfc79e2dfc4a6812e75fe6622e221fe6827885215b547dab30631b78fa",
+    "observed": "Printed page 7: CHAPTER 01 生物體的構造與功能",
+    "includedInSourceContent": false
+  },
+  "completeness": {
+    "expectedTocPages": 3,
+    "structuredTocPages": 3,
+    "printedPages": [
+      4,
+      5,
+      6
+    ],
+    "confirmedBy": "User confirmed complete TOC; agent inspected next chapter-opening image."
+  },
+  "unreadable": [],
+  "missingPrintedValues": "Chapter headings and appendix have no printed destination page; page=null and pageStatus=not-listed. No page ranges inferred.",
+  "chapters": [
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+      "tocPrintedPage": 4,
+      "number": "01",
+      "title": "生物體的構造與功能",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "1-1",
+          "title": "探究生命現象",
+          "page": 8,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "1-2",
+          "title": "細胞的構造與功能",
+          "page": 10,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "1-3",
+          "title": "細胞分裂",
+          "page": 30,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "1-4",
+          "title": "探究活動：動物細胞與植物細胞的觀察",
+          "page": 36,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 37,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 58,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+      "tocPrintedPage": 4,
+      "number": "02",
+      "title": "演化與生物多樣性",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "2-1",
+          "title": "演化",
+          "page": 62,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "2-2",
+          "title": "生物多樣性",
+          "page": 71,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "2-3",
+          "title": "生物的分類",
+          "page": 73,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "2-4",
+          "title": "探究活動：校園生物多樣性的觀察",
+          "page": 98,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 99,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 120,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+      "tocPrintedPage": 4,
+      "number": "03",
+      "title": "植物的構造與生理",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "3-1",
+          "title": "植物的營養器官構造與功能",
+          "page": 124,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "3-2",
+          "title": "植物的生理",
+          "page": 133,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "3-3",
+          "title": "植物的生殖",
+          "page": 142,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 149,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 178,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+      "tocPrintedPage": 4,
+      "number": "04",
+      "title": "動物的代謝與恆定",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "4-1",
+          "title": "營養與消化",
+          "page": 182,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "4-2",
+          "title": "循環",
+          "page": 191,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "4-3",
+          "title": "呼吸與排泄",
+          "page": 200,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41L.jpg",
+          "tocPrintedPage": 4,
+          "kind": "section",
+          "number": "4-4",
+          "title": "防禦",
+          "page": 210,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "4-5",
+          "title": "神經與運動",
+          "page": 220,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "4-6",
+          "title": "激素與協調",
+          "page": 231,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "4-7",
+          "title": "恆定性",
+          "page": 238,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 239,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 286,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+      "tocPrintedPage": 5,
+      "number": "05",
+      "title": "人類的生殖",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "5-1",
+          "title": "男女生殖系統",
+          "page": 292,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "5-2",
+          "title": "月經週期、懷孕與避孕",
+          "page": 295,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 304,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 315,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+      "tocPrintedPage": 5,
+      "number": "06",
+      "title": "遺傳",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "6-1",
+          "title": "孟德爾的遺傳法則",
+          "page": 318,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "6-2",
+          "title": "基因與遺傳",
+          "page": 322,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "6-3",
+          "title": "人類的遺傳",
+          "page": 331,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "6-4",
+          "title": "探究活動：DNA粗萃取",
+          "page": 337,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 338,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 364,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+      "tocPrintedPage": 5,
+      "number": "07",
+      "title": "生物技術",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "7-1",
+          "title": "生物技術與其應用",
+          "page": 368,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "7-2",
+          "title": "認識遺傳工程",
+          "page": 374,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "section",
+          "number": "7-3",
+          "title": "生物科技的應用",
+          "page": 378,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 383,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_43_41R.jpg",
+          "tocPrintedPage": 5,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 397,
+          "pageStatus": "printed"
+        }
+      ]
+    },
+    {
+      "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+      "tocPrintedPage": 6,
+      "number": "08",
+      "title": "生態與資源利用",
+      "page": null,
+      "pageStatus": "not-listed",
+      "entries": [
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "section",
+          "number": "8-1",
+          "title": "族群與群集",
+          "page": 400,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "section",
+          "number": "8-2",
+          "title": "生態系",
+          "page": 408,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "section",
+          "number": "8-3",
+          "title": "自然資源的開發與利用",
+          "page": 420,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "section",
+          "number": "8-4",
+          "title": "探究活動：生態系統的建置與觀察",
+          "page": 426,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "歷屆試題",
+          "page": 427,
+          "pageStatus": "printed"
+        },
+        {
+          "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+          "tocPrintedPage": 6,
+          "kind": "exercise_index",
+          "number": null,
+          "title": "素養試題",
+          "page": 454,
+          "pageStatus": "printed"
+        }
+      ]
+    }
+  ],
+  "appendices": [
+    {
+      "scanFile": "IMG_2026_09_02_23_44_46L.jpg",
+      "tocPrintedPage": 6,
+      "title": "最新統測試題解析",
+      "page": null,
+      "pageStatus": "not-listed"
+    }
+  ]
+}

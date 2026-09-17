@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "documentId": "doc_786fb556b642",
+  "pipeline": {
+    "name": "ocr-text-import",
+    "version": 1
+  },
+  "sourceId": "src_biology-toc-e4bd17ca436d",
+  "subject": "biology",
+  "sourceType": "toc",
+  "title": "生物教材目錄（書名未提供；ShineDoc 掃描第4–6頁）",
+  "originalFileName": "toc.md",
+  "sourcePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.md",
+  "content": "# 生物教材目錄(書名未提供)\n\n<!-- 正式來源:依三張原始掃描圖逐頁視讀轉錄;不是測試資料。 -->\n<!-- 章標題未列起始頁碼;條目右欄為目錄印出的頁碼,不推算頁碼範圍。 -->\n\n<!-- scan: IMG_2026_09_02_23_43_41L.jpg | printed-page: 4 -->\n\n## 第01章 生物體的構造與功能\n- 1-1 探究生命現象 | 8\n- 1-2 細胞的構造與功能 | 10\n- 1-3 細胞分裂 | 30\n- 1-4 探究活動:動物細胞與植物細胞的觀察 | 36\n- 歷屆試題 | 37\n- 素養試題 | 58\n\n## 第02章 演化與生物多樣性\n- 2-1 演化 | 62\n- 2-2 生物多樣性 | 71\n- 2-3 生物的分類 | 73\n- 2-4 探究活動:校園生物多樣性的觀察 | 98\n- 歷屆試題 | 99\n- 素養試題 | 120\n\n## 第03章 植物的構造與生理\n- 3-1 植物的營養器官構造與功能 | 124\n- 3-2 植物的生理 | 133\n- 3-3 植物的生殖 | 142\n- 歷屆試題 | 149\n- 素養試題 | 178\n\n## 第04章 動物的代謝與恆定\n- 4-1 營養與消化 | 182\n- 4-2 循環 | 191\n- 4-3 呼吸與排泄 | 200\n- 4-4 防禦 | 210\n\n<!-- scan: IMG_2026_09_02_23_43_41R.jpg | printed-page: 5 -->\n\n- 4-5 神經與運動 | 220\n- 4-6 激素與協調 | 231\n- 4-7 恆定性 | 238\n- 歷屆試題 | 239\n- 素養試題 | 286\n\n## 第05章 人類的生殖\n- 5-1 男女生殖系統 | 292\n- 5-2 月經週期、懷孕與避孕 | 295\n- 歷屆試題 | 304\n- 素養試題 | 315\n\n## 第06章 遺傳\n- 6-1 孟德爾的遺傳法則 | 318\n- 6-2 基因與遺傳 | 322\n- 6-3 人類的遺傳 | 331\n- 6-4 探究活動:DNA粗萃取 | 337\n- 歷屆試題 | 338\n- 素養試題 | 364\n\n## 第07章 生物技術\n- 7-1 生物技術與其應用 | 368\n- 7-2 認識遺傳工程 | 374\n- 7-3 生物科技的應用 | 378\n- 歷屆試題 | 383\n- 素養試題 | 397\n\n<!-- scan: IMG_2026_09_02_23_44_46L.jpg | printed-page: 6 -->\n\n## 第08章 生態與資源利用\n- 8-1 族群與群集 | 400\n- 8-2 生態系 | 408\n- 8-3 自然資源的開發與利用 | 420\n- 8-4 探究活動:生態系統的建置與觀察 | 426\n- 歷屆試題 | 427\n- 素養試題 | 454\n\n## 附錄 最新統測試題解析\n<!-- page: not-listed -->\n",
+  "rawChecksum": "e4bd17ca436d8567c76d7e1c09a49b781cfa086d4b7f6ebcb1b839cbe61967f1",
+  "normalizedChecksum": "786fb556b6429cd367a1df8f7ffddf9293aa3a158eb980c70659be2df7a9d42f",
+  "normalization": {
+    "rawChecksum": "e4bd17ca436d8567c76d7e1c09a49b781cfa086d4b7f6ebcb1b839cbe61967f1",
+    "normalizedChecksum": "786fb556b6429cd367a1df8f7ffddf9293aa3a158eb980c70659be2df7a9d42f",
+    "rawLength": 1267,
+    "normalizedLength": 1267,
+    "crlfConverted": false,
+    "trailingWhitespaceTrimmedLines": 0,
+    "blankLinesCollapsed": 0,
+    "fullwidthAsciiNormalized": 10,
+    "leadingBlankLinesRemoved": 0,
+    "trailingBlankLinesRemoved": 1,
+    "trailingNewlineEnsured": true
+  },
+  "provenance": {
+    "sourceId": "src_biology-toc-e4bd17ca436d",
+    "subject": "biology",
+    "sourceType": "toc",
+    "originalFileName": "toc.md",
+    "sourcePath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.md",
+    "checksum": "e4bd17ca436d8567c76d7e1c09a49b781cfa086d4b7f6ebcb1b839cbe61967f1",
+    "importedAt": "2026-09-17T14:23:09.040Z"
+  },
+  "importedAt": "2026-09-17T14:23:09.040Z"
+}
