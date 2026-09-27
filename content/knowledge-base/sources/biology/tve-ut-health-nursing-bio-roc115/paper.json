@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 115,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "115 學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：生物(B)",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "115-4y-10-1生物.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/originals/115-4y-10-1生物.pdf",
+      "sha256": "81ecbf67afa35b435a6fb6c7b9f30fd5fef17a36d10f33f4d81ef6ae8826785b",
+      "bytes": 579515,
+      "originalPath": "D:\\Downloads\\115-4y-10-1生物_2.pdf"
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction (machine-extracted); figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "官方歷屆試題文字轉錄：共 12 頁、50 題單一選擇題，不含答案或解析；第 11–12 頁為空白頁。圖(一)～圖(五)、表(一)～表(二)及版面位置以 originals/115-4y-10-1生物.pdf 為準。publisher 未能自來源可靠確認，保留 null。尚未人工逐題複核。",
+  "sourceId": "src_biology-exam_paper-ed10229f6d04",
+  "documentId": "doc_2882dd79f074",
+  "importedAt": "2026-09-27T02:40:08.740Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/paper.md"
+}

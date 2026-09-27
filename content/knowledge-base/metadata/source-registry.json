@@ -19,6 +19,25 @@
       "reviewer": null,
       "notes": "正式生物教材目錄，僅目錄，不含教材正文或歷屆試題內容。視讀原圖轉錄；書名、出版社、版次、出版年未提供。原始掃描檔名、位置、SHA-256、章節及頁碼見 content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json。未經獨立人工覆核。",
       "status": "normalized"
+    },
+    {
+      "id": "src_biology-exam_paper-ed10229f6d04",
+      "subject": "biology",
+      "sourceType": "exam_paper",
+      "title": "115 學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：生物(B)",
+      "year": 115,
+      "publisher": null,
+      "edition": null,
+      "originalFileName": "paper.md",
+      "sourcePath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/paper.md",
+      "checksum": "ed10229f6d04fc5519c583b79e76bfcad5bd1983509e2dfb3accab0b4e5942bb",
+      "ocrEngine": "PDF text extraction (machine-extracted); figures, diagrams and table layout not reproduced — refer to the original PDF",
+      "language": "zh-Hant",
+      "importedAt": "2026-09-27T02:40:08.740Z",
+      "operator": null,
+      "reviewer": null,
+      "notes": "官方歷屆試題文字轉錄：共 12 頁、50 題單一選擇題，不含答案或解析；第 11–12 頁為空白頁。圖(一)～圖(五)、表(一)～表(二)及版面位置以 originals/115-4y-10-1生物.pdf 為準。publisher 未能自來源可靠確認，保留 null。尚未人工逐題複核。",
+      "status": "normalized"
     }
   ]
 }
