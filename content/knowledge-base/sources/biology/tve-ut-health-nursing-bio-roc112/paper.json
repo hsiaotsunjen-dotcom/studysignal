@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 112,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "112 學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：生物(B)",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "112-4y-10-1.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/originals/112-4y-10-1.pdf",
+      "sha256": "bedb19e88d8c18e52e7b3c5f4765d30739bb85fdf44ff9ead464ec5ed0ffa7f2",
+      "bytes": 1205051,
+      "originalPath": "/home/openclaw/.openclaw/workspace/studysignal-kb/roc112-v_nnvi4d/112-4y-10-1.pdf"
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with clawpdf 0.3.2 (PDFium WASM, machine-extracted); page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "官方 PDF URL：https://web1.tcte.edu.tw/EXAM/112_4y/downloader.php?obj=MTEyLTR5LTEwLTEucGRm 。共 12 頁、50 題單一選擇題；不新增答案或解析。Q5、Q13、Q14、Q19、Q32、Q35、Q38、Q41、Q43、Q44、Q49、Q50 需圖表人工覆核。Q11(A) 的乘號／數值格式、Q2 維生素下標、Q45–46 核酸序列的端點符號、Q47–48 的 F1/F2 下標須視讀核對；保留原樣抽取，不推測或修正。 publisher 未確認，保留 null；尚未獨立人工覆核。",
+  "sourceId": "src_biology-exam_paper-57ee93923543",
+  "documentId": "doc_9b32d1fcc36f",
+  "importedAt": "2026-09-28T15:03:20.597Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/paper.md"
+}

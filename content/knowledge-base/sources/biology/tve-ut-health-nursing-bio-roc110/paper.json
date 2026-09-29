@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 110,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "110學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：基礎生物",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "110-4y-10-1.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/originals/110-4y-10-1.pdf",
+      "sha256": "2014aec57d086ac8597c88806adc2572f9377c3327135f0f48a33fd47d2072e7",
+      "bytes": 1539542,
+      "originalPath": "/home/openclaw/.openclaw/workspace/studysignal-kb/roc110-c5jdwqtl/110-4y-10-1.pdf"
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction (machine-extracted, OpenClaw extracted.txt); page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "官方 PDF URL：https://web1.tcte.edu.tw/EXAM/110_4y/downloader.php?obj=MTEwLTR5LTEwLTEucGRm 。封面科目為「專業科目(一)：基礎生物」（110 學年度科目名稱，非「生物(B)」），以封面為準。共 8 頁、50 題單一選擇題；不新增答案或解析。Q14（選項皆為圖像，未抽取選項文字）、Q43（圖(一) 草原生態系示意圖，標記位移至頁尾）需圖表人工覆核，不重建。Q33 mRNA 端點符號、Q43/Q47(A) CO2/H2O 下標、Q44(A)(D) NH3/N2/NO3- 上下標及 Q28 F1/F2 格式須視讀核對；保留抽取原樣，不修正。 publisher 未確認，保留 null；尚未獨立人工逐題覆核。",
+  "sourceId": "src_biology-exam_paper-632361b0a50f",
+  "documentId": "doc_c6d779df6901",
+  "importedAt": "2026-09-28T15:50:58.092Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/paper.md"
+}

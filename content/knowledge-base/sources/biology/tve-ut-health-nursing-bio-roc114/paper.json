@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 114,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "114 學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：生物(B)",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "114-4y-10-1.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/originals/114-4y-10-1.pdf",
+      "sha256": "8c1375d3f2b14f52d55c66bf030d7395cd8dd5fad8c9967ad216ad3db5c8d163",
+      "bytes": 1013117,
+      "originalPath": "/home/openclaw/.openclaw/workspace/studysignal-kb/roc114-download-8jRfdg.pdf"
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with clawpdf 0.3.2 (PDFium WASM, machine-extracted); page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "來源檔已建立，尚未匯入 registry/documents。官方 PDF URL：https://web1.tcte.edu.tw/EXAM/114_4y/downloader.php?obj=MTE0LTR5LTEwLTEucGRm 。共 12 頁、50 題單一選擇題；第 12 頁僅頁首／頁尾。無新增答案或解析。Q11、Q26、Q33、Q38、Q46（含共用圖四的 Q45）需圖表人工覆核，不推測缺失圖形；Q40(B)「洒吞」待視讀確認。originals.path 是本來源的歸檔路徑，PDF 為已驗證 WSL 原檔的逐位元相同副本；先前歸檔 PDF 位於 content/knowledge-base/sources/biology/roc114/originals/114-4y-10-1.pdf，未修改或移動。publisher 未確認，保留 null。",
+  "sourceId": "src_biology-exam_paper-5b7e8598cf34",
+  "documentId": "doc_70444528552e",
+  "importedAt": "2026-09-28T01:53:48.156Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/paper.md"
+}

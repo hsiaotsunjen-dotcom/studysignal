@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 113,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "113 學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：生物(B)",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "113-4y-10-1.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/originals/113-4y-10-1.pdf",
+      "sha256": "35e4219ddaf2e09b533eb123753ff7458d1c1ef565f39eb5e7a26717b94510b0",
+      "bytes": 1799027,
+      "originalPath": "/home/openclaw/.openclaw/workspace/studysignal-kb/roc113-vxbtcs8z/113-4y-10-1.pdf"
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with clawpdf 0.3.2 (PDFium WASM, machine-extracted); page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "官方 PDF URL：https://web1.tcte.edu.tw/EXAM/113_4y/downloader.php?obj=MTEzLTR5LTEwLTEucGRm 。共 12 頁、50 題單一選擇題，不含新增答案或解析。Q7、Q9、Q29、Q31、Q32、Q33、Q34、Q43、Q44、Q49、Q50 需圖表人工覆核；Q33 選項圖形未轉錄；Q34 圖內標籤錯位於 Q38 後；Q45–46 基因型上標與斷行需核對。不得由文字推測缺失圖形或答案。publisher 未確認，保留 null；尚未獨立人工覆核。",
+  "sourceId": "src_biology-exam_paper-4bfbdab7cd2e",
+  "documentId": "doc_66d1e11f6ba0",
+  "importedAt": "2026-09-28T14:52:35.456Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/paper.md"
+}
