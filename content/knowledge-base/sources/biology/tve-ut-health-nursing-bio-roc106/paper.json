@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "academicYear": 106,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "106學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：基礎生物",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "106-4y-10-1生物.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/originals/106-4y-10-1生物.pdf",
+      "sha256": "0bf961ad8a2845e006e711b43ade4dd544e35154cefe20c4cf539eead9c2c230",
+      "bytes": 554748,
+      "originalPath": null
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with PyMuPDF 1.28.2 (machine-extracted); page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "官方索引：https://web1.tcte.edu.tw/EXAM/106_4y/ 。共 8 頁、50 題單一選擇題；封面注意事項 1–7 條不計入試題，第 7、8 頁為空白頁僅頁首頁尾。不新增答案或解析。以 PyMuPDF 1.28.2 擷取文字，驗證 50 題全在、題序 1–50 連續無缺漏、每題 A–D 選項完整、U+FFFD 亂碼 0。試題區無光柵圖或向量圖表題（頁 1 封面有 2 張光柵圖＝鈴鐺/條碼，屬封面裝飾）；僅第 1 題選項含 8 個「→」箭頭、部分題幹下方有細底線裝飾（純排版線，文字已完整保留）。Q43 含 N₂/NO₃⁻/NH₄⁺/NH₃ 下標與上標電荷符號，已於 2026-10-11 經人工目視核對，詳見 docs/kb-import-reviews/roc106-q43-human-verification.md；其餘題目未發現需下標/上標的化學方程式或遺傳符號。publisher 未確認，保留 null；Q43 已人工核對（2026-10-11），其餘 49 題（Q1–Q42、Q44–Q50）尚未獨立人工逐題覆核。"
+}
