@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 107,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "107學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：基礎生物",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "107-4y-10-1生物.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/originals/107-4y-10-1生物.pdf",
+      "sha256": "f1ea72d5e75eb15fdc388f592c49db9bfda0f9a54713629135c566da948a40d9",
+      "bytes": 968095,
+      "originalPath": null
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with pdfjs-dist (machine-extracted); page 3 has no text layer (scanned image) and was recovered via 300 DPI rendering + tesseract.js OCR with visual comparison; Q38 base sequences rebuilt from PDF text coordinates; page boundaries preserved; figures, diagrams and table layout not reproduced — refer to the original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "共 8 頁、50 題單一選擇題；封面注意事項 1–7 條不計入試題。不新增答案或解析。以 pdfjs-dist 擷取文字；第 3 頁整頁為掃描影像、無文字層，經 300 DPI 渲染與 tesseract.js OCR（整體信心值 82）後逐題對照影像校正補入 Q12–Q21；Q38 四組鹼基序列依 PDF 文字座標與渲染影像重建為雙股版面，未推測任何字元。驗證：題序 1–50 連續無缺漏、每題 A–D 選項完整（200/200）、8 個頁界標記、U+FFFD 亂碼 0。圖形：Q13 圖(一)（維管束橫切示意圖）位於第 3 頁掃描影像內，未抽取、不重建，以原 PDF 為準；頁 1 含 2 張封面光柵圖（未抽取）；其餘頁僅底線等排版線條，無其他試題圖形。publisher 未確認，保留 null；尚未獨立人工逐題覆核。",
+  "sourceId": "src_biology-exam_paper-7e23799b3c5a",
+  "documentId": "doc_59d3967e0b43",
+  "importedAt": "2026-10-19T14:33:25.444Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/paper.md"
+}
