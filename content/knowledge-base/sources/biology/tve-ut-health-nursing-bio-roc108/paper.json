@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "academicYear": 108,
+  "subject": "biology",
+  "sourceType": "exam_paper",
+  "title": "108學年度科技校院四年制與專科學校二年制統一入學測驗－衛生與護理類－專業科目(一)：基礎生物",
+  "publisher": null,
+  "language": "zh-Hant",
+  "seriesId": "tve-ut-health-nursing-bio-roc106-115",
+  "materialStatus": "real-source",
+  "scope": "official-past-paper",
+  "originals": [
+    {
+      "filename": "108-4y-10-1生物.pdf",
+      "path": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/originals/108-4y-10-1生物.pdf",
+      "sha256": "d47bdc7b93c34c5e6e1a034cd330f7d1f9263bfb011ca0920982441da3d14d78",
+      "bytes": 1425975,
+      "originalPath": null
+    }
+  ],
+  "transcriptionMethod": "PDF text extraction with pdftotext (Poppler) for all text-layer pages; pages 4-5 have no text layer (scanned images) recovered via pdftoppm 300 DPI rendering + tesseract.js OCR (Traditional Chinese, chi_tra) for Q19-Q34; pages 6-8 extracted via pdftotext text layer for Q35-Q50; OCR-unrecognizable content marked for human review, no guessing; page boundaries preserved; figures not reproduced — refer to original PDF",
+  "reviewStatus": "machine-extracted; independent-human-review-pending",
+  "notes": "共 8 頁、50 題單一選擇題；封面注意事項 1-7 條不計入試題。不新增答案或解析。Q1-Q18 由 pdftotext 文字層提取（頁 1-3）；Q19-Q34 位於第 4-5 頁掃描影像，經 pdftoppm 300 DPI 渲染與 tesseract.js OCR（chi_tra）逐題恢復；OCR 無法辨識之內容標記待人工核對，不推測任何字元；Q35-Q50 由 pdftotext 文字層提取（頁 6-8）。驗證：Q1-Q50 題號連續無缺漏、每題 A-D 選項完整（50/50 題）。圖形：Q27 圖(一)（光合作用速率與溫度關係圖）、Q32 圖(二)（皇帝豆種子與玉米果實內部構造圖）位於掃描影像內，未抽取、不重建，以原 PDF 為準。publisher 未確認，保留 null；尚未獨立人工逐題覆核。",
+  "importedAt": "2026-10-19T14:33:25.444Z",
+  "transcriptionPath": "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/paper.md",
+  "sourceId": "src_biology-exam_paper-408e3b757e99",
+  "documentId": "doc_60d611014048"
+}
