@@ -1,0 +1,1948 @@
+{
+  "schemaVersion": 1,
+  "kind": "reference-concept-map",
+  "subject": "biology",
+  "reference_id": "lehninger-principles-biochemistry-8e",
+  "version": 1,
+  "baseline": {
+    "path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+    "sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+    "commit": "5bd29c8aa029ffa6c54f687a296b1d7da8c0a3d1",
+    "status": "Phase 2E structurally checked derived map; not independently human-approved knowledge graph"
+  },
+  "records": [
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-001",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-1/metabolism",
+      "chapter": 13,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "僅補充ATP及能量耦合，不要求熱力學推導。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-1",
+        "sectionTitle": "探究生命現象",
+        "conceptTitle": "新陳代謝（同化與異化作用）"
+      },
+      "section": null,
+      "pdf_page": 849,
+      "printed_page": null,
+      "digital_folio": 851,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q31",
+          "ROC107-Q04",
+          "ROC114-Q01"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-1",
+        "textbook_toc_page": 8,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 849,
+        "reference_heading_text_sha256": "49885bf9bfaa7574890821c0d0c624d904b88bb9dc42f94bb84c89d1fec1cb44"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-002",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/animal-plant-cells",
+      "chapter": 1,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "補充細胞共同特徵；動植物差異仍以原教材為主。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "動物與植物細胞構造比較"
+      },
+      "section": null,
+      "pdf_page": 40,
+      "printed_page": null,
+      "digital_folio": 42,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC114-Q13"
+        ],
+        "exam_question_count": 1,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 40,
+        "reference_heading_text_sha256": "fa6ad5669d553545d41d1155417c8bba07d6d57fa07ddd43a90cb33bf38cc2d0"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-003",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/biomolecules",
+      "chapter": 3,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "胺基酸與蛋白質的組成。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "細胞的化學組成（醣類、蛋白質、核酸）"
+      },
+      "section": null,
+      "pdf_page": 165,
+      "printed_page": null,
+      "digital_folio": 167,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC111-Q11",
+          "ROC115-Q04"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 165,
+        "reference_heading_text_sha256": "6e95cac0320d21778b3c53b90852476d144b32d8d451e67a15cea276a6f1ae2f"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-004",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/biomolecules",
+      "chapter": 7,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "醣類結構與儲能的基本原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "細胞的化學組成（醣類、蛋白質、核酸）"
+      },
+      "section": null,
+      "pdf_page": 440,
+      "printed_page": null,
+      "digital_folio": 442,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC111-Q11",
+          "ROC115-Q04"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 440,
+        "reference_heading_text_sha256": "81bc5ce6515e1452f7b0c304f3ffa2aee53e2932da116915db3defa0cae3f902"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-005",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/biomolecules",
+      "chapter": 8,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "核酸基本組成與功能。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "細胞的化學組成（醣類、蛋白質、核酸）"
+      },
+      "section": null,
+      "pdf_page": 504,
+      "printed_page": null,
+      "digital_folio": 506,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC111-Q11",
+          "ROC115-Q04"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 504,
+        "reference_heading_text_sha256": "80c17cb5cbc6b2339f7e30240dfa8d4b80b2c4ff72d784853a352aece3f9d552"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-006",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/biomolecules",
+      "chapter": 10,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "脂質的組成與儲能。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "細胞的化學組成（醣類、蛋白質、核酸）"
+      },
+      "section": null,
+      "pdf_page": 636,
+      "printed_page": null,
+      "digital_folio": 638,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC111-Q11",
+          "ROC115-Q04"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 636,
+        "reference_heading_text_sha256": "585783ea77b6a57a6d466c6e4aead2c43989f12e2a512ab6cf99a315bada5ad2"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-007",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/enzymes",
+      "chapter": 6,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "限催化、專一性與活性因素，不引入大學動力學計算。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "酵素催化與作用因子"
+      },
+      "section": null,
+      "pdf_page": 350,
+      "printed_page": null,
+      "digital_folio": 352,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC108-Q43",
+          "ROC109-Q04",
+          "ROC110-Q06",
+          "ROC111-Q12"
+        ],
+        "exam_question_count": 4,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 350,
+        "reference_heading_text_sha256": "b05ec1ad2d343e12d59db9a8cf3702ce894698501b8db09070d8d7a4366c4db5"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-008",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/membrane",
+      "chapter": 11,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "膜組成與被動／主動運輸原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "細胞膜構造與功能"
+      },
+      "section": null,
+      "pdf_page": 681,
+      "printed_page": null,
+      "digital_folio": 683,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q30",
+          "ROC112-Q13",
+          "ROC113-Q02"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 681,
+        "reference_heading_text_sha256": "9521a4306f27eaddc1a9fa55a7cb43f66c3f30e0474eace4ef1b79f4f0537ee4"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-009",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-2/organelles",
+      "chapter": 1,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "胞器功能的細胞層級背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-2",
+        "sectionTitle": "細胞的構造與功能",
+        "conceptTitle": "胞器構造與功能"
+      },
+      "section": null,
+      "pdf_page": 40,
+      "printed_page": null,
+      "digital_folio": 42,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q15",
+          "ROC107-Q07",
+          "ROC108-Q01",
+          "ROC108-Q44",
+          "ROC108-Q47",
+          "ROC109-Q03",
+          "ROC112-Q12",
+          "ROC113-Q03",
+          "ROC114-Q15",
+          "ROC114-Q16"
+        ],
+        "exam_question_count": 10,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-2",
+        "textbook_toc_page": 10,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 40,
+        "reference_heading_text_sha256": "fa6ad5669d553545d41d1155417c8bba07d6d57fa07ddd43a90cb33bf38cc2d0"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-010",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-3/cell-cycle",
+      "chapter": 12,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "細胞週期的調節背景，不要求訊息蛋白網路細節。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-3",
+        "sectionTitle": "細胞分裂",
+        "conceptTitle": "細胞週期與染色體"
+      },
+      "section": null,
+      "pdf_page": 753,
+      "printed_page": null,
+      "digital_folio": 755,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC109-Q05",
+          "ROC111-Q13"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-3",
+        "textbook_toc_page": 30,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 753,
+        "reference_heading_text_sha256": "0834b6680157974448e3428d0a48b6b2febf4caa24a92572a4e964a349c93e26"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-011",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "2-1/origin",
+      "chapter": 1,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "化學演化與早期生命的科學背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "02",
+        "unitTitle": "演化與生物多樣性",
+        "section": "2-1",
+        "sectionTitle": "演化",
+        "conceptTitle": "生命起源（有機演化論）"
+      },
+      "section": null,
+      "pdf_page": 40,
+      "printed_page": null,
+      "digital_folio": 42,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q01",
+          "ROC109-Q01",
+          "ROC110-Q02"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "2-1",
+        "textbook_toc_page": 62,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 40,
+        "reference_heading_text_sha256": "fa6ad5669d553545d41d1155417c8bba07d6d57fa07ddd43a90cb33bf38cc2d0"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-012",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "2-3/systems",
+      "chapter": 1,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "僅三域的分子背景，不取代既有五界／六界教材。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "02",
+        "unitTitle": "演化與生物多樣性",
+        "section": "2-3",
+        "sectionTitle": "生物的分類",
+        "conceptTitle": "分類系統（五界、六界、三域、二名法）"
+      },
+      "section": null,
+      "pdf_page": 40,
+      "printed_page": null,
+      "digital_folio": 42,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC108-Q48",
+          "ROC110-Q08",
+          "ROC111-Q24",
+          "ROC112-Q21",
+          "ROC113-Q26",
+          "ROC114-Q23"
+        ],
+        "exam_question_count": 6,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "2-3",
+        "textbook_toc_page": 73,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 40,
+        "reference_heading_text_sha256": "fa6ad5669d553545d41d1155417c8bba07d6d57fa07ddd43a90cb33bf38cc2d0"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-013",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "3-2/photosynthesis",
+      "chapter": 20,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "僅光反應、固碳與能量轉換基本原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "03",
+        "unitTitle": "植物的構造與生理",
+        "section": "3-2",
+        "sectionTitle": "植物的生理",
+        "conceptTitle": "光合作用"
+      },
+      "section": null,
+      "pdf_page": 1271,
+      "printed_page": null,
+      "digital_folio": 1273,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q25",
+          "ROC107-Q14",
+          "ROC107-Q15",
+          "ROC108-Q27",
+          "ROC108-Q28",
+          "ROC109-Q13",
+          "ROC110-Q11",
+          "ROC112-Q14"
+        ],
+        "exam_question_count": 8,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "3-2",
+        "textbook_toc_page": 133,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1271,
+        "reference_heading_text_sha256": "3847a03a5d2b29a1c6e6a307764f89927b1da2627bb75c4610c79eb4dd5d8dc3"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-014",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "3-2/transport",
+      "chapter": 11,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "膜運輸的分子背景；不取代根莖葉與水勢教學。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "03",
+        "unitTitle": "植物的構造與生理",
+        "section": "3-2",
+        "sectionTitle": "植物的生理",
+        "conceptTitle": "水分與養分的吸收與運輸"
+      },
+      "section": null,
+      "pdf_page": 681,
+      "printed_page": null,
+      "digital_folio": 683,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q23",
+          "ROC106-Q29",
+          "ROC111-Q18",
+          "ROC113-Q05",
+          "ROC114-Q05",
+          "ROC115-Q09",
+          "ROC115-Q45",
+          "ROC115-Q46"
+        ],
+        "exam_question_count": 8,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "3-2",
+        "textbook_toc_page": 133,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 681,
+        "reference_heading_text_sha256": "9521a4306f27eaddc1a9fa55a7cb43f66c3f30e0474eace4ef1b79f4f0537ee4"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-015",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-1/nutrients",
+      "chapter": 3,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "蛋白質營養的組成背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-1",
+        "sectionTitle": "營養與消化",
+        "conceptTitle": "營養素（醣類、蛋白質、脂質、維生素）"
+      },
+      "section": null,
+      "pdf_page": 165,
+      "printed_page": null,
+      "digital_folio": 167,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q32",
+          "ROC107-Q19",
+          "ROC108-Q12",
+          "ROC110-Q31",
+          "ROC111-Q03",
+          "ROC112-Q02",
+          "ROC115-Q19"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-1",
+        "textbook_toc_page": 182,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 165,
+        "reference_heading_text_sha256": "6e95cac0320d21778b3c53b90852476d144b32d8d451e67a15cea276a6f1ae2f"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-016",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-1/nutrients",
+      "chapter": 7,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "醣類營養的組成背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-1",
+        "sectionTitle": "營養與消化",
+        "conceptTitle": "營養素（醣類、蛋白質、脂質、維生素）"
+      },
+      "section": null,
+      "pdf_page": 440,
+      "printed_page": null,
+      "digital_folio": 442,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q32",
+          "ROC107-Q19",
+          "ROC108-Q12",
+          "ROC110-Q31",
+          "ROC111-Q03",
+          "ROC112-Q02",
+          "ROC115-Q19"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-1",
+        "textbook_toc_page": 182,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 440,
+        "reference_heading_text_sha256": "81bc5ce6515e1452f7b0c304f3ffa2aee53e2932da116915db3defa0cae3f902"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-017",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-1/nutrients",
+      "chapter": 10,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "脂質與部分維生素的化學背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-1",
+        "sectionTitle": "營養與消化",
+        "conceptTitle": "營養素（醣類、蛋白質、脂質、維生素）"
+      },
+      "section": null,
+      "pdf_page": 636,
+      "printed_page": null,
+      "digital_folio": 638,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q32",
+          "ROC107-Q19",
+          "ROC108-Q12",
+          "ROC110-Q31",
+          "ROC111-Q03",
+          "ROC112-Q02",
+          "ROC115-Q19"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-1",
+        "textbook_toc_page": 182,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 636,
+        "reference_heading_text_sha256": "585783ea77b6a57a6d466c6e4aead2c43989f12e2a512ab6cf99a315bada5ad2"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-018",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-1/digestion",
+      "chapter": 6,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "消化酵素的催化背景，不取代消化器官教材。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-1",
+        "sectionTitle": "營養與消化",
+        "conceptTitle": "消化系統構造與功能"
+      },
+      "section": null,
+      "pdf_page": 350,
+      "printed_page": null,
+      "digital_folio": 352,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q33",
+          "ROC106-Q34",
+          "ROC107-Q18",
+          "ROC108-Q11",
+          "ROC109-Q20",
+          "ROC110-Q16",
+          "ROC111-Q02",
+          "ROC112-Q49",
+          "ROC112-Q50",
+          "ROC113-Q07",
+          "ROC114-Q06"
+        ],
+        "exam_question_count": 11,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-1",
+        "textbook_toc_page": 182,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 350,
+        "reference_heading_text_sha256": "b05ec1ad2d343e12d59db9a8cf3702ce894698501b8db09070d8d7a4366c4db5"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-019",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-2/blood",
+      "chapter": 5,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "僅血紅素攜氧，不涵蓋全部血球分類。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-2",
+        "sectionTitle": "循環",
+        "conceptTitle": "血液組成與血球"
+      },
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC108-Q17",
+          "ROC109-Q23",
+          "ROC114-Q08",
+          "ROC115-Q10"
+        ],
+        "exam_question_count": 4,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-2",
+        "textbook_toc_page": 191,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 295,
+        "reference_heading_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-020",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-3/resp-structure",
+      "chapter": 5,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "血紅素與氧結合，不取代呼吸器官與氣體交換。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-3",
+        "sectionTitle": "呼吸與排泄",
+        "conceptTitle": "呼吸系統構造與氣體交換"
+      },
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC107-Q20",
+          "ROC108-Q14",
+          "ROC109-Q21",
+          "ROC113-Q09",
+          "ROC115-Q12"
+        ],
+        "exam_question_count": 5,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-3",
+        "textbook_toc_page": 200,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 295,
+        "reference_heading_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-021",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-3/resp-disorders",
+      "chapter": 5,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "CO與血紅素結合的原理，不能直接推定試題答案。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-3",
+        "sectionTitle": "呼吸與排泄",
+        "conceptTitle": "呼吸相關異常生理"
+      },
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC110-Q19",
+          "ROC110-Q20"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-3",
+        "textbook_toc_page": 200,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 295,
+        "reference_heading_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-022",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-4/immune-response",
+      "chapter": 5,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "抗原抗體辨識的分子背景，不涵蓋完整免疫學。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-4",
+        "sectionTitle": "防禦",
+        "conceptTitle": "先天性與後天性免疫、疫苗"
+      },
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC107-Q24",
+          "ROC108-Q19",
+          "ROC109-Q22",
+          "ROC109-Q27",
+          "ROC110-Q27",
+          "ROC111-Q46",
+          "ROC113-Q12",
+          "ROC114-Q20"
+        ],
+        "exam_question_count": 8,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-4",
+        "textbook_toc_page": 210,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 295,
+        "reference_heading_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-023",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-5/musculoskeletal",
+      "chapter": 5,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "肌動蛋白與肌凝蛋白的基本作用。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-5",
+        "sectionTitle": "神經與運動",
+        "conceptTitle": "骨骼與肌肉"
+      },
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q39",
+          "ROC108-Q21",
+          "ROC112-Q08"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-5",
+        "textbook_toc_page": 220,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 295,
+        "reference_heading_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-024",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-5/neuron",
+      "chapter": 12,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "離子通道與訊號傳遞基本背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-5",
+        "sectionTitle": "神經與運動",
+        "conceptTitle": "神經元與神經傳遞"
+      },
+      "section": null,
+      "pdf_page": 753,
+      "printed_page": null,
+      "digital_folio": 755,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC108-Q18",
+          "ROC111-Q07",
+          "ROC114-Q11"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-5",
+        "textbook_toc_page": 220,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 753,
+        "reference_heading_text_sha256": "0834b6680157974448e3428d0a48b6b2febf4caa24a92572a4e964a349c93e26"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-025",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-6/glands",
+      "chapter": 23,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "激素作用的一般原理，不以此補造腺體位置。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-6",
+        "sectionTitle": "激素與協調",
+        "conceptTitle": "內分泌腺與激素對應"
+      },
+      "section": null,
+      "pdf_page": 1525,
+      "printed_page": null,
+      "digital_folio": 1527,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q05",
+          "ROC106-Q06",
+          "ROC106-Q07",
+          "ROC107-Q30",
+          "ROC109-Q16",
+          "ROC113-Q14",
+          "ROC114-Q12"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-6",
+        "textbook_toc_page": 231,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1525,
+        "reference_heading_text_sha256": "e639e1b861384c3f1894bfcb9aec76ccabe3f4d08cd24df2ab4ce24d0fa545b3"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-026",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-6/diabetes",
+      "chapter": 23,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "胰島素與代謝調節原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-6",
+        "sectionTitle": "激素與協調",
+        "conceptTitle": "糖尿病與胰島素"
+      },
+      "section": null,
+      "pdf_page": 1525,
+      "printed_page": null,
+      "digital_folio": 1527,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC110-Q18"
+        ],
+        "exam_question_count": 1,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-6",
+        "textbook_toc_page": 231,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1525,
+        "reference_heading_text_sha256": "e639e1b861384c3f1894bfcb9aec76ccabe3f4d08cd24df2ab4ce24d0fa545b3"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-027",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-6/glucose",
+      "chapter": 23,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "血糖調節的原理背景。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-6",
+        "sectionTitle": "激素與協調",
+        "conceptTitle": "胰臟、胰島與血糖相關激素"
+      },
+      "section": null,
+      "pdf_page": 1525,
+      "printed_page": null,
+      "digital_folio": 1527,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC114-Q14"
+        ],
+        "exam_question_count": 1,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-6",
+        "textbook_toc_page": 231,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1525,
+        "reference_heading_text_sha256": "e639e1b861384c3f1894bfcb9aec76ccabe3f4d08cd24df2ab4ce24d0fa545b3"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-028",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "4-7/glucose-homeostasis",
+      "chapter": 23,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "血糖恆定與代謝整合。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "04",
+        "unitTitle": "動物的代謝與恆定",
+        "section": "4-7",
+        "sectionTitle": "恆定性",
+        "conceptTitle": "血糖恆定與回饋調節"
+      },
+      "section": null,
+      "pdf_page": 1525,
+      "printed_page": null,
+      "digital_folio": 1527,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC107-Q28",
+          "ROC108-Q23",
+          "ROC109-Q17",
+          "ROC111-Q09"
+        ],
+        "exam_question_count": 4,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "4-7",
+        "textbook_toc_page": 238,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1525,
+        "reference_heading_text_sha256": "e639e1b861384c3f1894bfcb9aec76ccabe3f4d08cd24df2ab4ce24d0fa545b3"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-029",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-2/dna-structure",
+      "chapter": 8,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "DNA核苷酸、互補與雙螺旋。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-2",
+        "sectionTitle": "基因與遺傳",
+        "conceptTitle": "DNA 模板與鹼基互補"
+      },
+      "section": null,
+      "pdf_page": 504,
+      "printed_page": null,
+      "digital_folio": 506,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q14",
+          "ROC107-Q36",
+          "ROC107-Q37",
+          "ROC107-Q38",
+          "ROC108-Q03",
+          "ROC108-Q05",
+          "ROC109-Q30",
+          "ROC109-Q31",
+          "ROC109-Q32",
+          "ROC110-Q35",
+          "ROC111-Q30",
+          "ROC113-Q19",
+          "ROC114-Q25",
+          "ROC115-Q03"
+        ],
+        "exam_question_count": 14,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-2",
+        "textbook_toc_page": 322,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 504,
+        "reference_heading_text_sha256": "80c17cb5cbc6b2339f7e30240dfa8d4b80b2c4ff72d784853a352aece3f9d552"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-030",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-2/expression",
+      "chapter": 26,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "轉錄及RNA加工基本原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-2",
+        "sectionTitle": "基因與遺傳",
+        "conceptTitle": "遺傳訊息傳遞（轉錄、轉譯、密碼子）"
+      },
+      "section": null,
+      "pdf_page": 1734,
+      "printed_page": null,
+      "digital_folio": 1736,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q13",
+          "ROC107-Q35",
+          "ROC109-Q33",
+          "ROC110-Q33",
+          "ROC112-Q45",
+          "ROC113-Q20",
+          "ROC114-Q26"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-2",
+        "textbook_toc_page": 322,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1734,
+        "reference_heading_text_sha256": "79e6cad6a004eed88fbdea9756a2bd0cd45328347783169faf312a69b371625d"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-031",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-2/expression",
+      "chapter": 27,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "遺傳密碼與轉譯基本原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-2",
+        "sectionTitle": "基因與遺傳",
+        "conceptTitle": "遺傳訊息傳遞（轉錄、轉譯、密碼子）"
+      },
+      "section": null,
+      "pdf_page": 1814,
+      "printed_page": null,
+      "digital_folio": 1816,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q13",
+          "ROC107-Q35",
+          "ROC109-Q33",
+          "ROC110-Q33",
+          "ROC112-Q45",
+          "ROC113-Q20",
+          "ROC114-Q26"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-2",
+        "textbook_toc_page": 322,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1814,
+        "reference_heading_text_sha256": "6274f32b32ca627d44f5d8de026c03d1b460415df3eb525f3175a23e7b461b84"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-032",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-2/mutation",
+      "chapter": 25,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "DNA損傷與修復背景，不推算遺傳比例。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-2",
+        "sectionTitle": "基因與遺傳",
+        "conceptTitle": "突變"
+      },
+      "section": null,
+      "pdf_page": 1657,
+      "printed_page": null,
+      "digital_folio": 1659,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC112-Q46"
+        ],
+        "exam_question_count": 1,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-2",
+        "textbook_toc_page": 322,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1657,
+        "reference_heading_text_sha256": "c363801c0e4c2039dd9c9290c45ab2df77bb95fbc06f5e906221350c04ab76ed"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-033",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-3/chromosomes",
+      "chapter": 24,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "染色體組織背景，不取代人類核型與性聯教材。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-3",
+        "sectionTitle": "人類的遺傳",
+        "conceptTitle": "人類染色體與性染色體"
+      },
+      "section": null,
+      "pdf_page": 1603,
+      "printed_page": null,
+      "digital_folio": 1605,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC110-Q32",
+          "ROC110-Q36"
+        ],
+        "exam_question_count": 2,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-3",
+        "textbook_toc_page": 331,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1603,
+        "reference_heading_text_sha256": "8257f37f16587f8f02e6c8f3446c2ef51d113f572011de07d13b9e9711f21428"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-034",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "7-1/pcr",
+      "chapter": 8,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "目錄列有PCR；確切節內頁碼仍待定位。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "07",
+        "unitTitle": "生物技術",
+        "section": "7-1",
+        "sectionTitle": "生物技術與其應用",
+        "conceptTitle": "PCR原理與引子"
+      },
+      "section": null,
+      "pdf_page": 504,
+      "printed_page": null,
+      "digital_folio": 506,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC108-Q08",
+          "ROC109-Q38",
+          "ROC112-Q37",
+          "ROC113-Q37",
+          "ROC115-Q40"
+        ],
+        "exam_question_count": 5,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "7-1",
+        "textbook_toc_page": 368,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 504,
+        "reference_heading_text_sha256": "80c17cb5cbc6b2339f7e30240dfa8d4b80b2c4ff72d784853a352aece3f9d552"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-035",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "7-2/recombinant",
+      "chapter": 9,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "重組DNA工具與選殖原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "07",
+        "unitTitle": "生物技術",
+        "section": "7-2",
+        "sectionTitle": "認識遺傳工程",
+        "conceptTitle": "重組 DNA 工具與流程（載體、限制酶、連接酶）"
+      },
+      "section": null,
+      "pdf_page": 571,
+      "printed_page": null,
+      "digital_folio": 573,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC107-Q41",
+          "ROC107-Q42",
+          "ROC108-Q06",
+          "ROC108-Q09",
+          "ROC109-Q41",
+          "ROC110-Q39",
+          "ROC112-Q36",
+          "ROC114-Q40",
+          "ROC115-Q41"
+        ],
+        "exam_question_count": 9,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "7-2",
+        "textbook_toc_page": 374,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 571,
+        "reference_heading_text_sha256": "ee296baad5e3e285011431f1d871d62496674c0f510ce34a301bb3d94f5ffd20"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-036",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "7-2/transformation",
+      "chapter": 9,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "載體與基因表現的背景，轉形個別流程待核對正文。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "07",
+        "unitTitle": "生物技術",
+        "section": "7-2",
+        "sectionTitle": "認識遺傳工程",
+        "conceptTitle": "轉形與篩選"
+      },
+      "section": null,
+      "pdf_page": 571,
+      "printed_page": null,
+      "digital_folio": 573,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC111-Q34",
+          "ROC114-Q41",
+          "ROC115-Q39"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "7-2",
+        "textbook_toc_page": 374,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 571,
+        "reference_heading_text_sha256": "ee296baad5e3e285011431f1d871d62496674c0f510ce34a301bb3d94f5ffd20"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-037",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "7-2/transgenic",
+      "chapter": 9,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "基因操作的科學背景，不新增未考應用。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "07",
+        "unitTitle": "生物技術",
+        "section": "7-2",
+        "sectionTitle": "認識遺傳工程",
+        "conceptTitle": "基因轉殖"
+      },
+      "section": null,
+      "pdf_page": 571,
+      "printed_page": null,
+      "digital_folio": 573,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q18",
+          "ROC109-Q39",
+          "ROC110-Q38",
+          "ROC112-Q39"
+        ],
+        "exam_question_count": 4,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "7-2",
+        "textbook_toc_page": 374,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 571,
+        "reference_heading_text_sha256": "ee296baad5e3e285011431f1d871d62496674c0f510ce34a301bb3d94f5ffd20"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-038",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "7-3/pcr-diagnosis",
+      "chapter": 8,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "僅PCR擴增原理，臨床判讀不在本索引授權範圍。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "07",
+        "unitTitle": "生物技術",
+        "section": "7-3",
+        "sectionTitle": "生物科技的應用",
+        "conceptTitle": "PCR病原檢測應用"
+      },
+      "section": null,
+      "pdf_page": 504,
+      "printed_page": null,
+      "digital_folio": 506,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC110-Q40"
+        ],
+        "exam_question_count": 1,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "7-3",
+        "textbook_toc_page": 378,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 504,
+        "reference_heading_text_sha256": "80c17cb5cbc6b2339f7e30240dfa8d4b80b2c4ff72d784853a352aece3f9d552"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-039",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-1/metabolism",
+      "chapter": 14,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "葡萄糖分解原理，不要求逐一酵素與反應式。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-1",
+        "sectionTitle": "探究生命現象",
+        "conceptTitle": "新陳代謝（同化與異化作用）"
+      },
+      "section": null,
+      "pdf_page": 926,
+      "printed_page": null,
+      "digital_folio": 928,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q31",
+          "ROC107-Q04",
+          "ROC114-Q01"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-1",
+        "textbook_toc_page": 8,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 926,
+        "reference_heading_text_sha256": "af1dd04a5081e9eaa43cd331efaec4932fba79024aeb549bb2cc2e91e69f64ef"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-040",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-1/metabolism",
+      "chapter": 16,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "細胞呼吸的代謝聯繫，不要求完整路徑背誦。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-1",
+        "sectionTitle": "探究生命現象",
+        "conceptTitle": "新陳代謝（同化與異化作用）"
+      },
+      "section": null,
+      "pdf_page": 1044,
+      "printed_page": null,
+      "digital_folio": 1046,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q31",
+          "ROC107-Q04",
+          "ROC114-Q01"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-1",
+        "textbook_toc_page": 8,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1044,
+        "reference_heading_text_sha256": "97a353cd1c7679d3eb83e8310bd794e658e97eb34cce2150c4350052c68fc25c"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-041",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "1-1/metabolism",
+      "chapter": 19,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "呼吸鏈與ATP合成的基本原理。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "01",
+        "unitTitle": "生物體的構造與功能",
+        "section": "1-1",
+        "sectionTitle": "探究生命現象",
+        "conceptTitle": "新陳代謝（同化與異化作用）"
+      },
+      "section": null,
+      "pdf_page": 1196,
+      "printed_page": null,
+      "digital_folio": 1198,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q31",
+          "ROC107-Q04",
+          "ROC114-Q01"
+        ],
+        "exam_question_count": 3,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "1-1",
+        "textbook_toc_page": 8,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1196,
+        "reference_heading_text_sha256": "53f7c13f19008001497444cd8df17cf7b6c723ea7d02ac4789912123cda1de76"
+      },
+      "needsHumanReview": true
+    },
+    {
+      "id": "lehninger-principles-biochemistry-8e-map-042",
+      "reference_id": "lehninger-principles-biochemistry-8e",
+      "concept_id": "6-2/expression",
+      "chapter": 28,
+      "relevance": "supporting-principle-candidate",
+      "scope_note": "基因表現調節的必要背景，不擴充大學調控細節。",
+      "verification_status": "agent-proposed; independent-human-review-pending",
+      "studySignal": {
+        "unit": "06",
+        "unitTitle": "遺傳",
+        "section": "6-2",
+        "sectionTitle": "基因與遺傳",
+        "conceptTitle": "遺傳訊息傳遞（轉錄、轉譯、密碼子）"
+      },
+      "section": null,
+      "pdf_page": 1894,
+      "printed_page": null,
+      "digital_folio": 1896,
+      "reference_page_status": "chapter-entry-only; exact-concept-page-pending",
+      "evidence": {
+        "classification_path": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+        "classification_sha256": "06b1955771a8260c0e851a1d0bdbf4a8591e21c1daef5f6d5854389b1e0c587e",
+        "exam_question_ids": [
+          "ROC106-Q13",
+          "ROC107-Q35",
+          "ROC109-Q33",
+          "ROC110-Q33",
+          "ROC112-Q45",
+          "ROC113-Q20",
+          "ROC114-Q26"
+        ],
+        "exam_question_count": 7,
+        "textbook_toc_path": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+        "textbook_toc_section": "6-2",
+        "textbook_toc_page": 322,
+        "textbook_page_status": "section start locator only; not a verified per-question textbook page",
+        "reference_index_path": "content/knowledge-base/sources/biology/lehninger-principles-biochemistry-8e/reference-index.json",
+        "reference_chapter_heading_pdf_page": 1894,
+        "reference_heading_text_sha256": "cda0e70596b573cbd98ba51a1fc97a9762c94c5dd0bef40908bdc0b666dce924"
+      },
+      "needsHumanReview": true
+    }
+  ],
+  "sectionCoverage": [
+    {
+      "section": "1-1",
+      "title": "探究生命現象",
+      "mapping_count": 4,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "1-2",
+      "title": "細胞的構造與功能",
+      "mapping_count": 8,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "1-3",
+      "title": "細胞分裂",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "1-4",
+      "title": "探究活動：動物細胞與植物細胞的觀察",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "2-1",
+      "title": "演化",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "2-2",
+      "title": "生物多樣性",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "2-3",
+      "title": "生物的分類",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "2-4",
+      "title": "探究活動：校園生物多樣性的觀察",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "3-1",
+      "title": "植物的營養器官構造與功能",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "3-2",
+      "title": "植物的生理",
+      "mapping_count": 2,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "3-3",
+      "title": "植物的生殖",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "4-1",
+      "title": "營養與消化",
+      "mapping_count": 4,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-2",
+      "title": "循環",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-3",
+      "title": "呼吸與排泄",
+      "mapping_count": 2,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-4",
+      "title": "防禦",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-5",
+      "title": "神經與運動",
+      "mapping_count": 2,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-6",
+      "title": "激素與協調",
+      "mapping_count": 3,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "4-7",
+      "title": "恆定性",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "5-1",
+      "title": "男女生殖系統",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "5-2",
+      "title": "月經週期、懷孕與避孕",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "6-1",
+      "title": "孟德爾的遺傳法則",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "6-2",
+      "title": "基因與遺傳",
+      "mapping_count": 5,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "6-3",
+      "title": "人類的遺傳",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "6-4",
+      "title": "探究活動：DNA粗萃取",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "7-1",
+      "title": "生物技術與其應用",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "7-2",
+      "title": "認識遺傳工程",
+      "mapping_count": 3,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "7-3",
+      "title": "生物科技的應用",
+      "mapping_count": 1,
+      "status": "candidate-reference-links"
+    },
+    {
+      "section": "8-1",
+      "title": "族群與群集",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "8-2",
+      "title": "生態系",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "8-3",
+      "title": "自然資源的開發與利用",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    },
+    {
+      "section": "8-4",
+      "title": "探究活動：生態系統的建置與觀察",
+      "mapping_count": 0,
+      "status": "not-needed-or-not-mapped; no relevance claim"
+    }
+  ],
+  "unusedChapters": [
+    {
+      "chapter": 2,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 4,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 15,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 17,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 18,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 21,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    },
+    {
+      "chapter": 22,
+      "status": "not-needed-for-current-map",
+      "reason": "No necessary link established in this bounded pass. Not proof that every topic is irrelevant."
+    }
+  ],
+  "independentHumanApprovals": 0
+}

@@ -1,0 +1,1239 @@
+{
+  "schemaVersion": 1,
+  "kind": "reference-index",
+  "subject": "biology",
+  "reference_id": "lehninger-principles-biochemistry-8e",
+  "title": "Lehninger Principles of Biochemistry",
+  "edition": "Eighth Edition",
+  "authors": [
+    "David L. Nelson",
+    "Michael M. Cox",
+    "Aaron A. Hoskins"
+  ],
+  "publication_year": 2021,
+  "isbn": {
+    "value": "978-1-319-32234-2",
+    "format": "epub",
+    "source_pdf_page": 3
+  },
+  "source": {
+    "file_name": "ZY5468彩(A4)  Lehninger Principles of Biochemistry 8th.pdf",
+    "bytes": 254016900,
+    "sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+    "pdf_page_count": 2274,
+    "local_only": true,
+    "locate": "Supply the original local PDF via --pdf; absolute personal paths are deliberately excluded.",
+    "duplicates": [
+      {
+        "file_name": "ZY5468彩(A4)  Lehninger Principles of Biochemistry 8th(1).pdf",
+        "bytes": 254016900,
+        "sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263"
+      },
+      {
+        "file_name": "ZY5468彩(A4)  Lehninger Principles of Biochemistry 8th.pdf",
+        "bytes": 254016900,
+        "sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263"
+      }
+    ],
+    "pdf_metadata": {
+      "pdf_version": "1.6",
+      "title": "About this Book",
+      "creator": "calibre (5.2.0) [https://calibre-ebook.com]",
+      "producer": "calibre (5.2.0) [https://calibre-ebook.com]",
+      "encrypted": false
+    }
+  },
+  "pagination": {
+    "pdf_page": "one-based physical PDF page",
+    "digital_folio": "number observed in extracted page footer; not original print pagination",
+    "printed_page": null,
+    "printed_page_status": "not verified for this EPUB-converted PDF; do not infer from digital folios or original print index",
+    "pdf_page_labels_present": false,
+    "bookmark_warning": "Chapter bookmarks land after chapter openings; actual chapter headings were checked individually."
+  },
+  "scope": "Internal reference only; exams define scope, scanned biology textbook defines basic instruction; no classification edits.",
+  "copyright": {
+    "pdf_in_repository": false,
+    "fulltext_or_figures_in_outputs": false,
+    "chapter_titles_only_plus_original_summaries": true,
+    "rights_or_license_verified": false
+  },
+  "chapters": [
+    {
+      "chapter": 1,
+      "title_zh": "生物化學的基礎",
+      "core_concepts": [
+        "細胞、化學、能量、遺傳與演化的共同基礎"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "The Foundations of Biochemistry",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 40,
+      "printed_page": null,
+      "digital_folio": 42,
+      "pdf_bookmark_page": 42,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 40,
+        "heading_page_text_sha256": "fa6ad5669d553545d41d1155417c8bba07d6d57fa07ddd43a90cb33bf38cc2d0",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 2,
+      "title_zh": "水：生命的溶劑",
+      "core_concepts": [
+        "水的弱作用力、酸鹼與緩衝"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Water, The Solvent of Life",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 115,
+      "printed_page": null,
+      "digital_folio": 117,
+      "pdf_bookmark_page": 116,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 115,
+        "heading_page_text_sha256": "b587540b9f3a0911090b8ad9617214123cbf7d69bd9aecc984dfec087890684b",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 3,
+      "title_zh": "胺基酸、胜肽與蛋白質",
+      "core_concepts": [
+        "胺基酸、胜肽鍵與蛋白質基本組成"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Amino Acids, Peptides, and Proteins",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 165,
+      "printed_page": null,
+      "digital_folio": 167,
+      "pdf_bookmark_page": 167,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 165,
+        "heading_page_text_sha256": "6e95cac0320d21778b3c53b90852476d144b32d8d451e67a15cea276a6f1ae2f",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 4,
+      "title_zh": "蛋白質的三維結構",
+      "core_concepts": [
+        "結構層次、摺疊與變性"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "The Three-Dimensional Structure of Proteins",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 228,
+      "printed_page": null,
+      "digital_folio": 230,
+      "pdf_bookmark_page": 230,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 228,
+        "heading_page_text_sha256": "51c935c048cdb7318e48d3b92242d6520e427be8716f017b95c399479158920b",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 5,
+      "title_zh": "蛋白質功能",
+      "core_concepts": [
+        "血紅素、抗體及肌肉蛋白的作用"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Protein Function",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 295,
+      "printed_page": null,
+      "digital_folio": 297,
+      "pdf_bookmark_page": 297,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 295,
+        "heading_page_text_sha256": "1b8517757b771863202d676c068ade467bd45d9b920cc75bcf66686486024522",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 6,
+      "title_zh": "酵素",
+      "core_concepts": [
+        "催化、專一性、活性影響因素與調節"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Enzymes",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 350,
+      "printed_page": null,
+      "digital_folio": 352,
+      "pdf_bookmark_page": 352,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 350,
+        "heading_page_text_sha256": "b05ec1ad2d343e12d59db9a8cf3702ce894698501b8db09070d8d7a4366c4db5",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 7,
+      "title_zh": "醣類與醣生物學",
+      "core_concepts": [
+        "單醣、雙醣、多醣及醣結合物"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Carbohydrates and Glycobiology",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 440,
+      "printed_page": null,
+      "digital_folio": 442,
+      "pdf_bookmark_page": 442,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 440,
+        "heading_page_text_sha256": "81bc5ce6515e1452f7b0c304f3ffa2aee53e2932da116915db3defa0cae3f902",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 8,
+      "title_zh": "核苷酸與核酸",
+      "core_concepts": [
+        "DNA、RNA與核苷酸的結構功能"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Nucleotides and Nucleic Acids",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 504,
+      "printed_page": null,
+      "digital_folio": 506,
+      "pdf_bookmark_page": 505,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 504,
+        "heading_page_text_sha256": "80c17cb5cbc6b2339f7e30240dfa8d4b80b2c4ff72d784853a352aece3f9d552",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 9,
+      "title_zh": "以DNA為基礎的資訊技術",
+      "core_concepts": [
+        "基因選殖、重組DNA與基因體技術"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "DNA-Based Information Technologies",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 571,
+      "printed_page": null,
+      "digital_folio": 573,
+      "pdf_bookmark_page": 573,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 571,
+        "heading_page_text_sha256": "ee296baad5e3e285011431f1d871d62496674c0f510ce34a301bb3d94f5ffd20",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 10,
+      "title_zh": "脂質",
+      "core_concepts": [
+        "儲能脂質、膜脂質與脂質訊號"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Lipids",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 636,
+      "printed_page": null,
+      "digital_folio": 638,
+      "pdf_bookmark_page": 637,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 636,
+        "heading_page_text_sha256": "585783ea77b6a57a6d466c6e4aead2c43989f12e2a512ab6cf99a315bada5ad2",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 11,
+      "title_zh": "生物膜與運輸",
+      "core_concepts": [
+        "脂雙層、膜蛋白及被動與主動運輸"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Biological Membranes and Transport",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 681,
+      "printed_page": null,
+      "digital_folio": 683,
+      "pdf_bookmark_page": 682,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 681,
+        "heading_page_text_sha256": "9521a4306f27eaddc1a9fa55a7cb43f66c3f30e0474eace4ef1b79f4f0537ee4",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 12,
+      "title_zh": "生物化學訊息傳遞",
+      "core_concepts": [
+        "受體、訊息轉導、神經訊號與細胞週期"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Biochemical Signaling",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 753,
+      "printed_page": null,
+      "digital_folio": 755,
+      "pdf_bookmark_page": 755,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 753,
+        "heading_page_text_sha256": "0834b6680157974448e3428d0a48b6b2febf4caa24a92572a4e964a349c93e26",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 13,
+      "title_zh": "代謝概論",
+      "core_concepts": [
+        "能量耦合、ATP與氧化還原"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Introduction to Metabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 849,
+      "printed_page": null,
+      "digital_folio": 851,
+      "pdf_bookmark_page": 852,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 849,
+        "heading_page_text_sha256": "49885bf9bfaa7574890821c0d0c624d904b88bb9dc42f94bb84c89d1fec1cb44",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 14,
+      "title_zh": "糖解作用、糖質新生與磷酸戊糖途徑",
+      "core_concepts": [
+        "葡萄糖分解與代謝的基本聯繫"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Glycolysis, Gluconeogenesis, and the Pentose Phosphate Pathway",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 926,
+      "printed_page": null,
+      "digital_folio": 928,
+      "pdf_bookmark_page": 929,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 926,
+        "heading_page_text_sha256": "af1dd04a5081e9eaa43cd331efaec4932fba79024aeb549bb2cc2e91e69f64ef",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 15,
+      "title_zh": "動物的肝醣代謝",
+      "core_concepts": [
+        "肝醣儲存、分解與調節"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "The Metabolism of Glycogen in Animals",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1014,
+      "printed_page": null,
+      "digital_folio": 1016,
+      "pdf_bookmark_page": 1015,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1014,
+        "heading_page_text_sha256": "953ebe5642202fb76e834e1cf65fd9912a2b67d0f9c1fb77e8a09acf363d715b",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 16,
+      "title_zh": "檸檬酸循環",
+      "core_concepts": [
+        "乙醯輔酶A與細胞呼吸的代謝聯繫"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "The Citric Acid Cycle",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1044,
+      "printed_page": null,
+      "digital_folio": 1046,
+      "pdf_bookmark_page": 1047,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1044,
+        "heading_page_text_sha256": "97a353cd1c7679d3eb83e8310bd794e658e97eb34cce2150c4350052c68fc25c",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 17,
+      "title_zh": "脂肪酸分解代謝",
+      "core_concepts": [
+        "脂肪消化、動員與脂肪酸氧化"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Fatty Acid Catabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1094,
+      "printed_page": null,
+      "digital_folio": 1096,
+      "pdf_bookmark_page": 1096,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1094,
+        "heading_page_text_sha256": "e8cdbe3054224424c5b731abce826165796df1de7f620aaff0ca108ed388feb3",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 18,
+      "title_zh": "胺基酸氧化與尿素的生成",
+      "core_concepts": [
+        "胺基移轉、氮排除與尿素"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Amino Acid Oxidation and the Production of Urea",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1140,
+      "printed_page": null,
+      "digital_folio": 1142,
+      "pdf_bookmark_page": 1143,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1140,
+        "heading_page_text_sha256": "0b47ac669868cfe5f258e119e7ff7c0dd947751f3489304f826be3a1f4db9bc7",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 19,
+      "title_zh": "氧化磷酸化",
+      "core_concepts": [
+        "呼吸鏈、質子梯度與ATP合成"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Oxidative Phosphorylation",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1196,
+      "printed_page": null,
+      "digital_folio": 1198,
+      "pdf_bookmark_page": 1199,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1196,
+        "heading_page_text_sha256": "53f7c13f19008001497444cd8df17cf7b6c723ea7d02ac4789912123cda1de76",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 20,
+      "title_zh": "植物的光合作用與醣類合成",
+      "core_concepts": [
+        "光能轉換、固碳與醣類形成"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Photosynthesis and Carbohydrate Synthesis in Plants",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1271,
+      "printed_page": null,
+      "digital_folio": 1273,
+      "pdf_bookmark_page": 1273,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1271,
+        "heading_page_text_sha256": "3847a03a5d2b29a1c6e6a307764f89927b1da2627bb75c4610c79eb4dd5d8dc3",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 21,
+      "title_zh": "脂質生合成",
+      "core_concepts": [
+        "脂肪酸及其他脂質的合成"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Lipid Biosynthesis",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1351,
+      "printed_page": null,
+      "digital_folio": 1353,
+      "pdf_bookmark_page": 1352,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1351,
+        "heading_page_text_sha256": "e71ffae051b10a5d5f9b7ead0b9f3eac906456c1698d3ff40a77ce60f96a8e46",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 22,
+      "title_zh": "胺基酸、核苷酸及相關分子的生合成",
+      "core_concepts": [
+        "氮代謝與含氮分子的生合成"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Biosynthesis of Amino Acids, Nucleotides, and Related Molecules",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1438,
+      "printed_page": null,
+      "digital_folio": 1440,
+      "pdf_bookmark_page": 1440,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1438,
+        "heading_page_text_sha256": "7e63b6f540b1061722b378fb5e260c51b3d93e7896e2c1bbca37ac99e2bfe5c2",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "not-needed-for-current-map"
+    },
+    {
+      "chapter": 23,
+      "title_zh": "哺乳動物代謝的荷爾蒙調節與整合",
+      "core_concepts": [
+        "激素作用、胰島素及能量恆定"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Hormonal Regulation and Integration of Mammalian Metabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1525,
+      "printed_page": null,
+      "digital_folio": 1527,
+      "pdf_bookmark_page": 1527,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1525,
+        "heading_page_text_sha256": "e639e1b861384c3f1894bfcb9aec76ccabe3f4d08cd24df2ab4ce24d0fa545b3",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 24,
+      "title_zh": "基因與染色體",
+      "core_concepts": [
+        "基因、DNA拓樸及染色體組織"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Genes and Chromosomes",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1603,
+      "printed_page": null,
+      "digital_folio": 1605,
+      "pdf_bookmark_page": 1605,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1603,
+        "heading_page_text_sha256": "8257f37f16587f8f02e6c8f3446c2ef51d113f572011de07d13b9e9711f21428",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 25,
+      "title_zh": "DNA代謝",
+      "core_concepts": [
+        "複製、修復與重組"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "DNA Metabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1657,
+      "printed_page": null,
+      "digital_folio": 1659,
+      "pdf_bookmark_page": 1659,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1657,
+        "heading_page_text_sha256": "c363801c0e4c2039dd9c9290c45ab2df77bb95fbc06f5e906221350c04ab76ed",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 26,
+      "title_zh": "RNA代謝",
+      "core_concepts": [
+        "轉錄、RNA加工與反轉錄"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "RNA Metabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1734,
+      "printed_page": null,
+      "digital_folio": 1736,
+      "pdf_bookmark_page": 1736,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1734,
+        "heading_page_text_sha256": "79e6cad6a004eed88fbdea9756a2bd0cd45328347783169faf312a69b371625d",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 27,
+      "title_zh": "蛋白質代謝",
+      "core_concepts": [
+        "遺傳密碼、轉譯與蛋白質處理"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Protein Metabolism",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1814,
+      "printed_page": null,
+      "digital_folio": 1816,
+      "pdf_bookmark_page": 1817,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1814,
+        "heading_page_text_sha256": "6274f32b32ca627d44f5d8de026c03d1b460415df3eb525f3175a23e7b461b84",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    },
+    {
+      "chapter": 28,
+      "title_zh": "基因表現的調控",
+      "core_concepts": [
+        "原核與真核生物的基因表現調節"
+      ],
+      "reference_use": "內部查證；以十年考題與既有教材為範圍，只補充必要科學原理。",
+      "title_en": "Regulation of Gene Expression",
+      "title_zh_status": "agent-written index translation; not publisher official title",
+      "section": null,
+      "pdf_page": 1894,
+      "printed_page": null,
+      "digital_folio": 1896,
+      "pdf_bookmark_page": 1897,
+      "verification_status": "pdf-heading-and-toc-text-verified; independent-human-review-pending",
+      "evidence": {
+        "source_sha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+        "toc_pdf_pages": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "brief_toc_pdf_page": 23,
+        "chapter_heading_pdf_page": 1894,
+        "heading_page_text_sha256": "cda0e70596b573cbd98ba51a1fc97a9762c94c5dd0bef40908bdc0b666dce924",
+        "method": "actual chapter heading text + brief/detailed TOC; no inferred print pagination"
+      },
+      "reference_use_status": "candidate-supporting-reference"
+    }
+  ]
+}

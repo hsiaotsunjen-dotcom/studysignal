@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "kind": "reference-index-validation",
+  "reference_id": "lehninger-principles-biochemistry-8e",
+  "date": "2026-10-31",
+  "sourceSha256": "50eac58fdd893be8e19fd383946069097f395824e7a99aed8630ac10f4798263",
+  "checks": {
+    "pdfParsed": true,
+    "pageCount": 2274,
+    "chapterCount": 28,
+    "chapterHeadingsMatchedToBriefAndDetailedToc": 28,
+    "bookmarkDestinationsDifferingFromActualStart": 28,
+    "uniqueConcepts": 32,
+    "mappingRecords": 42,
+    "mappedStudySignalSections": 18,
+    "usedReferenceChapters": 21,
+    "missingConceptIds": 0,
+    "duplicateMappingPairs": 0,
+    "referenceJsonSchema": "PASS",
+    "originalPdfUnchanged": true,
+    "baselineClassificationUnchanged": true,
+    "totalDistinctPagesExtracted": 214,
+    "wholeBookTextExtraction": false,
+    "ocrRun": false,
+    "printedPagesVerified": 0,
+    "independentHumanApprovals": 0
+  },
+  "samples": [
+    {
+      "pdf_page": 1,
+      "characters": 0,
+      "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": null,
+      "text_layer_present": false,
+      "review_status": "no extractable text; page may be graphical, not proof of damage"
+    },
+    {
+      "pdf_page": 2,
+      "characters": 301,
+      "text_sha256": "caafc41e4288ab220d2205b2ccf38a816fc6a996f4fa21277a6beb16bd5a72b1",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 3,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    },
+    {
+      "pdf_page": 3,
+      "characters": 2295,
+      "text_sha256": "b02419f90634e9bd5bacf629403532a3dd9244aa9f01df0cb58193f289b8626b",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 5,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    },
+    {
+      "pdf_page": 42,
+      "characters": 4331,
+      "text_sha256": "c7c9ced2e0e179962078c4c189d2158729ac410476100e3c2902709787911127",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 44,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    },
+    {
+      "pdf_page": 1137,
+      "characters": 2074,
+      "text_sha256": "1327dd233e96e0fe0d4368875926b886bfb0323a546d83cdae0375ff8cb0b35c",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 1139,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    },
+    {
+      "pdf_page": 1898,
+      "characters": 4175,
+      "text_sha256": "0a130208b94e76d8815e0f4a4ea92a4ceb3d0ad8733998380f75cb40e95f9242",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 1900,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    },
+    {
+      "pdf_page": 2274,
+      "characters": 1200,
+      "text_sha256": "2867b5a6aa079439f4e33b990458cf8d23377c5f72125df4369d51a3a4c7ebe8",
+      "replacement_characters": 0,
+      "private_use_characters": 0,
+      "digital_folio": 2276,
+      "text_layer_present": true,
+      "review_status": "agent-sampled; formula/figure fidelity not certified"
+    }
+  ],
+  "limitations": [
+    "Title page has three authors, including Aaron A. Hoskins.",
+    "Metadata title is About this Book and does not identify the edition; title/copyright pages were used.",
+    "EPUB-converted PDF has digital folios, figure descriptions and reflow artifacts; original print pagination is unverified.",
+    "Index entries near the end cite original print pages; do not use them as physical PDF page numbers.",
+    "Page 1 has no extractable text; this is not proof of a missing page.",
+    "English prose is extractable in front/middle/back samples; formulas can lose symbols or be verbalized. Text extraction is not suitable for blindly copying equations.",
+    "Physical page count and sampled parse success do not certify all 2274 pages, images, formulas or completeness.",
+    "Mapping links are chapter-level agent candidates, not exact concept-page verification or independent human approval.",
+    "No complete human-verified production knowledge graph was found; committed Phase 2E v5 was used as a frozen derived baseline.",
+    "Only metadata, chapter titles, original short summaries and source locators are saved. No book body, figures or PDF copies are saved.",
+    "Full original PDF rights/license and provenance are unverified. No public textbook/course reuse is authorized."
+  ]
+}
