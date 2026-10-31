@@ -1,0 +1,1914 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-31",
+  "subject": "biology",
+  "title": "ROC106–ROC115 生物考題主題對照（Phase 2E v5 Agent提案）",
+  "baselinePath": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v4.json",
+  "baselineSha256": "1ab4e1c85ccd958a8c5fd80b075f0b287476016b273c0a8e0517a5d7c97ed8a4",
+  "baselineCommit": "ef55cc5a06c53e2c223fb902912921da7609afb0",
+  "schemaPath": "scripts/kb-review-plan.schema.json",
+  "priorDecisionsPath": "content/knowledge-base/derived/biology/phase-2d-review-decisions.json",
+  "priorQualityPath": "content/knowledge-base/derived/biology/phase-2d-quality-validation.json",
+  "tocPath": "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json",
+  "indexPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+  "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+  "scope": {
+    "years": [
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115
+    ],
+    "questionsPerYear": 50,
+    "idPrefix": "ROC"
+  },
+  "protectedProjectFiles": {
+    "chi_tra.traineddata": "6abfb87cce5db0d09624f16eedd8a0b24173718856121f721b6d1214193d4dab",
+    "content/knowledge-base/documents/doc_60d611014048.json": "ab80fb63dcd284c553e2533dc56fa25499ff7e617e2cd9ee3e9e0aa4fcef9a96",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_09_30_23_21_37R_jpg.txt": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_09_30_23_21_37R_jpg.txt.bak": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_09_30_23_25_24R_jpg.txt": "836284dff3ea7d734c2464fb69539ca01d15204d1a80f45553bae7ca51f16153",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_10_01_00_03_54L_jpg.txt": "bb44cddb07490004d67f44b215011b77add68cb806529f88c8daf2da8bc71700",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_10_01_00_04_17R_jpg.txt": "cbb2a188010544dcd21aa7601a7f8946a16632948a74d0bc855b2505950020e7",
+    "content/knowledge-base/ocr-pilot/biology-5pages/normalized_IMG_2026_10_01_00_05_09R_jpg.txt": "8808eebc0c561eb81e5e276dab7d99e407dfd0addddb11f0d9732b02c1997a5f",
+    "content/knowledge-base/ocr-pilot/biology-5pages/pilot-summary.json": "6b0d88dc33c1758077f712bc857bccfdab70ff9686dd93c2e6d361c9cfc702e8",
+    "content/knowledge-base/ocr-pilot/biology-5pages/pilot-summary.json.bak": "6b0d88dc33c1758077f712bc857bccfdab70ff9686dd93c2e6d361c9cfc702e8",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_09_30_23_21_37R_jpg.txt": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_09_30_23_21_37R_jpg.txt.bak": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_09_30_23_25_24R_jpg.txt": "836284dff3ea7d734c2464fb69539ca01d15204d1a80f45553bae7ca51f16153",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_10_01_00_03_54L_jpg.txt": "bb44cddb07490004d67f44b215011b77add68cb806529f88c8daf2da8bc71700",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_10_01_00_04_17R_jpg.txt": "cbb2a188010544dcd21aa7601a7f8946a16632948a74d0bc855b2505950020e7",
+    "content/knowledge-base/ocr-pilot/biology-5pages/raw_IMG_2026_10_01_00_05_09R_jpg.txt": "8808eebc0c561eb81e5e276dab7d99e407dfd0addddb11f0d9732b02c1997a5f",
+    "content/knowledge-base/ocr-pilot/single-image-test/normalized_IMG_2026_09_30_23_21_37R_jpg.txt": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/ocr-pilot/single-image-test/pilot-summary.json": "e972f3ec7913df5497856fcd9525a7196b011c2f0630e0d23ed8bc71d31bc80e",
+    "content/knowledge-base/ocr-pilot/single-image-test/raw_IMG_2026_09_30_23_21_37R_jpg.txt": "c0845d9abdeb9769925625f5b3deb9897b93255867db7d7f3ee7233eab62951d",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/human-review-checklist.md": "6e0cb8b80a5d3e9d8630f4de9d94bd5abffa0a6a8acd3ce8d7041401834f09d0",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/verification-report.md": "ff92985cf923c3c78d3a02b3408196882450dceaa9f34cdc98eb3c6a1287f998",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/human-review-checklist.md": "0406cc9807c4dffa34df1ac6c89ac35437fc33bd6b3962217cef957b5ebc3a55",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/verification-report.md": "7117d8aded0ba5f2d9375472efe9df2d684ba0f9a93b723474321756047befc9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/human-review-checklist.md": "c6fc15f46258d7d748f3ae116ddf336fdf944b4bdb2628be89826eb5e4603dfa",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/verification-report.md": "0eaaebea666631d7c89f6fabe9da1fba1d10ad7f35ea2361b5894a637141bb3f",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/human-review-checklist.md": "f1c7c11488c3e9fe36dc61513286d2ec49436ec5dd7e264f174762f39a36c803",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/verification-report.md": "03bc0cb3483e13696cf7593e6498634cc5c7e49318d6dcfb339104197e4a68e9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/human-review-checklist.md": "ce1e799c445f32063eed1a2ae9c21a25056867a9e54a71b763e713983a016dbd",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/verification-report.md": "33ac1801bd7f2b74a78caa59873d945ddf22eae46c69f1ac027b21945592b797",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/human-review-checklist.md": "6539c53336d5c497ea2aa3baf41d2400f17380b2fc519b0e4341e52d62fdb361",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/verification-report.md": "bab5df46780d28c493cfaea060c3e4cd55d0cc72c3fe8e5f7370c6c2c33f71f9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/human-review-checklist.md": "3a2606f28b9aa61162bd800aa00c0071df81c077b8552b84733cb587dac5be6c",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/verification-report.md": "ae367602123c6401229b70820d525f98256dace9788cc1e3b08df8767878cf18",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/human-review-checklist.md": "715c511363ea21e25733e02fd60ae67e3cdd709914bf398b553ca1a5d331748c",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/verification-report.md": "6053d2f8a38f0d9c8355d1802c6775afa8d0f1bf95104ce229a9139f07bec89c",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/human-review-checklist.md": "2e7acda9fb3779a4d563ac4158ebfb43a1375a63af40770d9643b8729ee015a4",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/verification-report.md": "108d1919d8496818c04b6976e8aeb4ccb8a51f720dc5bef3252615b1653aade1",
+    "eng.traineddata": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+    "scripts/ocr-pilot-biology-5pages.mjs": "5214dd9cf6b6f88bbf9c4fcf8bf64d80512e3e9ab967d9ba9940a676bebf40ed",
+    "scripts/tmp-kb-build-index.mjs": "8ea12e0189e65f80d4e7f9e5bc33bd1527f99e8840a22f191edeae6d36fff460",
+    "scripts/tmp-kb-scan-groups.json": "fb605f35e230873016661f9094244811ca31434f19d4155aba5f23d7bc511cfd",
+    "scripts/tmp-kb-scan-strips.mjs": "139d651697741886d29cfbc9df201ec4ea1979e853f601a864c0242548647b46",
+    "scripts/tmp-roc106-108-gen.ts": "a6c653b28ec571ad67acb96beb36ce7bdc13efd22baa7605ead01036c15cc662",
+    "scripts/tmp-roc106-108-probe.ts": "4b68a148374a154425ffb63d8b00636314acbc5bc118e7a5e7a42c4bfb0ba103",
+    "scripts/tmp-roc107-ocr.mjs": "47694da35b8fdfd0746f966da874aa5e3680e4933bf38d91383994b7747d4e16",
+    "scripts/tmp-roc107-render.py": "4d35f390063ad1f333210ee4db9dbf4063e4383ba63940ab4b9430e4364dc104",
+    "scripts/tmp-roc107-validate.mjs": "4d35f390063ad1f333210ee4db9dbf4063e4383ba63940ab4b9430e4364dc104",
+    "scripts/tmp-roc108-cmp.mjs": "385c7e9e86b19d3774d652706c9fa48bbb25c1972fdcb3af528f415a4bc071f0",
+    "scripts/tmp-roc108-cmp2.mjs": "0d36dd7d346c922d5cde3e3934eb38611d2a2b91a7e90441161aa7799acddbd7",
+    "scripts/tmp-roc108-crop.mjs": "90a15e14ef6415317b1c741cad0ae43e8af3c8e0a89cc08586a01c7ea5bd98ea",
+    "scripts/tmp-roc108-dim.mjs": "5375b97661f6bcf355152557c7b8877c23d60e4bbb1f677bbddb6d048a907389",
+    "scripts/tmp-roc108-resize.mjs": "021bc81bc8d70beb1c65050f2e9d20dea8c1b553ee9bfdaf835f67dff216d77e",
+    "scripts/tmp-roc108-textlayer.mjs": "af12aac913a4f916f963b368374df9d74ccbe3b17a1fd6bca497200827db28cf",
+    "src/lib/kb-pipeline/pipelineState.test.ts": "5687cf62db6602e5cffa342069c710123f62ae17ddfd77ae95e4c6b63842deb6",
+    "src/lib/kb-pipeline/pipelineState.ts": "a23cd5e38d1ac3a512b2d7dc66d9a6ae843516e3aa8adbb647f6ce5c31a0e58b",
+    "src/lib/kb-pipeline/registerSource.test.ts": "871d84359294e0f7060ec3f4bd80e8bf7f7aed3af9b186b7a7075c27f6ae9005",
+    "src/lib/kb-pipeline/registerSource.ts": "dbc599bcc6d9763179d884f26915f0a3d653f62301704a03037f1b17a4312513",
+    "src/lib/kb-pipeline/runPipeline.test.ts": "ab499a7af38686a9be9c86a125cd62a2d7fa860e7313e74cd23b66e332d91902",
+    "src/lib/kb-pipeline/runPipeline.ts": "bd2056f9a6e282de547bc263f59de5c7eccbae3b8291c12545e1c484cdcdf8aa",
+    "tmp-extract-roc108.mjs": "1e13803371bcf5e1639fe4f1f423d5b7162b43d7c0b86754a70588999df42607",
+    "tmp-ocr-roc108.cjs": "dab6b99aa96a41271a05917cb1a005a69de187b55714d720d4704f44b9598a13",
+    "tmp-ocr-roc108.mjs": "9cec0cff3de1af24a80f8d517e902df6337117e726a463e1d9adb9a8774f138d",
+    "tmp-roc108-c-q20-4.png": "14fb5b0256c59aabe155a3b32d474bcd4290748be36b1494e7aa2e23365ffc92",
+    "tmp-roc108-c-q26c-4.png": "91805560022426dd102667aab30455b6850446d3c754974b4cc50e5747a0ffc1",
+    "tmp-roc108-c-q27-4.png": "4275303e88622d25bb0e7b6e90e2456a67817a62ba75cadfd1dbf8a86efcc761",
+    "tmp-roc108-crop-q35b-6.png": "c7066485f1e6d2612d12b9bf054a2c38e67ea47a921b35848d7395c734eb22f5",
+    "tmp-roc108-d-q26c-4.png": "cbbf4474262df7d460348603b8077fab1626b1aebf79e2889dd73d3ae3e4075a",
+    "tmp-roc108-d-q27-4.png": "4baedcb9c346efc2317448c2ebe2e447f9ce6e5ce80242e6ed23af65f6ff42fe",
+    "tmp-roc108-e-p5head-5.png": "9ef3d45dbcf0771b07055e4c7ea50f5b9c7f30186b0b8bbf8a70f20591f90cb8",
+    "tmp-roc108-e-q28c-5.png": "d19d5d888e4073e16dd260d8ed4defbd1d0e9f6c89698df8a6567a9dd372c0c1",
+    "tmp-roc108-e-q32-5.png": "9ec1b9c490496bf621d92405d51790a3ca14e6a014b22a021956e3a498cb0971",
+    "tmp-roc108-f-head-5.png": "28e3aa096ea8c1648024a44c7ff5657a1e22dd88fc80bacd09b1e07c0b7b6415",
+    "tmp-roc108-f-q28c-5.png": "da369cb7c759d7a871aa52921ee2a26730a8647e45f68ab0b642755f61d43bda",
+    "tmp-roc108-g-head-5.png": "b8a1571640d47dc08e54efd773b9612bf4125bfccb3f3421620442091b813891",
+    "tmp-roc108-g-q28c-5.png": "190907cf0741aa3cf10a3ac906a7751cbde4ddf58075d7db9fe3fec4698b4b61",
+    "tmp-roc108-h-p5hdr-5.png": "fd3bdc72f38042807dad4b853d29eb4fc3788db8f9e8e6629eb2d799334a92e8",
+    "tmp-roc108-h-q28c-5.png": "ea165ebdc644fdeab44a29af72b836ae16f894df264a0f03addec25aa3992b24",
+    "tmp-roc108-h-q29-5.png": "365d16d93176603704bd024160459c0f8dc7008ef7d734d06f733fe52e7cfb4c",
+    "tmp-roc108-i-q28c-5.png": "882a71a507fbc885b970327f2fc512c87dc336e85a305630479434a6ee67ab9f",
+    "tmp-roc108-j-q28-5.png": "df5b490acc31cd7541055d4b0dcbef175f356ff9b94f5cbccdfd1a851d85560d",
+    "tmp-roc108-j-q29-5.png": "d60c0283c35d959c6effa26c02a3a9642f1458f034cb5c5955ce179eeaa89ddd",
+    "tmp-roc108-j-q31d-5.png": "625b7279aeedf7c31c55426074a65ec53a7a607ce49ad595a45ba35a2897b4ec",
+    "tmp-roc108-p5-small-5.png": "121cd80e285311be9afb188f07ca5ee6c3ba72c6e3bbe4057c5ff86fc6545a0e",
+    "tmp-roc108-p5a-5.png": "c68c530ce4ca434f76b9293313cf230eef4916fdcf307b0f1bba8ea05daf98da",
+    "tmp-roc108-p5b-5.png": "4216bc2b97759fbd7f019ae2547581af981e0d4995700698d23a3d4b4449383a",
+    "tmp-roc108-p6-bbox.html": "59828f1ed3fc487fd47f296673a483e68dc7b849cf981c66270e9ee15895cc2b",
+    "tmp-roc108-page-4.png": "06592519dc64929efbb34f86f5b6acb47d7e5a616426fc282bb42522e3fd96b4",
+    "tmp-roc108-page-5.png": "67b126bbd71b43736169e4fdf2b5a05209c0fef4ca88b2c281cb35c3295f519f",
+    "tmp-roc108-pages1-3.txt": "17cbc80d2bd75fb1861a10a3b18432dba4cde8e01d9659ada421004a0f47ee34",
+    "tmp-roc108-pages6-8-page-6.png": "50350e216dc222e394af3e723269ecbeb15db702f4d24620a152d2d0061338a7",
+    "tmp-roc108-pages6-8-page-7.png": "fb81c6e4a5a609c0eb4abe8239702f52ab0b424c9aa173a336711074e090360b",
+    "tmp-roc108-pages6-8-page-8.png": "4d42abaedea3c75d954d2c7ec9aeaec884b86e9d5114fd0ddc6ec728ee1ab18b",
+    "tmp-roc108-pages6-8.txt": "78b2231002f54d9daf444e605acb3c7086480992cc1e0dea41e94f0e179d09f4",
+    "tmp-v-p4-full.png": "9b88345a40891e736406ec097231ea812561453ba93e94c3a552ce757bca8b96",
+    "tmp-v-p5-full.png": "e5cf4c44168f4f06043382224b3dbbde73fe0b9d8873879d54f9a19c682ffa8c",
+    "tmp-v-q20-4.png": "de1c1b1529cf95a0e6cbf8d8ede6c812ab1e096b25a87787644f8d6219bbe8c3",
+    "tmp-v-q26c-4.png": "e36ff347fb3811d61b225ed2e33381273936ac372169bcfc33e6a4863884b9f9",
+    "verify-final.cjs": "9b4eb64216ef2bcd0d32d6ff1545acd55c9253784f4d6792dc486b54c2b837fd",
+    "verify-full.cjs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify-roc108-full.cjs": "cd161040bc8270a47b63a5b452010c9d39c19570cb6ee6ef0b35f977abc7af1a",
+    "verify-roc108.cjs": "bedad2019b5464729c050574bd151855fd74abc0c48569ec2bc397df162b0a6a",
+    ".gitignore": "bd7e1bdb44a497da7869ae441b043826c7d881da8b80b02824114e9d644f3cfd",
+    "README.md": "b7775ddf58e71fef626edecbfcc33eec866ef667ee6a068c60f6c902e92c9b4c",
+    "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v3.json": "a114190ae95fbcb9e686fdcf67f6a56d2fdc1cebcdbca5aa645659a59a72cee2",
+    "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v3.md": "45246ab96248da74e82f33ea7a6dd063170403c301721743c2893bd76d79d02e",
+    "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v4.json": "1ab4e1c85ccd958a8c5fd80b075f0b287476016b273c0a8e0517a5d7c97ed8a4",
+    "content/knowledge-base/derived/biology/exam-topic-map-roc110-115.json": "5428062fa54b14cf6b7bb19f7b95da3d5f2ee24f7c0e30f00d3b97361dcb6410",
+    "content/knowledge-base/derived/biology/exam-topic-map-roc110-115.md": "6d2b46ad9f01e9deb8d3709e3805be189dfcf276c41b2ce9b8043c994b45c611",
+    "content/knowledge-base/derived/biology/phase-2c-classification-decisions.json": "0a44da50dbaa2b7d09bd697541978d5d4fc34110b87cb5158464dbd282718e5e",
+    "content/knowledge-base/derived/biology/phase-2d-quality-validation.json": "5b2ef27f2349d7954b9021add0ec7ee08c9c312b0029885b209afc73d04b3d55",
+    "content/knowledge-base/derived/biology/phase-2d-review-decisions.json": "c2e3077f5b3eb915d3c043dec58d3947807a36413326540f96cc81673d5f6f12",
+    "content/knowledge-base/derived/biology/proposed-course-map-roc110-115.md": "8586382d6ace84605713c5a1e3cfc1e4de74f1bc5c2fe10c296dedc19d04890d",
+    "content/knowledge-base/documents/doc_0275674ada68.json": "ea3a2229cb18e94534888a879f3cb61442f841ead045942ed04d606d5ac59eb7",
+    "content/knowledge-base/documents/doc_0837557912ff.json": "363fbb23d124a08d5af6c03e86136bc5a612919bd15578f5effef061bb79b78b",
+    "content/knowledge-base/documents/doc_22de33a47df7.json": "f8bc9918048b29dab5179618bc3b75fcb3ed7b9f913a62deb61f34824569046e",
+    "content/knowledge-base/documents/doc_2882dd79f074.json": "13efe4703d4bd587b5154cabd90db07a650a675e94d93b85133bdc8e22732055",
+    "content/knowledge-base/documents/doc_59d3967e0b43.json": "944112638a9eb375eb12ed6ad78c041b45be492d06280ffccdfee6d09056eb7e",
+    "content/knowledge-base/documents/doc_66d1e11f6ba0.json": "b4ffa56e71806a61276d522841de849549f66b33e11ef12a626047894e1b2f6d",
+    "content/knowledge-base/documents/doc_70444528552e.json": "a26a2f4d526e251e0cd3884659075eb9a21b934dca6e8c505ba8f782ae57564d",
+    "content/knowledge-base/documents/doc_786fb556b642.json": "f141060aa9227dc58002ff5a170a74b41ed472699b41dc56682233588bac64b2",
+    "content/knowledge-base/documents/doc_9b32d1fcc36f.json": "3f8a078dc094870869e9dbd9e5e86759c2f21c54b889785c3d623fdd7a24bed0",
+    "content/knowledge-base/documents/doc_c6d779df6901.json": "efc76b0543247359b67e36f7801a2ad71d64959b46d8253ed95e16ba22d13520",
+    "content/knowledge-base/metadata/source-registry.json": "bb08adcbc7fcbe134570d1be3991d3185024f95176b06ff9d17a52bef0445a4b",
+    "content/knowledge-base/snapshots/biology.skeleton.v1.json": "8fd6a4739b999e4a375bcd03d5b30a62738a295d0f712ba76c19af20dd2e9c33",
+    "content/knowledge-base/sources/biology/roc114/originals/114-4y-10-1.pdf": "8c1375d3f2b14f52d55c66bf030d7395cd8dd5fad8c9967ad216ad3db5c8d163",
+    "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/README.md": "ac35cfcc926c71e94de0455c695421ec614d234026210b14ab2f72c5d1148813",
+    "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.csv": "2fb76ada96bfa11ed4ac20200f4215e87dde92b6218d836be7f89f996a88144c",
+    "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json": "38c4986c8f93e2dcc46ab080bc69ae343f92fb364b575364fba07eeca50638d8",
+    "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json": "14c5ec49a12683f1facc4353e14d4421f46205f5ef12cdd4c8f358ce86689251",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/README.md": "aed7aa7a8855a23c0cb1e72c887144158da47c5937e48ddc01fc13b1f609d220",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_43_41L.jpg": "ee7c467e8c91833bc22ac693e42ec1677cdd1a71ee2f640cd7b20a8d1d101c44",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_43_41R.jpg": "81fb19ead6e7a577084f3ca3eb3ac9feb1edb1b5223273f9a1d4bac9504deb2a",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/scans/IMG_2026_09_02_23_44_46L.jpg": "3e4a8a868a332e985e14417a27741ec0da0e040a617bf1a648d1ffaa94b57f76",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.json": "a22753a76a330b9facace230750e0e6d6dfb186c654c6e7309e0f9523c7ff6d7",
+    "content/knowledge-base/sources/biology/shinedoc-toc-20260902/toc.md": "59b165be269a69c97dee453dd2d7c6016506aa3883c884308bf29c2fddc55325",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/README.md": "c2b8ea2c97cddfa03bd6a9b8af48c98e247a31ebf3e68c0fbc7b3651afbca4d9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/originals/106-4y-10-1生物.pdf": "0bf961ad8a2845e006e711b43ade4dd544e35154cefe20c4cf539eead9c2c230",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/paper.json": "6d60a74c8b51dad839c4964e1d830bbf8a99e7568b295558fa480f8963bae91f",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc106/paper.md": "dc6cf60ae18093239481ba67f78908a5f849f2abda3c5b57d7cfa6a458f91d4e",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/originals/107-4y-10-1生物.pdf": "f1ea72d5e75eb15fdc388f592c49db9bfda0f9a54713629135c566da948a40d9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/paper.json": "0aad15b01f3ae9ec3e6d6483ba0779233d4a26b5797bf17cce78047b4b7f82d1",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc107/paper.md": "7e23799b3c5a5a8c95f66fde4ae5b9de84b509f8d8db4542f16fab0bf831927a",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/README.md": "5074032b07e089fdf03e53d21bc87098b013808be9ae1e06ed5dea40623f4288",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/human-review-checklist.md": "48bddae903aacc3a42c2c65d68e90a53ba87f2bb560bd3ad10f26cee14e72da9",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/originals/108-4y-10-1生物.pdf": "d47bdc7b93c34c5e6e1a034cd330f7d1f9263bfb011ca0920982441da3d14d78",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/paper.json": "d21e3bf82e74146fc1113bcf3bc01524989ed0fa28b6e0d2e16792f12817b730",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/paper.md": "408e3b757e99f996391e90d7c379b21d4b10f6e423f2f92410e58cc71f509d31",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc108/verification-report.md": "353fecded3c55ffe6f1f062edfd3ffc8ec148bbd0caacc8f5a016cf279dbe769",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/README.md": "8c93ab27742fff1427948866387ac26da52772bfa921264101894d17656c012d",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/originals/109-4y-10-1生物.pdf": "5185fe0e0236fbea43b2d4a377ff815a7d9eeffc63182e7ca1891538f4aa8c99",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/paper.json": "f2afed695daa77799625382f0f19f104546338ded370fc284101325b8a7429e0",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc109/paper.md": "20b30e4457fce18877fb93a2b33d78d1e29897b2f84ba6ad5a89d5c0c95a8975",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/README.md": "2fb0a387fe621b0becec0fd86d03096fb32ad44163161c8324d74f7bb372ab2c",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/originals/110-4y-10-1.pdf": "2014aec57d086ac8597c88806adc2572f9377c3327135f0f48a33fd47d2072e7",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/paper.json": "def81ee222f07c6a8c241a70c9ead1b3cd8eb1437c9ceecac40986bb00a7d7dc",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc110/paper.md": "632361b0a50fef93afa24d30973c6779c68f8f87a30c1a1f0700d24ffd521f80",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/README.md": "4477b4fd1b5450bddb1eac28c561b5bdbd25a5d0723f8b68c3a9385697856c63",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/originals/111-4y-10-1.pdf": "12fe94e4f1457ba2a501de7d241126bd84499283672c736a0c05bb95ce5b91ec",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/paper.json": "41fe9106a6823e66ea55d3269e6979ac81992c840ebe4d4b0e02e542e98b2f75",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc111/paper.md": "cf8d08c634fffbaae3cdc51ed771638182867f9c1cc1c83b7a725c7b82e94466",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/README.md": "197bb8d6fa2cdd2525e2d0266657f9d5b554afb276393536114c396d75b21b12",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/originals/112-4y-10-1.pdf": "bedb19e88d8c18e52e7b3c5f4765d30739bb85fdf44ff9ead464ec5ed0ffa7f2",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/paper.json": "8c6d564fbb00f12467ddef64d57b791f895e7bd1115ef163f68220f04a27aa4a",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc112/paper.md": "57ee93923543c987052c18cf20be0a35cec890916b1e580de25be53009429be5",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/README.md": "b759f537fabc58c786eeb4f00dd73b30dc59703c599b9047c3cdb1270dd07cb8",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/originals/113-4y-10-1.pdf": "35e4219ddaf2e09b533eb123753ff7458d1c1ef565f39eb5e7a26717b94510b0",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/paper.json": "86f96254394e325c4c74af8cc6a872f58a24780be1585a113ec0c561d6b81af7",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc113/paper.md": "4bfbdab7cd2ef30e21cb962613d155bc79766e27b1bee518dc66f1946b5ab56d",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/README.md": "9305a2ee5eb594e52ef4767afac48958a866b35c7e7e91ef7f125b852d601bd4",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/originals/114-4y-10-1.pdf": "8c1375d3f2b14f52d55c66bf030d7395cd8dd5fad8c9967ad216ad3db5c8d163",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/paper.json": "b087bcdb3a11de0bc47e1e98b67255c2222dcc413c7fb6eed2ccb39b0acc90bb",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc114/paper.md": "5b7e8598cf34e1c2d7f0af8dc19526fc91aa7f8bd19d7ad570d904e56d441bce",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/README.md": "e6846dbae9494b7ce44c0fc025999dbee735f009bf85c1a3cba155b1066daca3",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/originals/115-4y-10-1生物.pdf": "81ecbf67afa35b435a6fb6c7b9f30fd5fef17a36d10f33f4d81ef6ae8826785b",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/paper.json": "ebc16b314c9074ad7eb335949b44d0078cdc664d0a7b8961bf4aabcb3dcaa7ee",
+    "content/knowledge-base/sources/biology/tve-ut-health-nursing-bio-roc115/paper.md": "ed10229f6d04fc5519c583b79e76bfcad5bd1983509e2dfb3accab0b4e5942bb",
+    "docs/AGENT.md": "393f54a11f82c72ff9d8b8052062fea39a5bd6b65cd98073094151e9483b5406",
+    "docs/AI Agent 工作規範.md": "12911d759672519759db171b1dd1df7b4ec6c653037c3009ca3f2c769adc3c61",
+    "docs/AI_EXAMPLES.md": "01859b777c2f7520c73a62e887896dd1fd585e57e8fa65ebd4fdfe4ef29347f7",
+    "docs/AI_REVIEW.md": "b9695f6b6a288eaeaef40e90b62abb83f319a85c5319d790ff956cfd8f3b9ee5",
+    "docs/AI_TEAM.md": "91005cc72dc5b71fd008e4705dee199727334d1bb2c14d84bcd500232bd829ad",
+    "docs/API.md": "aa0e140dc6fa2111aef918546df67823da475603c5f6bed45ce0095e22040d44",
+    "docs/ARCHITECTURE.md": "11e094584d03eab15a9eceb64bb36c342013aaee78bb3c3aae7d6cc6bf6dd0c2",
+    "docs/BRAND_VOICE.md": "f8f40f99b3d56ecaff57e54c48a2e7a5dae6ec408c44d460fc617105154a9f9c",
+    "docs/DATABASE.md": "f28d40b747e54466d8c49273d990b2fdaf6a8d823a186c6c193d69753d70d507",
+    "docs/DEFINITION_OF_DONE.md": "09cfc1d22d643373393a7843f7bd80401a82a4af0bdc0871febc470594e19f0e",
+    "docs/DEFINITION_OF_READY.md": "8662298357ac718cf9fdca0361b55975ed7394ab1be0ee774fb98b0de58565f4",
+    "docs/DESIGN_SYSTEM.md": "8a29628d67b3848223f1a1e7124cdb4eaecdec334a268dde5aa31ae657375e18",
+    "docs/DEVELOPMENT_PRINCIPLES.md": "f88e551a8a862fa95f50e1d2a8b49dd61f4d792540d56e960753ad135a0e4785",
+    "docs/ENGINEERING_LOG.md": "547e61fe02d7ec1d2d5ef817da11f91b8f0d7f636b8164e9e335409eb5fe56a3",
+    "docs/FIRST_LEARNING_LOOP.md": "e7bed7849f0dcfba5764bed8cf8c69dbe8407790e2cefb6b22f693a488893743",
+    "docs/Git 操作流程.md": "7819643b5eb3b9213c042345ca91798688139f46c30312427a19f9269e473081",
+    "docs/LEARNING_KERNEL.md": "8c9306e7160836e94d5306cd842837efc9edf122bfe7d5218cbc3b8a3eab3b5f",
+    "docs/LEARNING_OS.md": "43ae73515dee20cf5bb0b04ba189555d6c589be925bda2c5fc3d76ab4b4c8f9e",
+    "docs/LEARNING_STATE_ENGINE.md": "7fd50d60b9f66fb5f06fd87a09f399b62d9dbf7fbab73b1864dfe7f868f1f5fb",
+    "docs/MVP_EXECUTION_SPEC.md": "ac1e0b1bc1b59c86a0b40fd940e4c8ee06d0e265bd536c4140569656ac871cd3",
+    "docs/PRODUCT.md": "dd0e2d5f8b309464c1e12fedb8fc9ed926418f8cdb8a4983759b23da3f8ac165",
+    "docs/PRODUCT_ARCHITECTURE.md": "dab543d1f075a8841131187f56aa9efd452dcfaaccd62ed29d46e4cfaa16285a",
+    "docs/PRODUCT_BLUEPRINT.md": "c5c09182ca60fd785a886b758e1cbfbe56e861e9525251e9643bed256b9f5d29",
+    "docs/PRODUCT_PHILOSOPHY.md": "1390e77ed402a37cafc4de06821fe6eec1bdf83beb4b70e0dd2f13a921339581",
+    "docs/PROJECT_RULES.md": "3e5b5dd4a6d61ce3706c75c73bc829d32ec2714ec2776e097f682989fd80ddf1",
+    "docs/PROJECT_STATUS.md": "f1df0b3323cc7233a8209c91cd706f484ad5306761b36f3436da661d82bbba96",
+    "docs/ROADMAP.md": "bcf2380c05e2833a77467d4f4609a8970e0cc754d9bff9c00a77cef3b586a9cf",
+    "docs/UI_DESIGN_V1.md": "a3d3ae93ecf5c69c8e442291fee21c3ad39329a65f7a972b4a812364516002f2",
+    "docs/V0_DEMO.md": "659e25f4712774d7f02996c5993627759c5faf7f438b5390e5600732c7678030",
+    "docs/kb-import-reviews/roc106-q43-human-verification.md": "7d28b6d1721a66bff196d80a3bd8452da79b7e918575db47c129582d155dc9ca",
+    "docs/knowledge-base/biology/phase-2b-audit-report.md": "d9277bad240d0771987d7c654588e3077b3787fc58e3e1c46d32492b72a4b27a",
+    "docs/knowledge-base/biology/phase-2b-handoff.md": "d283d4a048bbfcffddca01f2ca506e03a7b4ac748b7569c46acf93e53e7b9c97",
+    "docs/knowledge-base/biology/phase-2c-classification-progress.md": "bed107bd410bfb9e602bb32dde40aecd6448bec869a29b6956fcc0456515fb2d",
+    "docs/knowledge-base/biology/phase-2d-review-report.md": "29376fff7faefc4f855f655c8aa70b01cd1f8eb55bae52e9699ad5a1787fa543",
+    "docs/prd/PRD-000-StudySignal-Constitution.md": "6a71137928b43d1d34449a7313055adfbab401f0e7124365089e9d1d155e719b",
+    "docs/prd/PRD-001-Parent-Signup.md": "dc7e31b7f02f096bfae0453110e41cf930312f176c744cfbec455cba4ddfc272",
+    "docs/prd/PRD-001-Todays-Journey-Engine.md": "5b0eb9e681b512b4c810bc4919037609b1e1fbe473ea2fc8d30f4f7c81dda3ad",
+    "docs/prd/PRD-002-Understanding-Engine.md": "f5436085569fb08ba142aecc99dcf4aa632b01231ddbacf945f48618eb0c980b",
+    "docs/prd/PRD-003-Learning-Signals.md": "4e742a0b833a737d92404bf518fa41b70d8b7a9da02316645da03f2d024ce106",
+    "docs/prd/PRD-004-Student-Model.md": "9b710632d509a19962a497d5daf10e8b62ff72d3180e83aa2843b54d34e60f6a",
+    "docs/prd/PRD-005-Parent-Trust-Engine.md": "b13cd47de4d1061501fb4d8e6e6b647d9c054b55e2fadcfe63aa0ac83094149b",
+    "docs/prd/PRD-006-Learning-Blueprint.md": "cd0de08bd408b96b170aa52f43a0fac9e5c0315d2577dab65bcfc7ede2504e1c",
+    "docs/prd/PRD-007-Memory-Engine.md": "5feed4f041739fc11c20c9b796656caa2729d473c8a0ed1b506a684736b11c78",
+    "docs/prd/PRD-008-Decision-Engine.md": "b3d05bc4fb433d8d2d45dcc8122d78261da3090ff6293f7174a556b5cdc618f0",
+    "docs/prd/PRD-009-Explainability-Engine.md": "4476ebaa64a4cd9e5a925407b1d0acb38df06b3b6381a78a8871d6e8bdda0ad2",
+    "docs/prd/PRD-010-Growth-Engine.md": "231a681b21b0eb7d44a058abbd6e3450c5552ffd77a48da14a9d5adc196c747d",
+    "docs/prd/PRD-010-Study-Atmospheres.md": "8cb159b338fa1093c9b510c0f8a33b401be183ecc2c4c80eb637b498b5dfe80d",
+    "docs/prd/PRD-011-Brand-Experience.md": "5226ebe05dde0dfd3eed83108ee1879176e28cde47739c79d5b567097026ed60",
+    "docs/prd/PRD-012-Brand-Voice.md": "8804642b064fc303d489be99909b2eac804f536d954141ad51d1177b99bc9baf",
+    "docs/prd/PRD-100-Education-Architecture.md": "6bc85f593748b7bee98a2b67a94d6535ea9e3ac1dd82baa8ba7d735855399332",
+    "docs/常見問題.md": "5ac318082581446e6a26be20ac0e11b442a8d6413542f6a5254efc0f0cae2753",
+    "docs/開發環境安裝手冊.md": "d188c314456f58278402dfcb8b2f60d3805c818c77b7131da86cd9e50229bbe6",
+    "eslint.config.mjs": "04e05210bc143563bf70541eb3b64b711f2751836722f2085361c879cf2c17db",
+    "next-env.d.ts": "f4e8976c19fc926644d72610bf1058bd6bf52add97e46a02bc0b912a751625c0",
+    "next.config.ts": "8a0bf4c9d4c2cba620ef94286a08223bc629afc34c67cbe8970317b85ef2a13c",
+    "package-lock.json": "6f0f0c48d38c211e1c2d030fb8dff04df244250c9ffa41b1841d0a0dca5ddce6",
+    "package.json": "6f2eafffe034ac6699e416514ab0f368cf986807f8b9db4f491a301c7fde9235",
+    "postcss.config.mjs": "da1e5e8147fb42cbc582a60607fea0df35171ae60bd5617846c841568bbe2272",
+    "public/avatars/student-placeholder.svg": "148d9fded7110f83cc74eeca51ca546cead8aae065b1069c7b262711d309e053",
+    "public/sounds/camera-shutter.wav": "c886c2da6c87aefda07ea92597ed33c918c6295352a99879af59a68e47c41b37",
+    "scripts/dev-https.mjs": "4f392c256b9de51a75a0a06739ede827f0acfe7513456aaba85adeba6ee49498",
+    "scripts/kb-biology-classification-phase2c.mjs": "b228ea5bded379b55519f4c77f6445849deb56721dad6a9eb250a7891aea7dd9",
+    "scripts/kb-biology-exam.ts": "b657e0d444e4e092fc22e2e7b796478cd41a1d11a6b65536fe31a9fc29421536",
+    "scripts/kb-biology-review-phase2d.mjs": "0e3f80ac5ee66d4aa12c2d40f1125323fb80cb831fd315b71153038612961804",
+    "scripts/kb-biology-toc.ts": "df31b255f042f4d60b06208cdcdc053734334ed6c9eb1d27a3d74e375aa0baef",
+    "scripts/regression-analyze-request.ts": "5ac4cfcf1712e9846290556159fa7549f605de9b3809fd42df752ccc05b1e495",
+    "scripts/setup-dev-https.mjs": "4f281ed8d0cf7a5d91f43e40a9bec35160a43bd72819159ec7720ab1b4d9eb43",
+    "scripts/smoke-prd001-auth.mjs": "e33cc18f944e987f4bd8e13bb839b1b9230d99d7b5cc5f63b7d94f60d79a1d67",
+    "scripts/test-tutor-chat-edge.mjs": "3a9a57b48615e367110cdd75b903ec05bfd316f3e5eb877a04da7a825eaca2a4",
+    "scripts/test-tutor-chat.mjs": "876276de80fe94683d0cf3d30ba6aeceae280d4945f24e9573bd070aa056f415",
+    "src/app/(marketing)/layout.tsx": "c4ae01c285ec69409570754d0c8c2943f8c3fda220313bbe78e7333d0ae2a024",
+    "src/app/(marketing)/page.tsx": "74e9d532372e2d857df55a82f3bf0ad2a9b9c65917ade6d528fc2ffcc9dfc0cb",
+    "src/app/api/analyze/route.ts": "188b38e0bcef6a60ec1b19077dfbb4b10247f1d002d0d4aa0b90ed29164d7ead",
+    "src/app/api/auth/family/route.ts": "d07f8a3453f426eb3cfaf51bb5fe68ba379c8b3d290f02cad3b64744feaf6e29",
+    "src/app/api/auth/invite-student/route.ts": "cadfeaf983d981b9ac69c15f44f6002ba7403dd32a624e9a92b390f86fc4c1ed",
+    "src/app/api/auth/login/route.ts": "10d34916def779f9a510d4ba42cf11efb51c2324f8d0bbbf8d631e526e3e6d60",
+    "src/app/api/auth/profile/route.ts": "580cc9535cc36d671dd3370758436defdc26c302afcf46281711c47a222e0f17",
+    "src/app/api/auth/resend-verification/route.ts": "fbfbe05d53c2569d2d77f00fad898003975776be46e9e3cc9bc43ea1cf6fd592",
+    "src/app/api/auth/session/route.ts": "4fdf7ef617217213398ecca65004cd10264daa7d27c728e4e07bbc4cb49dcb26",
+    "src/app/api/auth/signup/route.ts": "6293b085ae06f34e276cfc16f161772371b521a1793558256e386cdba17ff1e3",
+    "src/app/api/auth/verify-email/route.ts": "5803015c27b5c8231c0016778f4bec8ed0a72d1f720bb18b365c2c9367c0fbf2",
+    "src/app/api/debug-image-log/route.ts": "3c3a8641d942f0c955b37fc45c61e828c92abef82fe5afb2397f8442eb6a820b",
+    "src/app/api/experimental/ocr-auto-zoom/route.ts": "320251ff5d37688225df29aa00970a80d89cd3b1761a45ccdae0cdf40e9abbce",
+    "src/app/api/experimental/ocr-multi-window/route.ts": "7cba972f1af2d053ba2b62705c201cd3145db53ae1a905b8a81e244dd60e3747",
+    "src/app/api/final-coverage/route.ts": "ced37588c9307b97b52738f07ef92f4ad8389e450d16cbcc9e906e4d3f05d5a9",
+    "src/app/api/homework-vision/route.ts": "b2ea9322a0d73ac1de6dbe4e81937d283742c07b518def2b4bfeb1b7fef467f1",
+    "src/app/api/photo-quality/route.ts": "a8c2d06882b4700fd48fb4995e61dab247985a0b0481a2996a78714e776ff1b1",
+    "src/app/api/transcribe/route.ts": "27c3d2eb28a8d05f558d57f375fda0c5610a56b44178ac6fac4337284c64ae5b",
+    "src/app/api/tts/route.ts": "472ef86aa148c664b3b2d2b0f7ce85a1e5f6040ffcca86bd08643b81ad6e533d",
+    "src/app/api/tutor-chat/route.ts": "355400892fe41949e18548ef6dfaa165b95396ea3fad1ad6cf76892cd0d9a19f",
+    "src/app/app/AppTalkBackLink.tsx": "7ff8f09de5e057b3c2dffc32c2be40d71828988326ed10d6960e01c6aa5ac003",
+    "src/app/app/page.tsx": "5018d954db7cbac32ffee6797cdbc179babab737d771341f0c61998c2ab844c2",
+    "src/app/globals.css": "e696dc93c5584b4a9d7cb6710e13224f4e39e232fcf4f85230a321adbb3d5624",
+    "src/app/layout.tsx": "c65b39a6d174ffa6c6775be5e0d000cc8ef7597eb2b706db7f6cd6d878765444",
+    "src/app/speech-test/SpeechTestClient.tsx": "dd4fe57f2ddae37d0cace1a67b121ca51a73aa2361ba854eab6e0cea78c99e57",
+    "src/app/speech-test/page.tsx": "399c8e98ce47ec268e89cec3272b8adc73a416a657a33bd8ca83f6fbb1688e38",
+    "src/app/v1/ability/page.tsx": "085673e379207c2cde26464f2302677f7db2631b685e036b4eb7d6053863c7e3",
+    "src/app/v1/dashboard/page.tsx": "9bc7974631bf19ed26c4af08edf8a175dcf2487fcb2627f29204245581e3c78f",
+    "src/app/v1/family/page.tsx": "5a053a009f9ea080b526793a977023c8359a9031a82374264488c6b514e56064",
+    "src/app/v1/flow/page.tsx": "fcd4e7186edc4fde0bb0ac46a7213c34e88d60b106d356b9f8dc64b3ae85f3dd",
+    "src/app/v1/goals/page.tsx": "f52f7bc422a3cf6628afa2ff7c88afa2638a89ccc0d6d1a2871e41f960618222",
+    "src/app/v1/growth/page.tsx": "4d5e466e7ce87e7aac7d88278a8b2fd0a31ccb0b62c1d14c91f7816327b51fb2",
+    "src/app/v1/invite/page.tsx": "49feb29af63e01761e4bc3caa1337ec22c4c0469f589a8004f40ed62f2c9e61d",
+    "src/app/v1/journey/components/JourneyAbilityEntry.tsx": "c9362581af05e5e8c67d509bcc4bfbcf949732a9b04d451c8a95815ff3edd36d",
+    "src/app/v1/journey/components/JourneyAiCoach.tsx": "64601dc621c522dea6d2728a136827034576a339ff519d863be684dddb0b477b",
+    "src/app/v1/journey/components/JourneyDailyGoal.tsx": "1ccc332ee66006932eef1c8be966db0fea487fd7bb488900db952be7e2666e1c",
+    "src/app/v1/journey/components/JourneyFadeIn.tsx": "24de0646aeb7be92e8e853a457dfa32c612ff1734ef8a6e7452413d73f11a0a7",
+    "src/app/v1/journey/components/JourneyHeader.tsx": "655b7b57fa6d90033faeb19ce427ab54aab5761e4e02b2c8b8f375ac582b8698",
+    "src/app/v1/journey/components/JourneyQuickStats.tsx": "8327a53f82d34222d07ca57c7fe83571ec0a06dc3fd9e6cde7569dcdc661d122",
+    "src/app/v1/journey/components/JourneyTaskCard.tsx": "9ddd7a2b3f80f36f90ad295790fd85834e9dc218167bc0011f2b65239adc63ca",
+    "src/app/v1/journey/components/JourneyTimeline.tsx": "982ba88a329ba38ca84adda81f3de950d528165b792fa75709c15e78d54c56ee",
+    "src/app/v1/journey/page.tsx": "d59e270d5ed1f429731ac725cbb8e8e9da924ad2d1250a9060667bd9d348a1f4",
+    "src/app/v1/layout.tsx": "3f1b056552057ba8cc3710280f9093454c7997f58c1fad498d1d0df606d4b70c",
+    "src/app/v1/learn/mission/page.tsx": "a7545b62e52062557fdd4f407a7393a92a81116505aba78918a891cbd7dec58b",
+    "src/app/v1/learn/onboarding/StudentOnboardingClient.tsx": "046e562bc2a48fb88e4de4738676b4034eba3e2cc6ed48948f3017aea4fffa07",
+    "src/app/v1/learn/onboarding/page.tsx": "249b8d7b78b5c0f0686fbdbe89e1ec117fb86856eaa9dfbc961738d7bec284d6",
+    "src/app/v1/learn/ready/page.tsx": "2ec095372fb087643b809d8a7235e57d42876e1e6a491e463bf810d2cc8d387e",
+    "src/app/v1/learn/subjects/page.tsx": "87a0a21703b027b77570ca1960a45afbbb540cecb171ded8fa677fbe4cba8811",
+    "src/app/v1/login/page.tsx": "2e5127f3edade7d025e2762c004e2b9c023ba71afeba44aa22adb13803cfc1ef",
+    "src/app/v1/onboarding/page.tsx": "548e9d888eb83eb9504d27b8f4fdf24a700c28a8761fe5e3611145ae1f4e0918",
+    "src/app/v1/page.tsx": "98ff7e3a7c9b16a0e66e0783afbadf4cb81676987b1e980c833cc92505a5996c",
+    "src/app/v1/parent/email/page.tsx": "3ac5e35225fcb593e91e0a0308ba5a676fcd5bd4ca31411191e68d53413c3fc2",
+    "src/app/v1/parent/entry/page.tsx": "4ebd4ca5efcc7bd9a427583062906795e0fff6dd0ac3841febbaa5da440ccf2d",
+    "src/app/v1/parent/insight/page.tsx": "0a391a47c5832793cd1a2698ee0df9baf38236389a1fc4d319b8ed820ebc7010",
+    "src/app/v1/parent/page.tsx": "efc184d44996137d19a4eadae3cb295764044955d10db6576ada04933454b123",
+    "src/app/v1/profile/page.tsx": "a17e7a8d8df0701cdbb3c83e6d5645276a9d238972c9cdabb72e1d23f5fe7288",
+    "src/app/v1/signup/page.tsx": "d2b1c7561c2a810f34fb0567162cfd68193571ba5b4ec17745d3413cb0c49ea0",
+    "src/app/v1/student/new/page.tsx": "6d729af56ba0a80e9278dc204d085c7daa2168657cae86de6e1678dd553062e2",
+    "src/app/v1/success/page.tsx": "5fbcc47d682cccce9d032cf468706fac49916f315015b6f4b0666bf494621159",
+    "src/app/v1/verify-email/page.tsx": "a72d61cd06bd8e35cb02c219d269e9ebf36bc699f480847bd97e2cfc7f181e1e",
+    "src/app/voice-test/VoiceTestClient.tsx": "c6462340b0355d75ba51ef2851704484853b0dc28a4345e8bf860b6ef2afa7fd",
+    "src/app/voice-test/page.tsx": "502d950eec537f5c855a647f236eaf2d1dcce359f88a351e6c8fc6ff6b2ce744",
+    "src/components/AnalyzeFeedbackPanel.tsx": "78266acb09a100fefb59d60e6f3e0187a50b2229e2c59b9223bfbf8189ac519f",
+    "src/components/AnalyzeFeedbackReadAloudButton.tsx": "72e30ef7d1f5a013c63669c809f0d372ac8c8aedede6b409dfbdea68daa38046",
+    "src/components/AttachmentPhotoLightbox.tsx": "fcbe429cb404dae8f68e87bf95aec50a1c4161dfc186277b225ff3b53ab2c558",
+    "src/components/DevUnhandledRejectionLogger.tsx": "d5ee59f6e76a4dd753f79b5e85a14f28da4fe79091d50e3fef54d223c3df8df5",
+    "src/components/LucideVolume2.tsx": "99f5b40dff3acbcff95d63582cc4231e572c7c5e6f2b3f79ec9a95f834da8187",
+    "src/components/StudySignalAppShell.tsx": "1a41e0e305d7a631b42929a2b3d8b79eaa792aa9e3de9e41cbf31c5465e70af5",
+    "src/components/StudySignalChatThread.tsx": "bcdc04c003ccdae4f6f20bb3075457d55cb98a07a53c0e34fce52306af03bc01",
+    "src/components/StudySignalHome.tsx": "0e8c7f96589811b36a5b4c655f549caa0caca1185b1bf2e5040bf30c61c317f3",
+    "src/components/StudySignalMicDebug.tsx": "dcb016279ecd3ed9f889af20319103d736ca8abda1f3cdf4d96a00f24f653652",
+    "src/components/StudySignalSecondaryTabContent.tsx": "6516f12b84f87fb20005e13d356ed518b1911e6876173bdd95b1fce78d764586",
+    "src/components/StudySignalSecureContextMicDiag.tsx": "b34f3928f49e6f581e7012473f5729efcd380a5c7d8f865891e89f369c91a6f8",
+    "src/components/WorksheetCaptureGuide.tsx": "8d65f7f07f4de1e056c388dc76892cda69af65bacdf43707e1f4dad6c88e40c4",
+    "src/components/landing/StudentIdentityBar.tsx": "3368e1c59f964dfde95ebeaf5352f32fb5b610eb7c30a2213c8afa8e8db89153",
+    "src/design-system/atmosphere/AtmosphereProvider.tsx": "fa52137c0f0ea33e12cfa0d06e7f78d1214f042e45f27f0d9caeefde7891fbc7",
+    "src/design-system/atmosphere/atmosphereInitScript.ts": "b1292c7af79e561738091d5760916f09e094ab639c657f34c96f1dcfdb74beb4",
+    "src/design-system/atmosphere/atmospheres.ts": "c2f04d51f43621b1b4ed78937d51a5f6df33f166b4826793bf253b08b14a5670",
+    "src/design-system/components/DailyReportPreview.tsx": "1d36ec6bc19f4d8da3b609640fa81496931d33741dd7759abb609985ccf24801",
+    "src/design-system/components/SsActionButtons.tsx": "683206034a960f6b276c86bcf20e1e9dfa9ae4f9a84cf2286a3e9159de211e33",
+    "src/design-system/components/SsAiChatBubble.tsx": "52cf5b7b32a205c5a276457ea8dad986f4ad984596f0f7f3e61cc55d0b063056",
+    "src/design-system/components/SsAppShell.tsx": "abda80ae255a6cf18c8f688f243838bc675cca19bf22732a75ec29b50c69b634",
+    "src/design-system/components/SsAtmospherePicker.tsx": "f286b5e243b9a29e911b42c9bae99b1dfef63653d7a98bf78951b4f0825abac7",
+    "src/design-system/components/SsBottomTab.tsx": "79f6512569fd2f55eb7734cb4cb30784d3265a900a7981fb77d5050331946d6a",
+    "src/design-system/components/SsButton.tsx": "7d3fbc8ef741b288c95246c1a22c8a4e37539797e6e2b942b04ed06434fec51f",
+    "src/design-system/components/SsCard.tsx": "dd241b416684872a5a114c8dbaa1524052147984923c6210989606ff007f5f40",
+    "src/design-system/components/SsDemoModeBadge.tsx": "b079ce1bd6c33c408fcab6b60798606d000624207ef934ccf335f4c44c10a76d",
+    "src/design-system/components/SsInput.tsx": "ad71d163184d8d32fe2ac680ae4101628e831a5ef34251736e4d6b4df3099039",
+    "src/design-system/components/SsPageHeader.tsx": "00b14a50bce92337927adec458108461d7949044f0c088edf585359e97859d81",
+    "src/design-system/components/SsProgressBar.tsx": "5cc0db03d9f2bb9fd78cafbcc3c05fcdc310290d28477298b2e72ff590bf57f6",
+    "src/design-system/components/SsProgressRing.tsx": "a208d4b83b57f3c9c9132e2fac53132cf89074227a75f9977150093e32aa6e46",
+    "src/design-system/components/SsThemeToggle.tsx": "92742450698c9263c442d4f2c04a68bbb86d05999e87ea0d874dd12149e23f2a",
+    "src/design-system/index.ts": "0c506701cc5baad0aac4159028d2772728977b21977a0627fedc2d3854afb6df",
+    "src/design-system/mock/data.ts": "d061d46370ba54f7baf29f93a72d0ba2c9a38458eb70d0265d4733759ace8908",
+    "src/design-system/mock/journey.ts": "471274d51c2cecea46b5ae888001ab112a7cacd8398a550ea36edfb00c8eef39",
+    "src/design-system/theme/ThemeProvider.tsx": "c096324b5d5a4167fa1f94ce0664584065f157afadb33d9386fb81d399b92596",
+    "src/design-system/theme/themeInitScript.ts": "60503935343d87a2901de6c71522835c6aeb4c28df4185aa214a1ac1aee556b4",
+    "src/design-system/theme/themes.ts": "c40c60ec8a73ddff34d177b1bfb36083a747fcad6fda383014675656a8a7aabe",
+    "src/design-system/tokens.css": "9cf8f4ef364c1ca5c4579e1eaf15414d71b7251c2ba4dd03f164e64d8b2a36da",
+    "src/design-system/voice/progressVoice.ts": "e5eeffd3932e9ac267e10756f522b8cd3fad7824315892d0df256fa5bdc70c6b",
+    "src/lib/analyzeApiRequest.ts": "bff4072fb878c3c9f1ace90261f03eee4236a199dce4ce9bebcdac8c2c8db3fc",
+    "src/lib/analyzeFeedback.ts": "94fdaeb7e122352a3fcfd2734ecc18c1b722fc1bdb274b1b80bff00996b9ae1f",
+    "src/lib/auth/ParentSignupService.test.ts": "cf2147272fbe8c05d34cee365b73cc7dd7b8d2ffe1d10c885d5a7688d1fa66bf",
+    "src/lib/auth/ParentSignupService.ts": "3f9f9f55a7e4795b5ef34ca8f1adb65c7cb4185dad1c1bf7a8299a57ecb652c6",
+    "src/lib/auth/crypto.ts": "66eabcfce8d3480a86adfa0ba84c7595dd29b681b85a30f462ac7da6dbc9864e",
+    "src/lib/auth/emailVerification/FixedCodeEmailVerificationProvider.ts": "8680579182f5b3b1cccd85272d0597b756e4138188fc43dcb348a3cf5a47feec",
+    "src/lib/auth/emailVerification/SimulatedEmailVerificationProvider.ts": "eaaba988c6ec72fa0eb13874cfd08043935e6876ad40a1553b8e2df541e9f68a",
+    "src/lib/auth/emailVerification/createProvider.ts": "c5e62ad32f573531f661eb89cb815f788803116149d692a9562187b4783e4841",
+    "src/lib/auth/emailVerification/index.ts": "42ca3bcff3e3f06f83c9309bc52fd250756bdf3ac6a261554b13218838443ef3",
+    "src/lib/auth/emailVerification/types.ts": "2f6ab0d334efde8ac61cea237eefa736ba4d69afac01d42d993fa36d7ec3da56",
+    "src/lib/auth/errors.ts": "b01923efe46e1b909c239bd4428e7d531243d1d4296973cc4363a294db863d7e",
+    "src/lib/auth/http.ts": "9ad762adc71b458f58be607685dadb4a235b51224d7fd23a0f87a76d2e193a17",
+    "src/lib/auth/server.ts": "7540daa5d04f0df0b536e4279617d0da5667e021487f50fb7292335d7f9e9a56",
+    "src/lib/auth/store/AuthStore.ts": "1827d3e349fc3ce5c04d7073803de969935d43160c84e22351dbef8a43b1070b",
+    "src/lib/auth/store/FileAuthStore.ts": "1384d80f0db0a2a1fe7f183e41ad60830118d23184d33fb25a13a0bf697bf6bc",
+    "src/lib/auth/store/MemoryAuthStore.ts": "d683e7f3a5b13e5e4dc0a85597a56619875c9bbf7ba6b911a6caeac3a770a319",
+    "src/lib/auth/types.ts": "f408001d448afaed6e10d9b898b42cc050c2a8d49602ad149893b0bb7b9369e5",
+    "src/lib/authClient.ts": "f9f49894d3864561920f8f0adc5ea7e01c21c2feb047b00523987ff67b242671",
+    "src/lib/cameraCaptureFeedback.ts": "0972f168dab82f233fa4ce12ba5f8f7a602e8bc626f3445c97298e3f7c156943",
+    "src/lib/captureRegression.test.ts": "cffa4d27a087e08e38260fbb2f42104e12e6c036584f4088481d581382d8172c",
+    "src/lib/dailySession.ts": "7083d4aa172494a46a911adeeb46ae69d15c2db4fec8e0c3cf47821373a159b1",
+    "src/lib/demoAuth.ts": "c432d080c4e748e356be17cccd8e15f4240b8d23974442bd370d4bf74323b8b2",
+    "src/lib/finalCoverageApi.ts": "e7a43865a452dae12856eb5b0912eb13c7762e1932827c97420fb0ba282fd8e8",
+    "src/lib/finalCoveragePrompt.ts": "7c944679cd949c1a7c8dfec4f2823fc81401703e0016e28a6ba73991f64cd9a9",
+    "src/lib/globalQuestionMerge.test.ts": "ff026ae0586d58f6c74619575c873154ea90705a96e0058b265e87d4a705167a",
+    "src/lib/globalQuestionMerge.ts": "3186e229994c7faf049eef2eb1df288fa8fe1d4847c4855959125d73c9866d40",
+    "src/lib/goldenDataset.integrity.test.ts": "e9821ad08e2f47bc463936fc0730a000059cc19ca44403c1ba05442c0c8ec2a7",
+    "src/lib/handwritingDetection.ts": "d303851719c5ff51cb704357301915908260340c1ed9349ec29d1f2905f71f84",
+    "src/lib/homeworkSaoClient.ts": "61647894fe2c28a8e091938e436f9509837e92830926bf9ed9e79aad19173f90",
+    "src/lib/homeworkSchemaMapping.ts": "77125c5c8ffec3e10452ecbc5604bc57148607ddd2a13d4aa4330031c9dbac65",
+    "src/lib/homeworkStudentAnswers.ts": "a6ae60c270da16df8a278dd011ec2c3ba0c83cb4a1e1ee9175f30d1bd2852ad9",
+    "src/lib/imageUploadDebug.ts": "4b05f75aed01cf0241a2e5c7176aebae83dda4371a7133fc90a69f1ed1873573",
+    "src/lib/kb-pipeline/pdfExtraction.test.ts": "d64e521b49b9aa6d1e6a217d20d6f13dd5e9e51db5755c559fc7f48ec1cc8c7d",
+    "src/lib/kb-pipeline/pdfExtraction.ts": "f5966cbe951ec0700ee63c05a91d422af0a8cfe9319892277cd5f4ca2bf8fc2d",
+    "src/lib/knowledge-base/README.md": "9ebb56e5d991c19dc9dd970c4d591d4003e7f00be33626131746144521fd1131",
+    "src/lib/knowledge-base/import/biologyExamPaper.test.ts": "b478d7a848af60bad7d633a148d10d6eae4d9773ab40315633404be5e2c94414",
+    "src/lib/knowledge-base/import/biologyExamPaper.ts": "5daab7380316726c7fca8b400e5549a22fa3ec005e84200724fc628d6b4c2341",
+    "src/lib/knowledge-base/import/importOcrText.test.ts": "752f575befba3badca3fbe548d3e9600fbfa7419526c0657a7b0655fa17c418d",
+    "src/lib/knowledge-base/import/importOcrText.ts": "a279101d360ef254b4bdbd23a0eb65ebb0aedab8f18d31dc13bd19113b445104",
+    "src/lib/knowledge-base/import/kbCandidateImport.test.ts": "f06309a994a1b4ebcd5f7ed6f6ef27901cec6b458a32c6aa08e2c8e1f6e7e5fd",
+    "src/lib/knowledge-base/import/kbCandidateImport.ts": "b2a15841d073320c955a3a19272447e728f422389c87c4fb0120a3e21a0e893a",
+    "src/lib/knowledge-base/import/kbDocument.ts": "baa3dc9664d2f35b3a8fde7f725c26fc2067c2a315e7fb07614c51ec39ab2f21",
+    "src/lib/knowledge-base/import/kbDocumentStore.test.ts": "0086d525932aa3644e0179b70cab5de4faecc31e03730d8e62b7373e69a89b1f",
+    "src/lib/knowledge-base/import/kbDocumentStore.ts": "e5713b68c9e907ddc3805ab18e5f3ef3780f1b60155f85a9cd9c18e688c6ae24",
+    "src/lib/knowledge-base/import/kbIngestionBoundary.test.ts": "d1872e088c3e4d422057475b8b02086eeec8a3b5fd9c55140022c5c1d7c8e06d",
+    "src/lib/knowledge-base/import/kbIngestionBoundary.ts": "fd39627921bc8e65e0f70785e829deb6434d5f98d91f9833ec5a1aeaa36dfdae",
+    "src/lib/knowledge-base/import/normalizeText.ts": "8d0d0c3d671158d40b1034085630d7709ec57ca0d78ae40d651e29c1b63af6f0",
+    "src/lib/knowledge-base/import/sourceRegistry.test.ts": "82eecf378379aab090649af35c5908d0042abdd93bbbb0b97f650d288c713680",
+    "src/lib/knowledge-base/import/sourceRegistry.ts": "24f083591f6707936529e22e52b4b9e1e4f61bcbb54073fc03a9b2ff335369fd",
+    "src/lib/knowledge-base/import/types.ts": "a8fbe24931929c03d92d51c68f716464604bb57a5c02a21aacad248243e13d2a",
+    "src/lib/knowledge-base/import/validateKbDocument.ts": "9ddaa3cc611b1fe224ad933ce25d797ae9285138b05a467e1dcda3d037db57b1",
+    "src/lib/knowledge-base/index.ts": "0c59d502dd8f72fb162d6020f09a94b5c34285f49a83a2430208d5e70d21bab0",
+    "src/lib/knowledge-base/knowledgeBase.integrity.test.ts": "6aa22173c6381032e38ebf602e1251f889cad7e4b7b07a4462c7d559ce472eb4",
+    "src/lib/knowledge-base/query/kbDocumentService.test.ts": "1c6f0c6109a28ece221f59ced9e0babffff982aac023360b4991c819cb96b71a",
+    "src/lib/knowledge-base/query/kbDocumentService.ts": "748ea9c8bbb2ddad60ec11fb55356c1ba9bab600707872c507d06d34406131b2",
+    "src/lib/knowledge-base/query/kbEvidence.test.ts": "8bb4c2641341b8677ede017f84ea2f8e07e468e25910f59d4b8631a18ea4466a",
+    "src/lib/knowledge-base/query/kbEvidence.ts": "2a835681dfce459d2d61cfa99bd54478b7bc83f9978d68700cb7b5bc6a4e0651",
+    "src/lib/knowledge-base/query/kbFileDocumentRepository.test.ts": "9c41ec5b0eeaa68b0e11ca2d11058061a6978244b5593febf395d2451b2c2d70",
+    "src/lib/knowledge-base/query/kbFileDocumentRepository.ts": "5ef1e6f3c801285054a2209bafd78095f83d79ddf71c12ab15c1c67e27679369",
+    "src/lib/knowledge-base/query/kbManifest.test.ts": "42b24f9fac84a2451eb28ab14a170b3ced0f91359196dded90675e9368f71934",
+    "src/lib/knowledge-base/query/kbManifest.ts": "cfa8b24d18b990502fe20a54c2e5ef5c1b1c546c70d1aa9640e0302d3669c104",
+    "src/lib/knowledge-base/query/kbQuery.test.ts": "7fdc4666d6a178e00b09a362497b403bcdaadc49f45b46c7f7bfc1a2f4b8a0ff",
+    "src/lib/knowledge-base/query/kbQuery.ts": "2b51b7734258c55fd0364ec1e40a7d8453041cd919900296d0063e3d0e0acf9a",
+    "src/lib/knowledge-base/query/kbRetrieval.test.ts": "8550cd357bd71667747d48a653ed4cb278972f1f91c3b0dde8e3cce386e2e111",
+    "src/lib/knowledge-base/query/kbRetrieval.ts": "c16b878c60e41b3df1b9beb3ef0bb0bf2553507bfbaffdc859b899bd4440a420",
+    "src/lib/knowledge-base/schema/entities.ts": "8fb76a37d4dc3e19061f2ec107b8b80713e4339b020d1418616f8fe823b2221c",
+    "src/lib/knowledge-base/schema/enums.ts": "112cd83adb2bafa0b0548458ce87eafe6c49bdb18661a11590b1cf244b3dcb4c",
+    "src/lib/knowledge-base/schema/relations.ts": "9c1aae504b7146e4b66bf88de4406d3bf222a330575e988bb98b459904bf73ab",
+    "src/lib/knowledge-base/schema/snapshot.ts": "924dcfec23605144273958c9c1756c21d200823304c1949e61a9349adda1cfa1",
+    "src/lib/knowledge-base/schema/sqlDdl.ts": "e90e63ad147a4ce344e2b3c594d5f392338007eb5bd931a42d846b98d40d2f73",
+    "src/lib/knowledge-base/seed/biology.minimal.ts": "8c72edca00c9be99d0f2990155291071911882db765dd703fde90cc12f2c82f1",
+    "src/lib/knowledge-base/seed/loadSeed.ts": "f77295d0deef2f14538d1d5b03975cced5b034e691adc4141af3d5dcef043921",
+    "src/lib/knowledge-base/services/KnowledgeBaseService.ts": "f82f5c8e1203c05eaeab2efac728823755e834d99bc6b7a01464756ce06f32b3",
+    "src/lib/knowledge-base/services/MemoryKnowledgeBaseService.ts": "99d986a58c93c59a83933df1896b53f2ab9be352d663ac9f893fec28738ebb48",
+    "src/lib/knowledge-base/services/createKnowledgeBaseService.ts": "ccca6dd67925ff88cc079970a4d990faa38f6c0d68d561a287b9b815fd944966",
+    "src/lib/knowledge-base/store/FileSnapshotStore.test.ts": "dd5233522388d10cdedfc7d028d9f8f2748468627359d405f103dceaed6a13eb",
+    "src/lib/knowledge-base/store/FileSnapshotStore.ts": "9434c583e924943eeaefc76aec0cde0c48225289731e05df82a5ce173d7fae2c",
+    "src/lib/knowledge-base/types/index.ts": "14edb7e1f7eaace7d3c955a4987fafc4d5861a38ac5a61b5fff8c1275a01e211",
+    "src/lib/knowledge-base/utils/ids.ts": "ac860e28ffbcf1698d9a22c0e1f956d1446290c19e714adad6c5392bc45ad515",
+    "src/lib/knowledge-base/utils/queryHelpers.ts": "6ce11f0a46c139f073b59eee584ed8e1318c47119fdcf9d14b7e5eb243073fa9",
+    "src/lib/knowledge-base/utils/validateSnapshot.ts": "dfeb197af504ca8b04f740b034fd7c36cc954ea137cffc77471a8a213fa06c02",
+    "src/lib/latencyProfile.ts": "19f193680273992340cba90f02023e349c8d86cf38a7e03a88106f208f2bd87b",
+    "src/lib/learning/ai/OnboardingAnalyzer.ts": "f2d076ed30f7a648f9531c1023f02c8cd0e275809a86ee23993b59f1da439f5e",
+    "src/lib/learning/appTutorBridge.ts": "96b691390d3968777eaff640f1f7cd78b689e10e1d297dca903102d73420faa6",
+    "src/lib/learning/demoMission.ts": "b5f7d0b10dc6177e1acf9c976e729623ddb58588afc5a5f49dbb3792b3f298bc",
+    "src/lib/learning/diagnostic.ts": "a9d56c168c73d5364a0d05c07c00421e37d08493914d38828c343b3025b13388",
+    "src/lib/learning/missionLoopEngine.test.ts": "7480ff69974e9664ebd812bf10eac7911a833cc5cc4a7893fef6f641c28ff7e0",
+    "src/lib/learning/missionLoopEngine.ts": "600f6e10be222d9c7b01757112455a423e4872f097c082930156b74222ae5497",
+    "src/lib/learning/missionLoopStore.ts": "cbd0fe4d474c8b6f4fff00c23b3adf7bfda6be032b97be58896661b7c3fa56af",
+    "src/lib/learning/missionTypes.ts": "ebe8194ca5e97c9fb89fe246df9c903c3dc12f0b4fcf724a535dc2b7c656ede3",
+    "src/lib/learning/onboardingEngine.test.ts": "0e9afb82d7439b0c6c359de9f531d9c9a06deda023de2a023260903d8a4f36de",
+    "src/lib/learning/onboardingEngine.ts": "75c1c3eedf52c62828cd5b4a0965cfe500c5dfba812610f3e063fcef5fb59111",
+    "src/lib/learning/onboardingStore.test.ts": "3cec2f34bd149f46091250b91bc6b1015a74b0dbd6ec0bde70097035c7b4550c",
+    "src/lib/learning/onboardingStore.ts": "5d8c764b8ee5afc61659d43817b9143d9b5b0eb1dc6a4699b42a5b6d5c9668d4",
+    "src/lib/learning/parentEntry.ts": "ca2e31f02f31fcbc5ee0df92e107ef6134e3b48bfe3d7003dabe790abe316fcc",
+    "src/lib/learning/parentInsight.test.ts": "81121fae5c71db9ecaa30e490efeb8c7d18d4e76599393be4700b1b6e21fa901",
+    "src/lib/learning/parentInsight.ts": "d5ee927344beaaad018b2953643dc51a6014531969972cea6b0cbd6db8b16b86",
+    "src/lib/learning/syncLearningStores.ts": "72a386765db299c8c3185a8c6936e8b048f92ea1b974cc799276dcb6d99370a1",
+    "src/lib/learning/tutorMissionSeed.ts": "e48758451d4acf9e664d61138771da40986efa5eafb881187aa0e2ef9afa5cc4",
+    "src/lib/learning/tutorSignalBridge.test.ts": "c06420e6c7bea04eb8a3d020bc029c2ebd2741325ae8eae8f4914b22d9bf62b1",
+    "src/lib/learning/tutorSignalBridge.ts": "8832f69d1d4511154d7f394ec6661b91d91c51cb9db0a7cfbede4bea2799022e",
+    "src/lib/learning/types.ts": "a00f79ee4c95a94b0abbfaf7920015ba68f40c1f753bf635e3d6b9f72e39e74f",
+    "src/lib/learningReviewAnalyzeText.ts": "3b131af474ca4629ccd2c16d5ac00758a2d9d616bae0989bc056c6a465206213",
+    "src/lib/normalizeTaiwanUiText.ts": "50bf130c2349d341eda18522767d9d85c5b325c7c07db404f41238aed46f6d3d",
+    "src/lib/ocrAutoZoomExperiment.test.ts": "c4358c77c054b0f52ec3044cf0944b442738388e0e8cd368c2fa6ab750780b75",
+    "src/lib/ocrAutoZoomExperiment.ts": "4c6ba33b51e4398e062c30ec45eec81ef2d317b40f0514450466dec8e75e69bb",
+    "src/lib/ocrMultiWindowExperiment.test.ts": "8247f3c7450c5b6aa178262c0ef057c67cee60e70c97ef91c6dc7db6d19c0f13",
+    "src/lib/ocrMultiWindowExperiment.ts": "4b2ae77849015e60a4e8525f3e1f1d109aed2586b4abf5de858b3da81a115e76",
+    "src/lib/parentSession.ts": "4b5363857baac1d1b9b67e605519bce59a885c4792cb10c27dc47ead1225dfd3",
+    "src/lib/photoQualityApi.ts": "bdb90c2f845d4eb6dabe34c0171e62109e40ea7d28a79d1d07925d7cfeac4f1b",
+    "src/lib/q1DebugImages.ts": "6b8b709907f70d020da3694222d7c88b5d564a1cb736341088c222a9ccc25b4c",
+    "src/lib/q1HandwritingDebugDump.ts": "6d83862e98710029d10aeecd7d97d1d61ad0520c4bfe8b173bb8feac91d6c3f1",
+    "src/lib/signalsSaoPhase2.test.ts": "68963a1a6649fe21b88377ba2fb793a660971119c99de466e11e2b93f951a838",
+    "src/lib/speechSynthesis.ts": "010cf44192d39e553c11a9cd77da3f7dd7448a8b5b2679ef9c0dc4c0193c0e28",
+    "src/lib/sttLanguage.test.ts": "6d3ce5c43cfc3aa938f85f03eda6a8d9f8af11d03268580e42d22796cf6cf0d0",
+    "src/lib/sttLanguage.ts": "482e16090dd78c3a7f62ebd34da160caad0dc5f5a166b61dd1a4d59b725dcda7",
+    "src/lib/sttTraditionalChinese.test.ts": "ee1c9e694fa87c20236ba9cb1252996d8812e83c52d95ca548582ab32265359c",
+    "src/lib/sttTraditionalChinese.ts": "157b6b7c162d1c2c0d8d3ca080557b1758e4be7cfff954eb95dce4a8d1285947",
+    "src/lib/studentAnswerObject.test.ts": "714ec814cc636596b1a9e8216edb1b75ee2fcca2694601d12cd43470117321a3",
+    "src/lib/studentAnswerObject.ts": "0bad7213d653efc0bd5fe3d3d5203054e1e6ae0a31d1c6bbae37b961ac739436",
+    "src/lib/studentGrade.ts": "9706835d4739ca54ae94f235c92e29704bbcd7eceb7fe31339fd8c1674dc89d7",
+    "src/lib/studentSubjects.ts": "82d1366677aa3e54ff1031bc5f39d2d47694d6a318bb728f5ac1c47a700be387",
+    "src/lib/tts/AzureTtsProvider.ts": "f6d5a51c564b36e1e59bcce7f154bc1ee27ec77067f1f48663352f0ac9f46751",
+    "src/lib/tts/ElevenLabsTtsProvider.ts": "ae5feda7ae605b69900e324f13d8be3b5727be1984f06c17a71e01605e114183",
+    "src/lib/tts/GeminiTtsProvider.ts": "7c8b46c3fb0ce234bcf0e8a8f2cb7a86891ac6d1fadf6cc2555b4636750af79b",
+    "src/lib/tts/LocalTtsProvider.ts": "fd21e6dd583ceff10ea98be68903d59a4eae784ccda307e7852c7c63d8c37a9d",
+    "src/lib/tts/OpenAITtsProvider.ts": "c006098bb339a5411a3bdb6cb9bfa3faa45b9194a48a0fef6212a924e3213d70",
+    "src/lib/tts/PriorityTtsProvider.test.ts": "5882ce78b2f52a4c25b0dcd072051714f5ce6d70e1b903dba8671c7c442d2572",
+    "src/lib/tts/PriorityTtsProvider.ts": "30f1a04ac743745a994f6ef427c75101b3deaa171f22e2f19f2acbaf3c7218a9",
+    "src/lib/tts/TtsProvider.ts": "13cff61be01bed2ca84461f5717a750eeedaff014e0c3e9eb1f0436acfb66dd3",
+    "src/lib/tts/TtsService.ts": "a7af0bb10efd09b9f9d12641b867a3521880c28bed122f260a79ee8ccae6afbe",
+    "src/lib/tts/catalog/index.ts": "d1d027fe46e31c4ab64aa8ac81b59ee5d37a7c6376449390704a9bd27b61d8d3",
+    "src/lib/tts/catalog/teacherVoiceCatalog.test.ts": "a5412c7c75b1e7e070fd582eb88714440a02145b21ee236229d805dcd2ca3656",
+    "src/lib/tts/catalog/teacherVoiceCatalog.ts": "ae577a917a7d49e30563f0fd7ce84fa08e45925e290f734497e88796d347b5b8",
+    "src/lib/tts/catalog/types.ts": "f6a30ef1b0d0934fa8f5325486c15040c6993e6c0b7ae3b8fb30e0493397835c",
+    "src/lib/tts/client/index.ts": "b5c093dd01de5926341a556dc2af357a4ddfcfb4c26564ddbbe05d5e0107ffab",
+    "src/lib/tts/client/speakTutorAudio.test.ts": "34f8f54d64ccf05d8f7f43efa0c56f9e18eb55db95eb90cba492fd2bcd5f6e2e",
+    "src/lib/tts/client/speakTutorAudio.ts": "0527a1ce901d25965369ecdde3c1eea5681af4fd2fe5600227f885435feb0479",
+    "src/lib/tts/client/speakTutorChunks.ts": "35dbd9234b201d924f56a3695a75a379a0ffaabb76b734254621b725f75575f1",
+    "src/lib/tts/client/splitTutorSentences.ts": "f3a758112c728ebc1eb8055572e7e3efa49dd6891480445ccce6700a66899fed",
+    "src/lib/tts/client/teacherVoiceProfileForLanguage.ts": "f8b172eceb357402720376688bfdf399d7df100d4cbdfd4ba816d483e743a603",
+    "src/lib/tts/client/tutorVoiceUx.test.ts": "8ec2718d7f845b3318d39268588aeb4fe963196d37e505712e3c47ccfbad3272",
+    "src/lib/tts/index.ts": "877ae3346283106eb5b8a915a17395bf316564950bbd436e9970422f4e3c1ad2",
+    "src/lib/tts/ttsCost.ts": "23c35119f9df04cdf9e874a438c6bf5940f38f92e4bb3eab0221b0d24e9e362b",
+    "src/lib/tts/ttsFallbackErrors.ts": "5febf863baac9bd252954a4f989f842a991b3b50ee3213b147a29a35ba480f64",
+    "src/lib/tts/ttsProviderLog.ts": "ffb7ccc96f1c587afff184d054cc59a3fb1adba81e5f39187f13ba97c03e7fd2",
+    "src/lib/tts/types.ts": "30587685b8cfed8ec64822b7950536e00b955f26dc675dafb39492a00596845e",
+    "src/lib/tutorChatClient.test.ts": "e2d039943c929140c2d015dd88a1d0de2b069f87dd3a9e425868e12c47afffb0",
+    "src/lib/tutorChatClient.ts": "5fd96061657dcc3570208a6d6f7f9834da6e21caa54dab5611df5a04fff7f674",
+    "src/lib/tutorChatOpenAiMessages.ts": "03518697375e3d5b7a7e1cce23e7f6d3f8f47edfc8f4337d7a090fe21f74b0fd",
+    "src/lib/tutorChatStream.test.ts": "4f571806c480ab7e032609b5e48d4c407622732f9c94b5330ab8c772acffacc8",
+    "src/lib/tutorChatStream.ts": "f4fab598f4da468e19e373f8b94b2f9c4e881beae492cebb43b7c01caa60a5ae",
+    "src/lib/tutorChatTransport.ts": "f8410f0201aa7723a1d6398e8b8a3f66821237ebda59747c6ae7dd3ff8ffcdaa",
+    "src/lib/tutorReplyLanguage.test.ts": "dfb8079bdd5646b85a3ee3e5d759d2bf2ecf289e666bd2f6effac0fa28c48592",
+    "src/lib/tutorReplyLanguage.ts": "01314f77b44958c69d49992e40e5d8daaf790f49a1ece1a63908914b2902bcc9",
+    "src/lib/tutorSaoContext.ts": "c8136ed1b8caa6c18f7a0b4279ea8422d4689777a4c7eb8e72434c53e4888499",
+    "src/lib/tutorSaoPhase3.test.ts": "892f5365ca080eff8666c42a286b3d965f141a790b1abebe08a7c907b48088e3",
+    "src/lib/useDemoAuthBypass.ts": "9ce5827be67cc45cbbaef4d0eacb7dbee9dfc1bb3b2cdca2794475787954c245",
+    "src/lib/vision/GeminiVisionProvider.ts": "4fa6ae78315b20018b5a8aa279f11b5deed74c5e1ebc65fd0cd5cd63dc2b99a7",
+    "src/lib/vision/HomeworkVisionService.test.ts": "674c4e31387e5471e64dd22f73d6b00fe8ac14ade70505e93b52f3723c2ba35b",
+    "src/lib/vision/HomeworkVisionService.ts": "5605c5c04e396e166076efdc8eea1fbeca6c7da29da3b81ad3d8a5f0dec5afaf",
+    "src/lib/vision/OpenAIVisionProvider.ts": "91487953b777c22a9e6e1e511e45bf21dc6315c93500e19c0b731fb49c8252a5",
+    "src/lib/vision/PriorityVisionProvider.test.ts": "65b4e1c9a906b3d69e8a972a183f6f6f0813d3c1da3ffb6706e5b21c4e64856f",
+    "src/lib/vision/PriorityVisionProvider.ts": "202737e7af6ff4c7d5f99e3700406c652b7e39c10b7977e39886fb14c4538cb4",
+    "src/lib/vision/VisionProvider.ts": "1f766a08b18c8fa5db1d0396ad1c4a36169c86490ba2372e133239267b1b9903",
+    "src/lib/vision/eyesAbCompare.ts": "4ea70da19d535f55a84a0614fe3923a3690c8b5da741a33a111cd528c202c3f1",
+    "src/lib/vision/eyesProviderArchitecture.test.ts": "dd3f4d30befba2ac3f89c2ca457d14f59a852aa3a9b2951ff8cee3c72d9553c3",
+    "src/lib/vision/eyesProviderLog.ts": "3ff8d37aa528fffcf57605ca3a61e5de3267f762d6b0d25bc5a0dd255fce8291",
+    "src/lib/vision/eyesProvidersLive.ab.test.ts": "cecdf82ae4ba1e91474b293a347ff8bdf198107991b90a635a3785d7453b64c0",
+    "src/lib/vision/homeworkVisionReal.smoke.test.ts": "225fef8162e3d7619c12a8cd9e5926e8c8dd255e2441e96f612bf58d626eaad0",
+    "src/lib/vision/homeworkVisionSchema.ts": "dd8351b29afc0315f8a1fd48cc028123f8789fdb6b6a4fcc8de1bbbd2a914399",
+    "src/lib/vision/index.ts": "e640236fde7433fbe3f967f9abef5d3fc531eee56ad98ef54fd3fdedc3af255f",
+    "src/lib/vision/quality/classify.ts": "a70297bb6c294d00a4fcd1a9624ca12b0552e3dac9e050fdf497f349e3138fb8",
+    "src/lib/vision/quality/constants.ts": "89a6aefbd5f1cf040baa14f385e1218b137d986c48ff89857097544038206c51",
+    "src/lib/vision/quality/dashboard.ts": "3376bbf9598855b66d726e4f73f902d08eda774af923636a91009d9d1aefa45d",
+    "src/lib/vision/quality/dataset.ts": "d4d875a37786e67d6dcf82f348e37f5426fa2eff853f878783409e2a0286db58",
+    "src/lib/vision/quality/difficultyReport.ts": "42265dc3fa09f65cf54da48ebaf19c9ec939d0c1153aabae47a2f24440748c83",
+    "src/lib/vision/quality/eyesQuality.integrity.test.ts": "ebbc6d516f82427c1b665d641727d928c12725a1dbcc8d5c9f816016b1b532c8",
+    "src/lib/vision/quality/eyesQuality.live.benchmark.test.ts": "1a6bcee017cd83a0b7de4525107e8806fe758ca04bd63d87ed2ab31dc8cf95e7",
+    "src/lib/vision/quality/eyesQuality.metrics.test.ts": "9e96750abe89b1e6f9ddc8944e7a49ac55d8ddf1a063dbf6fd4075c15c36c409",
+    "src/lib/vision/quality/failureGallery.ts": "7484e2e883f96444d90c1fe72581ff2c5659a0857b50f7214abf2d933ca8f78d",
+    "src/lib/vision/quality/history.ts": "6cc8a0e8c6b29c652c5f9e042689ae36877adf7b52052fc212bb2dd1bcc164fc",
+    "src/lib/vision/quality/index.ts": "24022645b208d447bd993607517bbe88683c6dd18a2751bcab3e557d665ccc34",
+    "src/lib/vision/quality/metrics.ts": "f535132c416daa3f3dbda74ecb22d28d5cbeb6c02346a61da4c7e980af765f6f",
+    "src/lib/vision/quality/pricing.ts": "ed570a4df0421b107c539e7a7cfff45f13f0dec95a3abd7fbf81b3c47915e1a7",
+    "src/lib/vision/quality/regression.ts": "94f0b926800a5fd4051067bac4bc31d60333af04195c30651992849a0b100201",
+    "src/lib/vision/quality/report.ts": "b71e79ebab5cdd5ea7ea6e3a401c2734b34b29aabe68421951ebbe405d383e63",
+    "src/lib/vision/quality/runner.ts": "79ad1bec4d7ee5c7d18099188d442439ec6d568e1cb8567b34f080b798c2eeb1",
+    "src/lib/vision/quality/scoring.ts": "b59bca6f96858163b001a6c099051c931403d626041760b4a5e0be297cbe3476",
+    "src/lib/vision/quality/types.ts": "4a81a77a36b6f53ae5e62c406e35773c2c0885ca96368a175204376113793dfe",
+    "src/lib/vision/types.ts": "e3bdf06a513e9bec7ec4374ff67fdc628ad04911047a2cc6d6cbb360a3932406",
+    "src/lib/vision/visionFallbackErrors.ts": "7ab20c30021feb9a03cf3e2c74aea4855c1f9c13d3553a850f9d6631498c25c6",
+    "src/lib/visionPipelineDebug.ts": "2e31b72f5bc57156cef5347de647600f3ed9b08ca67b7696ed98bb457ec93035",
+    "src/lib/worksheetCapture.ts": "832163504077d52b26bb784d82e3c4c5acd61fdb422314e0e2a08f866bdb12ff",
+    "src/lib/worksheetQuestionNumbers.ts": "35463d34729a7123e648924a1f9389e2901d4ae5ed1c84ee1a61c99ec09d7817",
+    "src/lucide-deep-icons.d.ts": "38d4e8858f34418c4a3670f886bb54d169120b553683407c416103f1ac84309c",
+    "src/lucide-react-deep-icons.d.ts": "d9f26247b72559d678af2828e6d7e5f585818c27a1e14a7a0e05b80e11e4cd1b",
+    "src/types/chatListItem.ts": "e99cfd1a7472ebf368bd35ca083b02a7e849dea979dcc563d32e27f743cb8483",
+    "start-err.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "start-out.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tailwind.config.ts": "2fdea81a6a278de2882644531d1504551f984c0f920ddef158b0c1f51af1cd30",
+    "tests/eyes-quality/README.md": "3b3a901213f39d70735216893ad330ce199a60ea9819b8ad82e5d500089c8adb",
+    "tests/eyes-quality/baselines.json": "74bd21bc255e4c57a1a8cd7d702ef1be2ce5525aeb0e432363979a0a8e088f4f",
+    "tests/eyes-quality/sample.schema.json": "dc87198ee8a9caa1ddb3e4b3636c5cf456b73f4f601b4098158c103d749d9584",
+    "tests/eyes-quality/samples/001_three_photo_fill_blank/expected.json": "7912abcd9db1229e5ade83b5d039b122671bdac574534fc4a803862178b85d49",
+    "tests/eyes-quality/samples/001_three_photo_fill_blank/photo1.jpg": "5c141078909bcb0d98b9967c6210c711941b4052becc1d6770e9cb3518c39c4a",
+    "tests/eyes-quality/samples/001_three_photo_fill_blank/photo2.jpg": "48fe5692e08927c7f551356c74547b06e2dfffef5d0b0a7822e51db1cf49af92",
+    "tests/eyes-quality/samples/001_three_photo_fill_blank/photo3.jpg": "862796e880bc209c11f930f0242c0868565b7d5dafd91b773b0743816afbba9e",
+    "tests/eyes-quality/samples/002_photo1_q1_end/expected.json": "8144849a21b68d1a2a69dccab53bc324c4c8b1fe74aa05f4ea7c1c68518449d0",
+    "tests/eyes-quality/samples/002_photo1_q1_end/photo1.jpg": "5c141078909bcb0d98b9967c6210c711941b4052becc1d6770e9cb3518c39c4a",
+    "tests/eyes-quality/samples/003_photo2_q9_picture/expected.json": "5e1ad70a0c6228594549335a0f45d1fbbe4cfc931d509042ec41f939cc1c855b",
+    "tests/eyes-quality/samples/003_photo2_q9_picture/photo1.jpg": "48fe5692e08927c7f551356c74547b06e2dfffef5d0b0a7822e51db1cf49af92",
+    "tests/eyes-quality/samples/004_photo3_blank_page/expected.json": "07cf4a28a8981a077ebde6f73f8aa1a6b27b110ce5a5c47a4a83dc61c2114ed1",
+    "tests/eyes-quality/samples/004_photo3_blank_page/photo1.jpg": "862796e880bc209c11f930f0242c0868565b7d5dafd91b773b0743816afbba9e",
+    "tests/golden/001_complete/expected.json": "7ffcedf4df4973ba517d2242de3c104681681159989f968aa0382c3aed00aed9",
+    "tests/golden/001_complete/photo1.jpg": "936d394a3e17141aa1b1f082f98a46889fde3597fd37e492aeec783f581e3d93",
+    "tests/golden/002_partial/expected.json": "3a9c1e083356c32941e2e60c856491dc11996b44589a863dd4e1055dae8e3243",
+    "tests/golden/002_partial/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/002_partial/photo2.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/003_blur/expected.json": "a094205b8f437ffffa421d0dac5ab5a113bd41f9eee2051ddb34195e6a3cb464",
+    "tests/golden/003_blur/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/004_cross_page/expected.json": "4ae4684be9408b0bf839be555bc763b85aa9a590a9a1531277311125651f009f",
+    "tests/golden/004_cross_page/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/004_cross_page/photo2.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/005_no_answer/expected.json": "593058a846ca30dd000df2e7a0fbd1a40346febdcabf12566c704f6a3caaf08b",
+    "tests/golden/005_no_answer/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/006_wrong_answer/expected.json": "58de22c0d85c4418c24fb930c1acabc66a6d66a6736712500b0c45da91b6ef22",
+    "tests/golden/006_wrong_answer/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/007_multiple_choice/expected.json": "9f82bb1ae9ffec176e50492c945e4c6940bdaddce0731f727af05daf507b82c3",
+    "tests/golden/007_multiple_choice/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/008_fill_blank/expected.json": "e5fda5e9158293ffd7f57a0fa8f19a1a4f5be68a881eab618bfb805cc08b6270",
+    "tests/golden/008_fill_blank/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/009_handwriting/expected.json": "b6b658bcc409d579551da89d124c0c6836bb6a05ff5b2777f143d59059c1f3c9",
+    "tests/golden/009_handwriting/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/010_mixed_language/expected.json": "0d8b9aac2654db89b2e332539e4630aa03cb17886a871c82b4acaf0fe7c697ab",
+    "tests/golden/010_mixed_language/photo1.jpg": "564acf50dc7dcae2dac0bb7f3d9a0931cce5f68934901003c716b7f22da9e69f",
+    "tests/golden/README.md": "e3f09f684bde36c253ae79b98fc63a1eb6e59e06aa9ab5aba26ae23986b07f78",
+    "tests/golden/expected.schema.json": "93e1f9731f363061d2a85fc68ae7865c9c6950dcc704227008ce23541162bdc1",
+    "tests/kb/fixtures/biology-ch1.raw.txt": "14b75dc5468f18e1c949505cd80f036907f9817aba1a93388041514940374a7c",
+    "tsconfig.json": "7d4c74ac24a7be322e467646e528edefe9c26ddbca17684181133842252628a6",
+    "vitest.config.ts": "a865af490effbc0874b30b027b99fd0d9dfc3e6251d6cae12d9b7771bc66a922"
+  },
+  "observations": [
+    {
+      "id": "phase2e-p88",
+      "printedPage": 88,
+      "observedSections": [
+        "2-3"
+      ],
+      "observation": "蕨類繁殖需水、種子植物適應陸地的一般特徵；未單獨證明松樹授粉。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_37_54L.jpg",
+      "sha256": "cfd3c722b69e21f334a96d5fa281fe21a945f926c30524457c0cf4d957d9006f",
+      "seq": 83,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p89",
+      "printedPage": 89,
+      "observedSections": [
+        "2-3"
+      ],
+      "observation": "松柏類球果圖與風力傳粉、花粉管受精及裸露胚珠，直接支持松樹繁殖考點。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_37_54R.jpg",
+      "sha256": "60f6798e2d6958e98c014dd440ac284ce973282712de7a8332271a5ff4507758",
+      "seq": 84,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p196",
+      "printedPage": 196,
+      "observedSections": [
+        "4-2"
+      ],
+      "observation": "血液組成與骨髓幹細胞一般來源；缺少本題所需的髓樣／淋巴分化區別。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_47_28L.jpg",
+      "sha256": "3fc68d8a656b5dfaa098e337f644dfb57623995ea83974f07dd15c07c494f407",
+      "seq": 191,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p204",
+      "printedPage": 204,
+      "observedSections": [
+        "4-3"
+      ],
+      "observation": "外呼吸、內呼吸及氣體交換；沒有直接列出一氧化碳競爭。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_48_04L.jpg",
+      "sha256": "16475e4c20c29913d4bf195c7658cded76c9aef340f204290f019c8d6b659e01",
+      "seq": 199,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p205",
+      "printedPage": 205,
+      "observedSections": [
+        "4-3"
+      ],
+      "observation": "氣體運輸段直接討論CO與氧對血紅素的競爭及中毒；足以支持分類，不驗證選項數值答案。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_48_04R.jpg",
+      "sha256": "6e8471c2d6ccaebfbd518573a936e7064dea78ff3f29d92aae7b0421134eb67b",
+      "seq": 200,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p211",
+      "printedPage": 211,
+      "observedSections": [
+        "4-4"
+      ],
+      "observation": "防禦章淋巴器官與造血譜系圖4-31，直接區分髓樣與淋巴細胞分化。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_48_30R.jpg",
+      "sha256": "2ecadca392f2dde2a0658d5cbf251542a33d430d05c7d735213fd02e275493b2",
+      "seq": 206,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p212",
+      "printedPage": 212,
+      "observedSections": [
+        "4-4"
+      ],
+      "observation": "胸腺的位置與T淋巴球成熟位於防禦章；可直接對照本題胸腺構造功能。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_48_41L.jpg",
+      "sha256": "aa645eb0f9933dd7db57439cf059bfeb9cad77f670f4a010a917f0fb79c947ae",
+      "seq": 207,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    },
+    {
+      "id": "phase2e-p321",
+      "printedPage": 321,
+      "observedSections": [
+        "6-1"
+      ],
+      "observation": "分離律與雙性雜交；本頁未提供致死遺傳或上位作用專段，不足強制定節。",
+      "method": "agent-visual-inspection; independent-human-review-pending",
+      "file": "IMG_2026_09_30_23_55_25R.jpg",
+      "sha256": "84638539093ed798fcd94de02fb22b26eb1d5903adfc6653e6caa2d861f8b827",
+      "seq": 316,
+      "manifestPath": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "locator": "Resolve filename using manifest; index estimates are not content evidence."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "ROC106-Q50",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "設立自然保留區的目的尚缺直接教材段落。",
+      "nextEvidenceNeeded": "查自然保留區目的及其與國家公園的比較，不能以一般保育內容替代。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC107-Q01",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "02",
+          "section": null,
+          "bucket": "U02",
+          "subtopic": "biodiversity-classification"
+        },
+        "candidates": [
+          "2-2",
+          "2-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p74"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "題幹及選項同時檢驗多樣性定義與五界系統，兩節都有直接依據。",
+      "nextEvidenceNeeded": "由學科審核者決定綜合題主次；保留2-2及2-3。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC107-Q43",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "07",
+          "section": null,
+          "bucket": "U07",
+          "subtopic": "cloning-culture"
+        },
+        "candidates": [
+          "7-1",
+          "7-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p372",
+        "textbook-p381"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "SCNT與組織培養分在7-1、7-3，不能因兩者同為繁殖技術便定單一節。",
+      "nextEvidenceNeeded": "覆核技術比較題的主要概念標準，保留兩節。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC107-Q50",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "保護區法源與國家公園成立先後不在已查樣本的直接段落。",
+      "nextEvidenceNeeded": "核對教材保護區制度及考試當年度資料；本輪不驗算法律或答案。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC108-Q40",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "已查段落未出現臺江國家公園及題述特色。",
+      "nextEvidenceNeeded": "核對國家公園特色教材段落及原題。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC109-Q37",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "07",
+          "section": null,
+          "bucket": "U07",
+          "subtopic": "culture"
+        },
+        "candidates": [
+          "7-1",
+          "7-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p372",
+        "textbook-p381"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "題目混合動物培養、試管嬰兒、植物培養與生物農藥，單一節證據不足。",
+      "nextEvidenceNeeded": "查動物體外培養及試管嬰兒段落，再判斷7-1或7-3。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC110-Q19",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "04",
+          "section": null,
+          "bucket": "U04",
+          "subtopic": "co-poisoning"
+        },
+        "candidates": [
+          "4-2",
+          "4-3"
+        ]
+      },
+      "newClassification": {
+        "unit": "04",
+        "section": "4-3",
+        "bucket": "4-3",
+        "subtopic": "resp-disorders"
+      },
+      "outcome": "proposed-section",
+      "evidenceIds": [
+        "phase2d-p194",
+        "phase2d-p201",
+        "phase2d-p203",
+        "phase2e-p205"
+      ],
+      "secondarySections": [
+        "4-2"
+      ],
+      "confidence": "high",
+      "reason": "教材205頁在4-3氣體運輸段直接列出CO與氧對血紅素的競爭及中毒，與本題各選項的中心機制一致；4-2列次要。",
+      "nextEvidenceNeeded": "獨立人工複核原PDF題幹與選項、所引原圖及主次判準；未批准前仍是Agent提案。",
+      "reasonCode": "direct-evidence",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC110-Q37",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "06",
+          "section": null,
+          "bucket": "U06",
+          "subtopic": "genetics-mixed"
+        },
+        "candidates": [
+          "6-1",
+          "6-2",
+          "6-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p320",
+        "phase2d-p329",
+        "phase2d-p336"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "四個選項混合孟德爾、ABO、染色體及性聯，屬綜合遺傳判斷。",
+      "nextEvidenceNeeded": "學科審核者決定綜合題主次，保留6-1、6-2、6-3。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC110-Q46",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "國家公園法律、數目、成立順序及特色的直接教材依據不足。",
+      "nextEvidenceNeeded": "查題目原年度的教材對應，勿以現況替換考試時點。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC111-Q23",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "reef"
+        },
+        "candidates": [
+          "2-3",
+          "8-1",
+          "8-2"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p74",
+        "phase2d-p77"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "生物礁題同時比較造礁生物、共生及環境，已查分類樣本不能建立唯一主節。",
+      "nextEvidenceNeeded": "查珊瑚礁／藻礁與共生段落，覆核2-3、8-1、8-2。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC111-Q41",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "特定自然保留區與國家公園特色未有直接教材對照。",
+      "nextEvidenceNeeded": "查保護區專表及原題附圖，保留2-2、8-3。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC111-Q45",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "04",
+          "section": null,
+          "bucket": "U04",
+          "subtopic": "resp-immune"
+        },
+        "candidates": [
+          "4-3",
+          "4-4"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p201",
+        "phase2d-p203"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "題幹及選項仍混合呼吸構造與後天免疫，不能只按情境定節。",
+      "nextEvidenceNeeded": "合併查防禦節及呼吸節，由學科審核者決定主次。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC112-Q06",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "04",
+          "section": null,
+          "bucket": "U04",
+          "subtopic": "resp-immune"
+        },
+        "candidates": [
+          "4-3",
+          "4-4",
+          "4-5"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p201",
+        "phase2d-p203"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "選項分涉免疫記憶、呼吸纖毛及神經嗅覺，沒有唯一主要節。",
+      "nextEvidenceNeeded": "核對免疫及神經相關頁後人工決定綜合題標準。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC112-Q33",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "SDGs、多樣性服務、入侵種與CITES分散於多樣性及保育，僅局部證據。",
+      "nextEvidenceNeeded": "查生態系服務、入侵種與公約對應，不以單一選項決定主節。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC113-Q22",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "virus-disease"
+        },
+        "candidates": [
+          "2-3",
+          "4-4"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p77",
+        "phase2d-p78"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "病毒外套膜有教材依據，但已查頁未直接說明酒精對各病毒的效果。",
+      "nextEvidenceNeeded": "查病毒膜與消毒作用的直接段落，保留2-3及4-4。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC113-Q47",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "virus-disease"
+        },
+        "candidates": [
+          "2-3",
+          "4-4"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p77",
+        "phase2d-p78"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "流感題同時問病毒構造、胞毒T細胞及疫苗，仍需主次決策。",
+      "nextEvidenceNeeded": "對照防禦節與完整題組後由學科審核者確認。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC113-Q49",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "原PDF第12頁圖六已目視核對，圖內資訊確實存在；教材尚缺九座公園特色的直接對照，故不再以原圖缺失當理由。",
+      "nextEvidenceNeeded": "直接核對113年原PDF圖六與教材公園表，不能依題幹數字補寫圖文。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC113-Q50",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "公約有局部依據，但主管機關及生態服務給付等選項未直接定位。",
+      "nextEvidenceNeeded": "核對完整題組與保育制度頁，再判斷主次。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC114-Q30",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "pneumonia"
+        },
+        "candidates": [
+          "2-3",
+          "4-3",
+          "4-4"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p77",
+        "phase2d-p80",
+        "phase2d-p201",
+        "phase2d-p203"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "肺炎情境分涉疫苗、不同病原、氣體交換及呼吸調節，仍屬跨主題綜合題。",
+      "nextEvidenceNeeded": "查相關防禦頁與完整病原分類後人工決定主次。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC114-Q37",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "FSC、IUCN、OECMs及SDGs的細節未在本輪查閱頁面直接出現。",
+      "nextEvidenceNeeded": "定位保育制度的正文或補充資料；不能將一般保育段落當成逐項佐證。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC114-Q47",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "06",
+          "section": null,
+          "bucket": "U06",
+          "subtopic": "other-patterns"
+        },
+        "candidates": [
+          "6-1",
+          "6-2"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p320",
+        "phase2d-p336"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "已補讀47-48題共用前言；致死同基因型已在題組給定，教材樣本尚未定位致死遺傳專段。",
+      "nextEvidenceNeeded": "查致死等位基因及偏離孟德爾比例的段落，再決定6-1或6-2。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC114-Q48",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "06",
+          "section": null,
+          "bucket": "U06",
+          "subtopic": "other-patterns"
+        },
+        "candidates": [
+          "6-1",
+          "6-2",
+          "6-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p320",
+        "phase2d-p336"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "共用前言同時規定致死腿長與X性聯毛色，跨多個遺傳概念。",
+      "nextEvidenceNeeded": "結合性聯遺傳與致死比例正文，由學科審核者決定主次。",
+      "reasonCode": "multiple-topics",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q07",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "04",
+          "section": null,
+          "bucket": "U04",
+          "subtopic": "myeloid"
+        },
+        "candidates": [
+          "4-2",
+          "4-4"
+        ]
+      },
+      "newClassification": {
+        "unit": "04",
+        "section": "4-4",
+        "bucket": "4-4",
+        "subtopic": "immune-cells"
+      },
+      "outcome": "proposed-section",
+      "evidenceIds": [
+        "phase2d-p194",
+        "textbook-p238",
+        "phase2d-p372",
+        "phase2e-p211"
+      ],
+      "secondarySections": [
+        "4-2"
+      ],
+      "confidence": "high",
+      "reason": "211頁4-4淋巴器官的圖4-31直接對應髓樣／淋巴譜系與題列細胞；196頁僅一般血液來源，故以4-4為主。",
+      "nextEvidenceNeeded": "獨立人工複核原PDF題幹與選項、所引原圖及主次判準；未批准前仍是Agent提案。",
+      "reasonCode": "direct-evidence",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q16",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "04",
+          "section": null,
+          "bucket": "U04",
+          "subtopic": "thymus"
+        },
+        "candidates": [
+          "4-4",
+          "4-6"
+        ]
+      },
+      "newClassification": {
+        "unit": "04",
+        "section": "4-4",
+        "bucket": "4-4",
+        "subtopic": "immune-organs"
+      },
+      "outcome": "proposed-section",
+      "evidenceIds": [
+        "phase2d-p233",
+        "textbook-p238",
+        "phase2e-p212"
+      ],
+      "secondarySections": [
+        "4-6"
+      ],
+      "confidence": "high",
+      "reason": "212頁4-4直接敘述胸腺位置與T細胞成熟；238頁只有激素概述。本題中心為胸腺構造功能，4-6列次要。",
+      "nextEvidenceNeeded": "獨立人工複核原PDF題幹與選項、所引原圖及主次判準；未批准前仍是Agent提案。",
+      "reasonCode": "direct-evidence",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q26",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "pine"
+        },
+        "candidates": [
+          "2-3",
+          "3-3"
+        ]
+      },
+      "newClassification": {
+        "unit": "02",
+        "section": "2-3",
+        "bucket": "2-3",
+        "subtopic": "plants"
+      },
+      "outcome": "proposed-section",
+      "evidenceIds": [
+        "phase2d-p144",
+        "phase2d-p145",
+        "phase2e-p89"
+      ],
+      "secondarySections": [
+        "3-3"
+      ],
+      "confidence": "high",
+      "reason": "89頁2-3種子植物段直接有松柏球果、風力傳粉及不需水媒介受精的內容，足以支持裸子植物特徵分類；3-3列次要。",
+      "nextEvidenceNeeded": "獨立人工複核原PDF題幹與選項、所引原圖及主次判準；未批准前仍是Agent提案。",
+      "reasonCode": "direct-evidence",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q29",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "02",
+          "section": null,
+          "bucket": "U02",
+          "subtopic": "plant-phylogeny"
+        },
+        "candidates": [
+          "2-1",
+          "2-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p144",
+        "phase2d-p145"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "原PDF第6頁圖三的分支與選項已目視核對；現有直接教材證據仍不足以判定演化與植物分類的主要節。",
+      "nextEvidenceNeeded": "核對原PDF圖三及植物演化適應正文，保留2-1及2-3。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q36",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "textbook-p72",
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "域內域外、廊道及里山等制度內容尚缺直接段落；一般資源保育不足。",
+      "nextEvidenceNeeded": "查保育方式與棲地廊道的正文再判斷2-2及8-3。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q37",
+      "oldClassification": {
+        "status": "ambiguous",
+        "placement": {
+          "unit": null,
+          "section": null,
+          "bucket": "X",
+          "subtopic": "conservation"
+        },
+        "candidates": [
+          "2-2",
+          "8-3"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p421",
+        "textbook-p425"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "高山型國家公園分類與名單尚無直接教材佐證。",
+      "nextEvidenceNeeded": "查國家公園地形特色表及原題，不推填教材頁碼。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "not-required",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    },
+    {
+      "id": "ROC115-Q47",
+      "oldClassification": {
+        "status": "unit",
+        "placement": {
+          "unit": "06",
+          "section": null,
+          "bucket": "U06",
+          "subtopic": "other-patterns"
+        },
+        "candidates": [
+          "6-1",
+          "6-2"
+        ]
+      },
+      "newClassification": null,
+      "outcome": "pending",
+      "evidenceIds": [
+        "phase2d-p320",
+        "phase2d-p329",
+        "phase2d-p336",
+        "phase2e-p321"
+      ],
+      "secondarySections": [],
+      "confidence": "insufficient",
+      "reason": "原PDF第10頁共同前言與表一已目視核對，圖表缺口已排除；321頁為一般雙性雜交，仍未定位教材上位作用專段。",
+      "nextEvidenceNeeded": "查基因交互作用／上位作用正文，再定6-1或6-2。",
+      "reasonCode": "insufficient-data",
+      "reviewerType": "agent",
+      "needsHumanReview": true,
+      "sourceChecks": {
+        "transcript": "read-full-question-and-options",
+        "groupPreamble": "read-surrounding-source-including-shared-preamble",
+        "originalPdf": "text-layer-locator-check; see quality record; not full visual verification",
+        "textbookEvidence": "Phase 2D observations reused; Phase 2E observations explicitly separated",
+        "ocr": "Existing pilot only; absence of keyword is not absence of textbook content"
+      }
+    }
+  ],
+  "pdfVisualChecks": [
+    {
+      "ids": [
+        "ROC113-Q49",
+        "ROC113-Q50"
+      ],
+      "year": 113,
+      "pdfPage": 12,
+      "method": "agent-visual-inspection of locally rendered original PDF; no OCR",
+      "observation": "圖六存在，已讀公園特色方塊；教材對照仍不足。",
+      "needsHumanReview": true
+    },
+    {
+      "ids": [
+        "ROC115-Q29"
+      ],
+      "year": 115,
+      "pdfPage": 6,
+      "method": "agent-visual-inspection of locally rendered original PDF; no OCR",
+      "observation": "圖三由藻類、蘚苔、蕨類、裸子與被子植物組成；未據圖猜填教材頁。",
+      "needsHumanReview": true
+    },
+    {
+      "ids": [
+        "ROC115-Q47"
+      ],
+      "year": 115,
+      "pdfPage": 10,
+      "method": "agent-visual-inspection of locally rendered original PDF; no OCR",
+      "observation": "題組前言及表一欄列已核對；教材上位作用專段尚未定位。",
+      "needsHumanReview": true
+    }
+  ],
+  "limitations": [
+    "已保存／已驗證：檔案雜湊、題號與結構通過驗證；這不代表語義或人工審核完成。",
+    "教材原圖本輪目視8頁；沿用Phase2D頁面觀察，未重做OCR、未逐頁驗收486頁正文。",
+    "既存OCR試驗只有5個不同掃描頁，且包含目錄與附錄；無法涵蓋29題直接所需頁面。OCR文字品質及覆蓋率不推算。",
+    "29題原始PDF均執行文字層定位；圖表另目視3頁。除列明圖表外，原PDF全部選項與掃描影像逐字相符尚未完成驗收。",
+    "頁碼索引多為estimated；只有本輪目視的8頁另記直接觀察。目錄與教材兩批掃描同版性仍尚未確認，不用頁碼區間推定唯一歸屬。",
+    "high僅表示Agent對主要分類的信心，非機率或人工核准；四項提案全部needsHumanReview=true。",
+    "25題pending分為跨主題主次未定與資料不足；不提供未有來源的答案、教材正文或頁碼。",
+    "不新增教材原圖、PDF副本或教材逐字全文至公開成果；暫存PDF渲染僅用於本機目視，未納入專案。"
+  ],
+  "outputs": {
+    "map": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+    "quality": "content/knowledge-base/derived/biology/phase-2e-quality-validation.json",
+    "report": "docs/knowledge-base/biology/phase-2e-review-report.md"
+  },
+  "ocrInventory": [
+    {
+      "file": "IMG_2026_09_30_23_21_37R.jpg",
+      "seq": 2,
+      "printedPage": 5,
+      "label": "5",
+      "verification": "verified"
+    },
+    {
+      "file": "IMG_2026_09_30_23_25_24R.jpg",
+      "seq": 10,
+      "printedPage": 15,
+      "label": "15",
+      "verification": "estimated"
+    },
+    {
+      "file": "IMG_2026_10_01_00_03_54L.jpg",
+      "seq": 465,
+      "printedPage": null,
+      "label": "附-12",
+      "verification": "estimated"
+    },
+    {
+      "file": "IMG_2026_10_01_00_04_17R.jpg",
+      "seq": 472,
+      "printedPage": null,
+      "label": "附-19",
+      "verification": "estimated"
+    },
+    {
+      "file": "IMG_2026_10_01_00_05_09R.jpg",
+      "seq": 486,
+      "printedPage": null,
+      "label": null,
+      "verification": "unnumbered"
+    }
+  ]
+}
