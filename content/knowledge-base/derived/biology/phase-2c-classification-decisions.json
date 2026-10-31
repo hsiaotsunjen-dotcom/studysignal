@@ -1,0 +1,1080 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-31",
+  "status": "agent-classified; independent-human-review-pending",
+  "baselinePath": "content/knowledge-base/derived/biology/exam-topic-map-roc110-115.json",
+  "rowColumns": [
+    "sectionOrCandidates/subtopic",
+    "rationale"
+  ],
+  "newYearRows": {
+    "106": [
+      [
+        "2-1/origin",
+        "有機演化的物質形成順序"
+      ],
+      [
+        "1-3/mitosis",
+        "根尖細胞分裂時期與細胞板"
+      ],
+      [
+        "2-3/kingdom-traits",
+        "跨界生物特徵辨識"
+      ],
+      [
+        "2-3/fungi",
+        "菌絲與幾丁質等菌物特徵"
+      ],
+      [
+        "4-6/glands",
+        "內分泌腺及激素作用"
+      ],
+      [
+        "4-6/glands",
+        "腎上腺激素與緊迫反應"
+      ],
+      [
+        "4-6/glands",
+        "動情激素分泌來源"
+      ],
+      [
+        "5-2/menstrual",
+        "排卵期激素變化"
+      ],
+      [
+        "5-2/pregnancy",
+        "懷孕維持與激素受器"
+      ],
+      [
+        "1-1/life",
+        "生命現象中的運動"
+      ],
+      [
+        "6-1/dihybrid",
+        "豌豆雙性狀雜交比例"
+      ],
+      [
+        "6-1/monohybrid",
+        "孟德爾單性狀雜交"
+      ],
+      [
+        "6-2/expression",
+        "基因表現及轉錄轉譯"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA結構與互補股"
+      ],
+      [
+        "1-2/organelles",
+        "核糖體組成"
+      ],
+      [
+        "6-3/blood-type",
+        "人類ABO血型遺傳"
+      ],
+      [
+        "6-3/sex-linked",
+        "人類Y染色體性聯遺傳"
+      ],
+      [
+        "7-2/transgenic",
+        "外源基因導入作物"
+      ],
+      [
+        "7-1/microarray",
+        "多標的基因檢測技術"
+      ],
+      [
+        "3-1/root",
+        "呼吸根構造"
+      ],
+      [
+        "3-1/root",
+        "根毛所在構造"
+      ],
+      [
+        "3-1/stem",
+        "莖基本組織"
+      ],
+      [
+        "3-2/transport",
+        "木質部水分運輸"
+      ],
+      [
+        "3-2/stomata",
+        "保衛細胞與氣孔"
+      ],
+      [
+        "3-2/photosynthesis",
+        "光合色素功能"
+      ],
+      [
+        "3-3/asexual",
+        "葉的營養繁殖"
+      ],
+      [
+        "3-3/sexual",
+        "雙重受精"
+      ],
+      [
+        "3-3/fruit",
+        "果實形成來源"
+      ],
+      [
+        "3-2/transport",
+        "植物泌液"
+      ],
+      [
+        "1-2/membrane",
+        "細胞膜組成"
+      ],
+      [
+        "1-1/metabolism",
+        "代謝分解作用"
+      ],
+      [
+        "4-1/nutrients",
+        "人體營養物質用途"
+      ],
+      [
+        "4-1/digestion",
+        "胃潰瘍與消化器官"
+      ],
+      [
+        "4-1/digestion",
+        "吞嚥構造與動作"
+      ],
+      [
+        "4-3/urinary",
+        "尿液過濾部位"
+      ],
+      [
+        "4-2/heart",
+        "動脈與血液含氧情形"
+      ],
+      [
+        "4-2/vessels",
+        "淋巴系統運輸"
+      ],
+      [
+        "4-5/cns",
+        "腦部食慾飲水調控"
+      ],
+      [
+        "4-5/musculoskeletal",
+        "隨意運動神經肌肉路徑"
+      ],
+      [
+        "8-1/population-change",
+        "出生死亡遷移與族群大小"
+      ],
+      [
+        "8-1/interactions",
+        "生物間捕食與共生關係"
+      ],
+      [
+        "8-2/food-web",
+        "食物鏈能量傳遞"
+      ],
+      [
+        "8-2/cycles",
+        "根瘤菌與氮源循環"
+      ],
+      [
+        "8-2/balance",
+        "生態平衡與擾動"
+      ],
+      [
+        "8-1/population-change",
+        "人口出生老化及空間分布"
+      ],
+      [
+        "8-3/energy",
+        "水資源供應限制"
+      ],
+      [
+        "8-3/recycling",
+        "資源回收與分類"
+      ],
+      [
+        "8-3/pollution",
+        "空氣污染防治"
+      ],
+      [
+        "8-3/eco-engineering",
+        "生態工法特徵"
+      ],
+      [
+        "?2-2,8-3/conservation",
+        "保護區目的仍需教材保育段落定位"
+      ]
+    ],
+    "107": [
+      [
+        "?2-2,2-3/biodiversity-classification",
+        "題幹為多樣性但選項同時測五界分類"
+      ],
+      [
+        "2-3/plants",
+        "植物類群特徵比較"
+      ],
+      [
+        "2-3/plants",
+        "裸子植物與種子保護"
+      ],
+      [
+        "1-1/metabolism",
+        "新陳代謝與同化異化"
+      ],
+      [
+        "1-1/life",
+        "生命現象中的感應"
+      ],
+      [
+        "1-2/cell-structure",
+        "細胞構造"
+      ],
+      [
+        "1-2/organelles",
+        "胞器功能"
+      ],
+      [
+        "1-3/meiosis",
+        "生殖組織細胞染色體數變化"
+      ],
+      [
+        "1-3/compare",
+        "細胞分裂時期比較"
+      ],
+      [
+        "3-1/root",
+        "根部構造"
+      ],
+      [
+        "3-1/stem",
+        "莖的變態及功能"
+      ],
+      [
+        "3-1/leaf",
+        "葉鞘與植物葉構造"
+      ],
+      [
+        "3-1/tissues",
+        "維管束橫切構造辨識"
+      ],
+      [
+        "3-2/photosynthesis",
+        "光合作用影響因子"
+      ],
+      [
+        "3-2/photosynthesis",
+        "光合作用碳反應"
+      ],
+      [
+        "3-3/asexual",
+        "繁殖方式與變異比較"
+      ],
+      [
+        "3-3/fruit",
+        "果實種子的傳播"
+      ],
+      [
+        "4-1/digestion",
+        "小腸乳糜管吸收"
+      ],
+      [
+        "4-1/nutrients",
+        "營養缺乏"
+      ],
+      [
+        "4-3/resp-structure",
+        "呼吸道與聲帶構造"
+      ],
+      [
+        "4-3/urinary",
+        "腎臟血液流經路徑"
+      ],
+      [
+        "4-2/heart",
+        "心室收縮與血流"
+      ],
+      [
+        "4-2/vessels",
+        "淋巴系統器官"
+      ],
+      [
+        "4-4/immune-response",
+        "免疫細胞協作"
+      ],
+      [
+        "4-5/cns",
+        "大腦皮層功能區"
+      ],
+      [
+        "4-5/autonomic",
+        "副交感神經作用"
+      ],
+      [
+        "4-5/peripheral",
+        "周圍神經系統"
+      ],
+      [
+        "4-7/glucose-homeostasis",
+        "血糖恆定"
+      ],
+      [
+        "4-6/pituitary",
+        "腦下腺激素"
+      ],
+      [
+        "4-6/glands",
+        "激素作用方式"
+      ],
+      [
+        "5-2/menstrual",
+        "月經週期及子宮內膜"
+      ],
+      [
+        "5-2/pregnancy",
+        "胎盤來源"
+      ],
+      [
+        "5-2/pregnancy",
+        "人類胚胎發育"
+      ],
+      [
+        "6-2/history",
+        "DNA結構研究史"
+      ],
+      [
+        "6-2/expression",
+        "基因表現與mRNA生成"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA複製與結構"
+      ],
+      [
+        "6-2/dna-structure",
+        "核苷酸組成"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA互補序列"
+      ],
+      [
+        "6-3/blood-type",
+        "ABO複等位基因及抗原抗體"
+      ],
+      [
+        "6-3/sex-linked",
+        "果蠅性聯遺傳；教材332頁於6-3以果蠅說明性聯"
+      ],
+      [
+        "7-2/recombinant",
+        "遺傳工程重組DNA工具"
+      ],
+      [
+        "7-2/recombinant",
+        "質體載體及轉殖篩選"
+      ],
+      [
+        "?7-1,7-3/cloning-culture",
+        "複製與組織培養同時涉及7-1及7-3"
+      ],
+      [
+        "8-1/population-change",
+        "人口年增長率"
+      ],
+      [
+        "8-1/interactions",
+        "種子藉動物傳播的交互作用"
+      ],
+      [
+        "2-2/invasive",
+        "外來種入侵影響；教材72頁列引進外來種為多樣性降低因素"
+      ],
+      [
+        "8-2/levels",
+        "生態系定義"
+      ],
+      [
+        "8-2/food-web",
+        "生態系能量傳遞"
+      ],
+      [
+        "8-3/recycling",
+        "人口環境負荷與資源垃圾綜合"
+      ],
+      [
+        "?2-2,8-3/conservation",
+        "保護區法源及國家公園仍需教材保育段落定位"
+      ]
+    ],
+    "108": [
+      [
+        "1-2/organelles",
+        "核糖體功能"
+      ],
+      [
+        "6-1/dihybrid",
+        "孟德爾獨立分配律"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA方向及核苷酸"
+      ],
+      [
+        "6-3/sex-linked",
+        "人類性聯性狀"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA鹼基與氫鍵數"
+      ],
+      [
+        "7-2/recombinant",
+        "重組DNA技術適用產品"
+      ],
+      [
+        "7-1/microarray",
+        "基因晶片檢測原理"
+      ],
+      [
+        "7-1/pcr",
+        "PCR原理"
+      ],
+      [
+        "7-2/recombinant",
+        "重組DNA工具"
+      ],
+      [
+        "7-3/fingerprinting",
+        "DNA指紋鑑定應用"
+      ],
+      [
+        "4-1/digestion",
+        "人體消化液"
+      ],
+      [
+        "4-1/nutrients",
+        "營養素能量比較"
+      ],
+      [
+        "4-3/breathing",
+        "咳嗽噴嚏時呼吸運動"
+      ],
+      [
+        "4-3/resp-structure",
+        "二氧化碳運輸與肺泡交換"
+      ],
+      [
+        "4-3/urinary",
+        "腎元過濾順序"
+      ],
+      [
+        "4-2/vessels",
+        "血壓與心室作用"
+      ],
+      [
+        "4-2/blood",
+        "紅血球製造與破壞"
+      ],
+      [
+        "4-5/neuron",
+        "神經元訊息傳遞"
+      ],
+      [
+        "4-4/immune-response",
+        "體液免疫"
+      ],
+      [
+        "4-5/autonomic",
+        "自主神經生理反應"
+      ],
+      [
+        "4-5/musculoskeletal",
+        "手臂彎曲的神經肌肉動作"
+      ],
+      [
+        "?4-1,4-6/pancreas",
+        "同時問消化腺及內分泌腺而非單一功能"
+      ],
+      [
+        "4-7/glucose-homeostasis",
+        "血糖穩定與激素調節"
+      ],
+      [
+        "3-1/root",
+        "植物根系構造"
+      ],
+      [
+        "3-1/stem",
+        "莖維管束與木栓層"
+      ],
+      [
+        "3-1/tissues",
+        "根莖葉特化構造"
+      ],
+      [
+        "3-2/photosynthesis",
+        "光合作用速率與溫度"
+      ],
+      [
+        "3-2/photosynthesis",
+        "葉綠體光反應碳反應"
+      ],
+      [
+        "3-1/tissues",
+        "食用地下器官辨識"
+      ],
+      [
+        "3-3/sexual",
+        "花粉管與受精路徑"
+      ],
+      [
+        "3-3/sexual",
+        "花的構造與授粉"
+      ],
+      [
+        "3-3/sexual",
+        "種子果實內部與胚構造"
+      ],
+      [
+        "8-1/definitions",
+        "族群群集定義"
+      ],
+      [
+        "8-1/population-change",
+        "族群大小維持"
+      ],
+      [
+        "8-1/interactions",
+        "共生及競爭類型"
+      ],
+      [
+        "8-2/food-web",
+        "生態系能量傳遞"
+      ],
+      [
+        "2-2/invasive",
+        "外來種與多樣性威脅"
+      ],
+      [
+        "8-2/cycles",
+        "碳氮物質循環"
+      ],
+      [
+        "8-3/pollution",
+        "化石燃料與環境影響"
+      ],
+      [
+        "?2-2,8-3/conservation",
+        "國家公園特色尚無直接教材段落"
+      ],
+      [
+        "1-1/life",
+        "生命現象判別"
+      ],
+      [
+        "1-2/cell-structure",
+        "原核細胞壁組成"
+      ],
+      [
+        "1-2/enzymes",
+        "酵素催化；教材10頁1-2研讀重點明列酵素"
+      ],
+      [
+        "1-2/organelles",
+        "溶體功能與水解酵素"
+      ],
+      [
+        "1-3/compare",
+        "有絲與減數分裂比較"
+      ],
+      [
+        "1-3/meiosis",
+        "減數分裂的變異來源"
+      ],
+      [
+        "1-2/organelles",
+        "非膜狀胞器"
+      ],
+      [
+        "2-3/systems",
+        "生物界分類"
+      ],
+      [
+        "5-2/menstrual",
+        "女性生殖激素調控"
+      ],
+      [
+        "5-2/pregnancy",
+        "胚外膜與臍帶"
+      ]
+    ],
+    "109": [
+      [
+        "2-1/origin",
+        "生命起源模擬實驗"
+      ],
+      [
+        "1-1/life",
+        "生命現象綜合"
+      ],
+      [
+        "1-2/organelles",
+        "胞器與分泌運送"
+      ],
+      [
+        "1-2/enzymes",
+        "酵素及活化能"
+      ],
+      [
+        "1-3/cell-cycle",
+        "分裂染色體關係"
+      ],
+      [
+        "2-3/animals",
+        "動物類群特徵"
+      ],
+      [
+        "2-3/plants",
+        "植物類群特徵"
+      ],
+      [
+        "2-3/protists",
+        "原生生物界"
+      ],
+      [
+        "3-1/tissues",
+        "根莖葉與單雙子葉特徵"
+      ],
+      [
+        "3-1/tissues",
+        "根莖橫切面髓構造"
+      ],
+      [
+        "3-1/tissues",
+        "植物器官橫切面"
+      ],
+      [
+        "3-1/leaf",
+        "葉的形態與解剖"
+      ],
+      [
+        "3-2/photosynthesis",
+        "光反應與碳反應"
+      ],
+      [
+        "3-3/asexual",
+        "植物無性繁殖"
+      ],
+      [
+        "3-3/sexual",
+        "植物有性生殖染色體變化"
+      ],
+      [
+        "4-6/glands",
+        "內分泌系統及激素"
+      ],
+      [
+        "4-7/glucose-homeostasis",
+        "血糖恆定及回饋"
+      ],
+      [
+        "5-2/pregnancy",
+        "人體受精與胚胎發育"
+      ],
+      [
+        "5-2/menstrual",
+        "月經週期生理變化"
+      ],
+      [
+        "4-1/digestion",
+        "人體消化過程"
+      ],
+      [
+        "4-3/resp-structure",
+        "氧氣濃度與氣體交換"
+      ],
+      [
+        "4-4/immune-response",
+        "專一性非專一性防禦"
+      ],
+      [
+        "4-2/blood",
+        "血球與血液功能"
+      ],
+      [
+        "4-3/urinary",
+        "尿液形成"
+      ],
+      [
+        "4-4/immune-cells",
+        "T淋巴球發育"
+      ],
+      [
+        "4-2/heart",
+        "心臟瓣膜構造"
+      ],
+      [
+        "4-4/immune-response",
+        "專一性細胞免疫"
+      ],
+      [
+        "4-5/cns",
+        "發燒的中樞神經調控"
+      ],
+      [
+        "4-5/cns",
+        "腦部功能損傷"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA鹼基比例"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA雙股螺旋"
+      ],
+      [
+        "6-2/dna-structure",
+        "DNA複製順序"
+      ],
+      [
+        "6-2/expression",
+        "基因表現及轉錄轉譯"
+      ],
+      [
+        "6-3/blood-type",
+        "ABO血型遺傳"
+      ],
+      [
+        "6-3/sex-linked",
+        "人類紅綠色盲"
+      ],
+      [
+        "7-3/tissue-culture",
+        "植物組織培養應用"
+      ],
+      [
+        "?7-1,7-3/culture",
+        "體外培養綜合醫學農業應用尚無唯一節證據"
+      ],
+      [
+        "7-1/pcr",
+        "PCR擴增原理"
+      ],
+      [
+        "7-2/transgenic",
+        "遺傳工程基因轉殖產品"
+      ],
+      [
+        "7-1/modern",
+        "單株抗體製備"
+      ],
+      [
+        "7-2/recombinant",
+        "載體與遺傳工程"
+      ],
+      [
+        "8-1/population-change",
+        "族群大小影響因素"
+      ],
+      [
+        "8-1/interactions",
+        "附生的交互作用"
+      ],
+      [
+        "8-2/balance",
+        "生態系成分功能"
+      ],
+      [
+        "8-2/food-web",
+        "能量塔計算"
+      ],
+      [
+        "8-2/cycles",
+        "碳循環"
+      ],
+      [
+        "8-2/balance",
+        "生態系成熟與自我調節"
+      ],
+      [
+        "8-3/energy",
+        "自然資源與永續利用"
+      ],
+      [
+        "8-3/conservation",
+        "生物資源永續經營"
+      ],
+      [
+        "8-3/recycling",
+        "回收再利用"
+      ]
+    ]
+  },
+  "resolvedBaselineQuestions": [
+    {
+      "id": "ROC110-Q06",
+      "placement": "1-2/enzymes",
+      "pages": [
+        10
+      ],
+      "rationale": "酵素催化及活性；1-2研讀重點明列酵素特性。",
+      "secondarySections": [
+        "1-1"
+      ]
+    },
+    {
+      "id": "ROC111-Q12",
+      "placement": "1-2/enzymes",
+      "pages": [
+        10
+      ],
+      "rationale": "酵素催化與影響因子在1-2研讀重點內。",
+      "secondarySections": [
+        "1-1"
+      ]
+    },
+    {
+      "id": "ROC110-Q35",
+      "placement": "6-2/dna-structure",
+      "pages": [
+        325
+      ],
+      "rationale": "鹼基數量與互補配對，採詳細講解DNA結構的6-2為主要節。",
+      "secondarySections": [
+        "1-2"
+      ]
+    },
+    {
+      "id": "ROC113-Q19",
+      "placement": "6-2/dna-structure",
+      "pages": [
+        322,
+        325
+      ],
+      "rationale": "選項核心為DNA/RNA結構與分布；細胞組成情境保留次要1-2。",
+      "secondarySections": [
+        "1-2"
+      ]
+    },
+    {
+      "id": "ROC114-Q25",
+      "placement": "6-2/dna-structure",
+      "pages": [
+        325
+      ],
+      "rationale": "核苷酸組成及鹼基配對在6-2有明確正文。",
+      "secondarySections": [
+        "1-2"
+      ]
+    },
+    {
+      "id": "ROC115-Q03",
+      "placement": "6-2/dna-structure",
+      "pages": [
+        325
+      ],
+      "rationale": "含氮鹼基辨識對應6-2核苷酸結構；圖缺失仍保留覆核警示。",
+      "secondarySections": [
+        "1-2"
+      ]
+    },
+    {
+      "id": "ROC110-Q40",
+      "placement": "7-3/pcr-diagnosis",
+      "pages": [
+        378
+      ],
+      "rationale": "問病原快速篩檢用途；教材7-3列PCR醫學診斷。",
+      "secondarySections": [
+        "7-1"
+      ]
+    },
+    {
+      "id": "ROC112-Q37",
+      "placement": "7-1/pcr",
+      "pages": [
+        368
+      ],
+      "rationale": "雖以基改檢驗作情境，四選項測擴增原理、酵素、模板及引子，採7-1。",
+      "secondarySections": [
+        "7-3"
+      ]
+    },
+    {
+      "id": "ROC113-Q37",
+      "placement": "7-1/pcr",
+      "pages": [
+        368,
+        378
+      ],
+      "rationale": "題目綜合PCR原理、歷史與應用，主要依PCR原理的7-1，檢測列次要。",
+      "secondarySections": [
+        "7-3"
+      ]
+    },
+    {
+      "id": "ROC115-Q40",
+      "placement": "7-1/pcr",
+      "pages": [
+        368
+      ],
+      "rationale": "引子、模板與擴增失敗推論為PCR方法本身。",
+      "secondarySections": []
+    },
+    {
+      "id": "ROC113-Q35",
+      "placement": "7-1/gene-silencing",
+      "pages": [
+        368
+      ],
+      "rationale": "7-1研讀重點列RNA干擾及基因靜默，直接補足目錄未顯示的概念。",
+      "secondarySections": []
+    },
+    {
+      "id": "ROC113-Q36",
+      "placement": "7-3/gene-therapy",
+      "pages": [
+        380
+      ],
+      "rationale": "7-3正文列基因治療與病毒載體，採具體應用段落。",
+      "secondarySections": [
+        "7-2"
+      ]
+    },
+    {
+      "id": "ROC115-Q38",
+      "placement": "7-1/cloning",
+      "pages": [
+        368
+      ],
+      "rationale": "7-1研讀重點明列SCNT與複製動物。",
+      "secondarySections": []
+    },
+    {
+      "id": "ROC110-Q42",
+      "placement": "8-1/interactions",
+      "pages": [
+        404,
+        405
+      ],
+      "rationale": "寄生、共生、捕食與競爭有8-1正文證據。",
+      "secondarySections": []
+    },
+    {
+      "id": "ROC111-Q49",
+      "placement": "8-1/interactions",
+      "pages": [
+        404,
+        405
+      ],
+      "rationale": "核心為交互作用類型，食物網作判讀情境列次要；未核原圖答案。",
+      "secondarySections": [
+        "8-2"
+      ]
+    },
+    {
+      "id": "ROC113-Q33",
+      "placement": "8-1/interactions",
+      "pages": [
+        404
+      ],
+      "rationale": "8-1正文有捕食族群曲線，可定位分類；選項圖仍待覆核。",
+      "secondarySections": []
+    },
+    {
+      "id": "ROC115-Q32",
+      "placement": "8-1/interactions",
+      "pages": [
+        404,
+        405
+      ],
+      "rationale": "共生、寄生與競爭的詳細分類在8-1正文；生態系是題幹背景。",
+      "secondarySections": [
+        "8-2"
+      ]
+    },
+    {
+      "id": "ROC111-Q48",
+      "placement": "6-2/linkage",
+      "pages": [
+        323,
+        324
+      ],
+      "rationale": "6-2正文明列連鎖互換；孟德爾雜交作背景列次要。",
+      "secondarySections": [
+        "6-1"
+      ]
+    },
+    {
+      "id": "ROC113-Q46",
+      "placement": "6-2/linkage",
+      "pages": [
+        323,
+        324
+      ],
+      "rationale": "染色體基因連鎖與重組的題組推論對應6-2。",
+      "secondarySections": [
+        "6-1"
+      ]
+    },
+    {
+      "id": "ROC115-Q21",
+      "placement": "6-2/linkage",
+      "pages": [
+        324
+      ],
+      "rationale": "題幹明示連鎖，核心為互換事件；人類疾病及減數分裂列次要。",
+      "secondarySections": [
+        "6-3",
+        "1-3"
+      ]
+    },
+    {
+      "id": "ROC113-Q30",
+      "placement": "8-1/definitions",
+      "pages": [],
+      "rationale": "四選項實際定義族群、消長、群集及存活曲線，均屬既有8-1主題；生態系作背景。",
+      "secondarySections": [
+        "8-2"
+      ]
+    },
+    {
+      "id": "ROC110-Q49",
+      "placement": "2-2/invasive",
+      "pages": [
+        72
+      ],
+      "rationale": "題目核心為外來種入侵；2-2正文把引進外來種列為多樣性降低因素。",
+      "secondarySections": [
+        "8-3"
+      ]
+    },
+    {
+      "id": "ROC114-Q49",
+      "placement": "8-3/conservation",
+      "pages": [
+        422,
+        423,
+        425
+      ],
+      "rationale": "環保措施、資源利用與保育綜合，8-3有資源保育、回收及人類影響；非聲稱所有新名詞均已在教材找到。",
+      "secondarySections": [
+        "2-2"
+      ]
+    }
+  ],
+  "additionalResolutions": [{"id":"ROC112-Q38","placement":"7-3/electrophoresis","pages":[379],"rationale":"直接測DNA電泳的電荷與移動方向，7-3有完整原理段落；粗萃取活動列次要。","secondarySections":["6-4"]},{"id":"ROC112-Q47","placement":"6-3/polygenic","pages":[331,335],"rationale":"題組為多基因累加性狀，教材6-3-2明列累加及植物性狀，不因出現F1就歸孟德爾法則。","secondarySections":["6-1"]},{"id":"ROC112-Q48","placement":"6-3/polygenic","pages":[335],"rationale":"同題組的累加多基因表現型數，教材6-3-2有對應原理與雜交示例。","secondarySections":["6-1"]},{"id":"ROC115-Q08","placement":"3-1/root","pages":[124,126],"rationale":"教材3-1根的功能明列儲藏根及蘿蔔，足以定位本題的養分儲藏概念。","secondarySections":["3-2"]},{"id":"ROC115-Q23","placement":"6-3/polygenic","pages":[335],"rationale":"教材6-3-2直接討論人類身高同受遺傳與營養影響；基因表現列次要6-2。","secondarySections":["6-2"]}],
+  "policy": {
+    "preserveExistingSectionQuestions": true,
+    "noForcedPlacement": true,
+    "retainedBaselineUnresolved": "未列於resolvedBaselineQuestions的原58題已重新讀取題幹及選項，保留原候選與原因；待更具體教材證據或獨立人工判定。",
+    "primaryRule": "以直接測驗的概念為主要節；情境與次要概念分開。重疊教材內容不意味唯一所在節，所有新決策仍待人工覆核。"
+  }
+}
