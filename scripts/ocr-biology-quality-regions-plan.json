@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "subject": "biology",
+  "date": "2026-11-01",
+  "baselineRun": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2",
+  "outputDirectory": "content/knowledge-base/ocr-pilot/biology-quality-regions-20261101-v1",
+  "scope": "12 regions from existing pilot pages only; no full-book OCR; no text inference",
+  "regions": [
+    {
+      "id": "zh-variation",
+      "seq": 60,
+      "type": "chinese-prose",
+      "rect": {
+        "left": 210,
+        "top": 460,
+        "width": 740,
+        "height": 68
+      }
+    },
+    {
+      "id": "zh-oxygen",
+      "seq": 200,
+      "type": "chinese-prose",
+      "rect": {
+        "left": 230,
+        "top": 995,
+        "width": 1660,
+        "height": 68
+      }
+    },
+    {
+      "id": "en-assortment",
+      "seq": 317,
+      "type": "english-terms",
+      "rect": {
+        "left": 590,
+        "top": 190,
+        "width": 850,
+        "height": 85
+      }
+    },
+    {
+      "id": "en-transcription",
+      "seq": 324,
+      "type": "english-terms",
+      "rect": {
+        "left": 245,
+        "top": 1515,
+        "width": 300,
+        "height": 60
+      }
+    },
+    {
+      "id": "formula-iron",
+      "seq": 200,
+      "type": "chemical-symbols",
+      "rect": {
+        "left": 1355,
+        "top": 480,
+        "width": 80,
+        "height": 65
+      }
+    },
+    {
+      "id": "formula-affinity",
+      "seq": 200,
+      "type": "chemical-symbols",
+      "rect": {
+        "left": 795,
+        "top": 805,
+        "width": 280,
+        "height": 65
+      }
+    },
+    {
+      "id": "symbol-beta",
+      "seq": 230,
+      "type": "greek-symbols",
+      "rect": {
+        "left": 170,
+        "top": 2085,
+        "width": 650,
+        "height": 85
+      }
+    },
+    {
+      "id": "table-nucleic-acids",
+      "seq": 19,
+      "type": "table",
+      "rect": {
+        "left": 40,
+        "top": 265,
+        "width": 1650,
+        "height": 245
+      }
+    },
+    {
+      "id": "figure-nucleus-labels",
+      "seq": 10,
+      "type": "figure-labels",
+      "rect": {
+        "left": 940,
+        "top": 220,
+        "width": 350,
+        "height": 400
+      }
+    },
+    {
+      "id": "blank-control",
+      "seq": 486,
+      "type": "blank-control",
+      "rect": {
+        "left": 0,
+        "top": 0,
+        "width": 1999,
+        "height": 3293
+      }
+    },
+    {
+      "id": "zh-translation-location",
+      "seq": 325,
+      "type": "chinese-prose",
+      "rect": {
+        "left": 225,
+        "top": 318,
+        "width": 1160,
+        "height": 68
+      }
+    },
+    {
+      "id": "en-central-dogma",
+      "seq": 324,
+      "type": "english-terms",
+      "rect": {
+        "left": 535,
+        "top": 270,
+        "width": 320,
+        "height": 90
+      }
+    }
+  ],
+  "variants": [
+    {
+      "id": "crop-mixed-block",
+      "languages": [
+        "eng",
+        "chi_tra"
+      ],
+      "psm": 6,
+      "scale": 2,
+      "preprocess": "grayscale-normalize-sharpen",
+      "purpose": "isolate ROI with uniform-block segmentation"
+    },
+    {
+      "id": "crop-chi-line",
+      "languages": [
+        "chi_tra"
+      ],
+      "psm": 7,
+      "scale": 2,
+      "preprocess": "grayscale-normalize-sharpen",
+      "types": [
+        "chinese-prose"
+      ],
+      "purpose": "test Chinese-first recognition on selected single-line prose"
+    },
+    {
+      "id": "crop-eng-line",
+      "languages": [
+        "eng"
+      ],
+      "psm": 7,
+      "scale": 3,
+      "preprocess": "grayscale-normalize-sharpen",
+      "types": [
+        "english-terms",
+        "chemical-symbols"
+      ],
+      "purpose": "test isolated English/formula line; no symbol restoration"
+    }
+  ],
+  "maxAttempts": 3,
+  "humanGroundTruthRequired": true,
+  "independentHumanApprovals": 0,
+  "reviewDirectory": "review-regions-v2"
+}

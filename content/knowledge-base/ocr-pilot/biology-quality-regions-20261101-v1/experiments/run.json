@@ -1,0 +1,190 @@
+{
+  "config": {
+    "planSha256": "1b094f4f224827191ecf2651fb7d2201259a04b1baccca04af8e546b5a431a4b",
+    "baselineRunSha256": "bc8c4eac980a73260a2c6c572930e3cce52252210fe1cb725ed33ada95b1078f",
+    "scriptSha256": "0f22047f93ea854caf9642862198f7eea70b0dab76c7489364eea804fd1f8898",
+    "engine": "7.0.0",
+    "core": "7.0.0",
+    "sharp": "0.35.3",
+    "models": {
+      "eng": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+      "chi_tra": "6abfb87cce5db0d09624f16eedd8a0b24173718856121f721b6d1214193d4dab"
+    },
+    "variants": [
+      {
+        "id": "crop-mixed-block",
+        "languages": [
+          "eng",
+          "chi_tra"
+        ],
+        "psm": 6,
+        "scale": 2,
+        "preprocess": "grayscale-normalize-sharpen",
+        "purpose": "isolate ROI with uniform-block segmentation"
+      },
+      {
+        "id": "crop-chi-line",
+        "languages": [
+          "chi_tra"
+        ],
+        "psm": 7,
+        "scale": 2,
+        "preprocess": "grayscale-normalize-sharpen",
+        "types": [
+          "chinese-prose"
+        ],
+        "purpose": "test Chinese-first recognition on selected single-line prose"
+      },
+      {
+        "id": "crop-eng-line",
+        "languages": [
+          "eng"
+        ],
+        "psm": 7,
+        "scale": 3,
+        "preprocess": "grayscale-normalize-sharpen",
+        "types": [
+          "english-terms",
+          "chemical-symbols"
+        ],
+        "purpose": "test isolated English/formula line; no symbol restoration"
+      }
+    ],
+    "regions": [
+      {
+        "id": "zh-variation",
+        "seq": 60,
+        "type": "chinese-prose",
+        "rect": {
+          "left": 210,
+          "top": 460,
+          "width": 740,
+          "height": 68
+        }
+      },
+      {
+        "id": "zh-oxygen",
+        "seq": 200,
+        "type": "chinese-prose",
+        "rect": {
+          "left": 230,
+          "top": 995,
+          "width": 1660,
+          "height": 68
+        }
+      },
+      {
+        "id": "en-assortment",
+        "seq": 317,
+        "type": "english-terms",
+        "rect": {
+          "left": 590,
+          "top": 190,
+          "width": 850,
+          "height": 85
+        }
+      },
+      {
+        "id": "en-transcription",
+        "seq": 324,
+        "type": "english-terms",
+        "rect": {
+          "left": 245,
+          "top": 1515,
+          "width": 300,
+          "height": 60
+        }
+      },
+      {
+        "id": "formula-iron",
+        "seq": 200,
+        "type": "chemical-symbols",
+        "rect": {
+          "left": 1355,
+          "top": 480,
+          "width": 80,
+          "height": 65
+        }
+      },
+      {
+        "id": "formula-affinity",
+        "seq": 200,
+        "type": "chemical-symbols",
+        "rect": {
+          "left": 795,
+          "top": 805,
+          "width": 280,
+          "height": 65
+        }
+      },
+      {
+        "id": "symbol-beta",
+        "seq": 230,
+        "type": "greek-symbols",
+        "rect": {
+          "left": 170,
+          "top": 2085,
+          "width": 650,
+          "height": 85
+        }
+      },
+      {
+        "id": "table-nucleic-acids",
+        "seq": 19,
+        "type": "table",
+        "rect": {
+          "left": 40,
+          "top": 265,
+          "width": 1650,
+          "height": 245
+        }
+      },
+      {
+        "id": "figure-nucleus-labels",
+        "seq": 10,
+        "type": "figure-labels",
+        "rect": {
+          "left": 940,
+          "top": 220,
+          "width": 350,
+          "height": 400
+        }
+      },
+      {
+        "id": "blank-control",
+        "seq": 486,
+        "type": "blank-control",
+        "rect": {
+          "left": 0,
+          "top": 0,
+          "width": 1999,
+          "height": 3293
+        }
+      },
+      {
+        "id": "zh-translation-location",
+        "seq": 325,
+        "type": "chinese-prose",
+        "rect": {
+          "left": 225,
+          "top": 318,
+          "width": 1160,
+          "height": 68
+        }
+      },
+      {
+        "id": "en-central-dogma",
+        "seq": 324,
+        "type": "english-terms",
+        "rect": {
+          "left": 535,
+          "top": 270,
+          "width": 320,
+          "height": 90
+        }
+      }
+    ]
+  },
+  "fingerprint": "f8a57682c3539632f6114b9614d9df52875c896e80bc617733cef43c18834132",
+  "status": "machine-extracted; pending_human_review"
+}
