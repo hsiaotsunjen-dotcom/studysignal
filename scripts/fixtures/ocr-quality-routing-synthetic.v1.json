@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "kind": "synthetic",
+  "notTextbookData": true,
+  "pages": [
+    {
+      "page": {
+        "seq": 1,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-0",
+              "type": "paragraph",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 2,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-1",
+              "type": "table",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 3,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-2",
+              "type": "image",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 4,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-3",
+              "type": "paragraph",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "�",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 5,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-4",
+              "type": "table",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "Fe2+",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 6,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-5",
+              "type": "image",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "ONE TWO THREE FOUR FIVE SIX SEVEN EIGHT",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 7,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-6",
+              "type": "paragraph",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 8,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-7",
+              "type": "table",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 9,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-8",
+              "type": "image",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 10,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-9",
+              "type": "paragraph",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 11,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-10",
+              "type": "table",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    },
+    {
+      "page": {
+        "seq": 12,
+        "width": 1000,
+        "height": 1000,
+        "layout": {
+          "regions": [
+            {
+              "id": "synthetic-11",
+              "type": "image",
+              "rect": {
+                "left": 10,
+                "top": 10,
+                "width": 50,
+                "height": 20
+              },
+              "parentId": null,
+              "heuristicScore": 0.4
+            }
+          ],
+          "words": []
+        }
+      },
+      "raw": "synthetic",
+      "tsv": "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+    }
+  ]
+}

@@ -1,0 +1,466 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "historical-local-observation-not-recomputed-by-public-fixtures",
+  "summary": {
+    "schemaVersion": 1,
+    "ruleVersion": "quality-routing-mvp-1",
+    "pages": 12,
+    "counts": {
+      "sample": 0,
+      "review": 12,
+      "retry": 0
+    },
+    "riskCounts": {
+      "text_missing": {
+        "events": 180,
+        "pages": 11
+      },
+      "abnormal_characters": {
+        "events": 2,
+        "pages": 2
+      },
+      "reading_order": {
+        "events": 6,
+        "pages": 6
+      },
+      "table_structure": {
+        "events": 21,
+        "pages": 7
+      },
+      "figures": {
+        "events": 23,
+        "pages": 12
+      },
+      "formulas_terms": {
+        "events": 10,
+        "pages": 10
+      },
+      "layout": {
+        "events": 109,
+        "pages": 11
+      }
+    },
+    "reproducible": true,
+    "protectedFiles": 861,
+    "protectedChanges": 0,
+    "ocrExecutions": 0,
+    "cer": null,
+    "wer": null,
+    "accuracy": null,
+    "elapsedMs": 751.0217,
+    "timingScope": "source hashing, validation and twice-run assessment; excludes writing reports; not OCR time",
+    "perPage": [
+      {
+        "seq": 2,
+        "route": "review",
+        "risks": 44,
+        "elapsedMs": 11.425399999999968
+      },
+      {
+        "seq": 10,
+        "route": "review",
+        "risks": 37,
+        "elapsedMs": 7.979600000000005
+      },
+      {
+        "seq": 19,
+        "route": "review",
+        "risks": 63,
+        "elapsedMs": 8.34190000000001
+      },
+      {
+        "seq": 60,
+        "route": "review",
+        "risks": 18,
+        "elapsedMs": 9.137000000000057
+      },
+      {
+        "seq": 200,
+        "route": "review",
+        "risks": 28,
+        "elapsedMs": 8.387699999999995
+      },
+      {
+        "seq": 230,
+        "route": "review",
+        "risks": 39,
+        "elapsedMs": 7.680099999999925
+      },
+      {
+        "seq": 317,
+        "route": "review",
+        "risks": 16,
+        "elapsedMs": 6.273700000000076
+      },
+      {
+        "seq": 324,
+        "route": "review",
+        "risks": 43,
+        "elapsedMs": 8.407500000000027
+      },
+      {
+        "seq": 325,
+        "route": "review",
+        "risks": 21,
+        "elapsedMs": 6.261600000000044
+      },
+      {
+        "seq": 465,
+        "route": "review",
+        "risks": 11,
+        "elapsedMs": 7.824299999999994
+      },
+      {
+        "seq": 472,
+        "route": "review",
+        "risks": 29,
+        "elapsedMs": 6.831000000000017
+      },
+      {
+        "seq": 486,
+        "route": "review",
+        "risks": 2,
+        "elapsedMs": 3.9551999999999907
+      }
+    ]
+  },
+  "signalValidation": {
+    "pagesInPilot": 12,
+    "selectedPages": 6,
+    "cases": 12,
+    "counts": {
+      "agent_observed_ocr_error": 6,
+      "suspected_error": 2,
+      "possible_false_positive": 4
+    },
+    "selection": "purposive, not random or exhaustive",
+    "reviewerType": "agent",
+    "humanApprovals": 0,
+    "groundTruthCount": 0,
+    "cer": null,
+    "wer": null,
+    "precision": null,
+    "recall": null,
+    "protectedFiles": 878,
+    "protectedChanges": 0,
+    "ocrExecutions": 0,
+    "unknownChecksAloneRouteToReview": 12,
+    "risksAloneRouteToReview": 12,
+    "ruleChanges": 0,
+    "protectedFilesMeaning": "historical pre-portability check"
+  },
+  "sources": [
+    {
+      "seq": 2,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_21_37R.jpg",
+        "sha256": "11823b3e92c3947b7ce061818b5a137b836147f1b562c86329fc74916b9330f6"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 5,
+        "label": "5",
+        "verification": "verified"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/result.json",
+        "sha256": "1165b1338b4083c39b38578d99a081bf83399e675fff0eda9f8d0e279d9e4f71",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/raw.txt",
+        "rawSha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/layout.tsv",
+        "tsvSha256": "09796a5d9054d90308eecd18a810d0119609ca293fe67425522f2383ad63968b"
+      },
+      "layout": {
+        "file": "scan0002/layout.json",
+        "sha256": "c5990bb20e850ad71e6c75a7e8f93deeb6b65be573bec364d5c1046f0d3d17b4"
+      }
+    },
+    {
+      "seq": 10,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_25_24R.jpg",
+        "sha256": "c0a83b715a6aa3700384c125975b2308cf98317ca7fbe7b0877fcc5b7230c539"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 15,
+        "label": "15",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/result.json",
+        "sha256": "ddc0cab89255051ba3e813a1a3cc7c88ffa1f7dd10700f2db5aa2514eb0d3af4",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/raw.txt",
+        "rawSha256": "9776e56c10ae6ecab788ebe7284fffceeb2cbfbed8cf01c49b2015e2458fea27",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/layout.tsv",
+        "tsvSha256": "d54b8b3cc4df48dfcae5e419288e7b2dbcbfeb05748cdafb02770ed588f2236c"
+      },
+      "layout": {
+        "file": "scan0010/layout.json",
+        "sha256": "83ac5ad79849c65181867d4e83c85b46940cca76ac1cd38774465ee9211fc03d"
+      }
+    },
+    {
+      "seq": 19,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_26_09L.jpg",
+        "sha256": "dc8dadfa135f66839570835d9cd60fde2b92a6753f1983b6cc3304d664961262"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 24,
+        "label": "24",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/result.json",
+        "sha256": "a6a9c6686ad0193d318627a95caa6fe27f5aea81706a6be99caf0766fb34231e",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/raw.txt",
+        "rawSha256": "9833fce532a21acece055401c9e37cdd9c018b52d6ca33b431a62e6d48046e36",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/layout.tsv",
+        "tsvSha256": "3eb15991ff4dc7b74cc8594c14e44ab210bb6f90f8a45764232d28d3ec5f71e4"
+      },
+      "layout": {
+        "file": "scan0019/layout.json",
+        "sha256": "84c6efd3a597721b85101a0d221616d4bd4b1951d2a5c286ddd92eb009b56cdf"
+      }
+    },
+    {
+      "seq": 60,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_34_50R.jpg",
+        "sha256": "ae04a3468bacfaa16d95b1e22e3a67b41da3bb96b6d9bf0d13fcbeff6b12030d"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 65,
+        "label": "65",
+        "verification": "verified"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/result.json",
+        "sha256": "e5c56767c259efb76124af60d80fb7b14ab1f59be6f2662ccae724c24ef1ebf9",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/raw.txt",
+        "rawSha256": "1fe795912f28b53e2c5d838ed12778042908fd811bb13fcc00ef1d8733ea1eda",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/layout.tsv",
+        "tsvSha256": "efce628020030e3be5b6fc53bf4bbadc9a3cc49ef788cb9cf2de37d059fc94b6"
+      },
+      "layout": {
+        "file": "scan0060/layout.json",
+        "sha256": "b4f92733d442fa59be0aaf03b7e10f0f3fc648e9fe8de597957fa0df9adecbdd"
+      }
+    },
+    {
+      "seq": 200,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_48_04R.jpg",
+        "sha256": "6e8471c2d6ccaebfbd518573a936e7064dea78ff3f29d92aae7b0421134eb67b"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 205,
+        "label": "205",
+        "verification": "verified"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/result.json",
+        "sha256": "43e01927f7e90d5f2c02836a1368ab750119e80c6d6138ea2decbc9bc6aa5456",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/raw.txt",
+        "rawSha256": "9df0b72d1c8b84f852441b3d4fb41e6d617dcc364dd22c95995a478a2bb3f756",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/layout.tsv",
+        "tsvSha256": "4680c2415406c599744370af48a863db48f1bf172fb993a37934a303480cdea4"
+      },
+      "layout": {
+        "file": "scan0200/layout.json",
+        "sha256": "adc29564680bba6ebdadb6e6432b34a48a33fd5b2fef3ffb792141550c7b731e"
+      }
+    },
+    {
+      "seq": 230,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_50_15R.jpg",
+        "sha256": "5fdab54209be5e9278062534013c711e0b546e1167cf30de83474a69cf83a0f2"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 235,
+        "label": "235",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/result.json",
+        "sha256": "490a9b0c631a9268862304b0bec3c79db532d50166b5f47d7e9de1954094ce8c",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/raw.txt",
+        "rawSha256": "05739019e77ac3708113843337196cb00cac9b1c01ed15c4826c877360de64ab",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/layout.tsv",
+        "tsvSha256": "4ab02845d04ddfb21001c27642adf2dba5221208a8bf22697c817381585dea21"
+      },
+      "layout": {
+        "file": "scan0230/layout.json",
+        "sha256": "9c299536f426eb085c32b18f5c16ce3b2bd8a8756d05d63fb314645b42cdb7b8"
+      }
+    },
+    {
+      "seq": 317,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32L.jpg",
+        "sha256": "e55df628b4c9b75e22fbc7e367539c2c6ce24e6b036a04a071cebe3d449f4d07"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 322,
+        "label": "322",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/result.json",
+        "sha256": "08128401fc2d13968fb880172232310d2f9df775d38624d500543d60a3c67581",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/raw.txt",
+        "rawSha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/layout.tsv",
+        "tsvSha256": "9182c97a52cafb021d9fc17818b8e9746ae7cf42f221c0081b3cd807e7df4d5a"
+      },
+      "layout": {
+        "file": "scan0317/layout.json",
+        "sha256": "d2f60afc2194c167afb1cc787531a0b53bcb41f49cdc047659b4bb691e76caac"
+      }
+    },
+    {
+      "seq": 324,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_57R.jpg",
+        "sha256": "46d7fadd926f2c70354fa3f87fa3064d6790bb344adc887a8e07717347f49ee1"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 329,
+        "label": "329",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/result.json",
+        "sha256": "5cc42bc442d85a593c2b0d950d8c59f855ae27ee48e4349c96e202341a3b661b",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/raw.txt",
+        "rawSha256": "984439784bd650db448ca5920ce53a809afba5b045348e23fa2bb9e326b63391",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/layout.tsv",
+        "tsvSha256": "bebc3ae1ea581ec54037fb7c1e034571c228e5ed72392050a5cab3dddaf67bba"
+      },
+      "layout": {
+        "file": "scan0324/layout.json",
+        "sha256": "07adf422e41b67cdf23dc211bdf753135a79f00f15518f9a0fd7b16cab7e873c"
+      }
+    },
+    {
+      "seq": 325,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_56_04L.jpg",
+        "sha256": "c82cff36594fdbedc6ed7c92b2dbb9ed77bb2193a546bfb2754423e1a71a03c0"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 330,
+        "label": "330",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/result.json",
+        "sha256": "87dd2de2ffbb4792495ffc11906a64b456c96fb95fa1127503fff98d868d61f5",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/raw.txt",
+        "rawSha256": "df3b7cb2c0c6307521710b73de49dbcc01ebe0b5a20331233563f68d8d405b6f",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/layout.tsv",
+        "tsvSha256": "c409e76d4b1d66d92ee85314f4315685bd0c7d2452cfc9b105f8272b3be8d00e"
+      },
+      "layout": {
+        "file": "scan0325/layout.json",
+        "sha256": "280cf77a7119159c126bb2a1e0b4cb15a5ec1d1bb8acaee799b326983314b3ab"
+      }
+    },
+    {
+      "seq": 465,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_03_54L.jpg",
+        "sha256": "0fd8de39662fda27c6945d85e41cb67b1baa3934f37ef5c2d238cc6ffa558daf"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": null,
+        "label": "附-12",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/result.json",
+        "sha256": "56b99fe58ba9dae8d50fabf83459114017452bd0c56d02c1c52815dcda5bfd16",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/raw.txt",
+        "rawSha256": "034e87a2ee152bf7efd46971b511a5b23545dbd0ab8eadab2cb6fdc9a80c9023",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/layout.tsv",
+        "tsvSha256": "698f6c4c2cb4d2ea414f6f0816fb3749ecc1c2ad536f094a37b0bd68c4259ee6"
+      },
+      "layout": {
+        "file": "scan0465/layout.json",
+        "sha256": "98c1e7edd047e9c6cf1dc3b0b4341753722135730fed59bfb79f45105ca2eab2"
+      }
+    },
+    {
+      "seq": 472,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_04_17R.jpg",
+        "sha256": "9d8146cb2d09605b48674f54e0f1c8b31b93eb9beb359369e2dfae3ab263acac"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": null,
+        "label": "附-19",
+        "verification": "estimated"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/result.json",
+        "sha256": "85c8567b940da68acaf7692658b7207372d9e15126e71a341b733eee2c5a1ace",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/raw.txt",
+        "rawSha256": "cd699e3f52caa2ad7cffdf1bc7b64c96279bcd62b6132e6ec085ba72149ff54b",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/layout.tsv",
+        "tsvSha256": "a69669a3bae9b5d4b0ba16380c4eb2e3f45314512b686d206902ee45803819b3"
+      },
+      "layout": {
+        "file": "scan0472/layout.json",
+        "sha256": "b6c59bc4acb778a03316576b257545e8603a219b404eca53ce4dd48db9991cb4"
+      }
+    },
+    {
+      "seq": 486,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_05_09R.jpg",
+        "sha256": "ffcd3d9e59982bf16361a0f0202df6e3f4edd1e0f495129de53b99966a77c157"
+      },
+      "pageIndex": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": null,
+        "label": null,
+        "verification": "unnumbered"
+      },
+      "ocr": {
+        "result": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/result.json",
+        "sha256": "f044db792358cfee455ef1ff984625e0910abc9ef055112bc9647baf3d8c7966",
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/raw.txt",
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/layout.tsv",
+        "tsvSha256": "0f8c85bbfde0327bdc998bf8575b4c4bf1a34675d8ed129e777c8232e28d96aa"
+      },
+      "layout": {
+        "file": "scan0486/layout.json",
+        "sha256": "d0eb194452cd5ad30a3167703fdf10654b6fe8f9f204b9f05e42acc2f7bedb49"
+      }
+    }
+  ]
+}

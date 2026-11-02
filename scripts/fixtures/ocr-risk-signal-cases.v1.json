@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "archived-agent-observations-not-ground-truth",
+  "cases": [
+    {
+      "id": "signal-01",
+      "seq": 2,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 5,
+        "label": "5",
+        "verification": "verified"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_21_37R.jpg",
+        "sha256": "11823b3e92c3947b7ce061818b5a137b836147f1b562c86329fc74916b9330f6",
+        "width": 2215,
+        "height": 3272
+      },
+      "location": {
+        "description": "目錄第一列，4-5 章節名稱",
+        "rect": {
+          "left": 884,
+          "top": 750,
+          "width": 88,
+          "height": 44
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/raw.txt",
+        "rawSha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/layout.tsv",
+        "excerpt": "連動",
+        "offset": 20
+      },
+      "risk": {
+        "id": "risk-41",
+        "rule": "large-within-line-gap"
+      },
+      "observation": "原圖該詞與 OCR 不同，清楚可見字形差異。頁級大間距警示沒有精確定位這個錯字，不能算字錯偵測成功。",
+      "action": "人工核對該詞；獨立記錄字錯，不把目錄點線間距當作錯字原因。"
+    },
+    {
+      "id": "signal-02",
+      "seq": 200,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 205,
+        "label": "205",
+        "verification": "verified"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_48_04R.jpg",
+        "sha256": "6e8471c2d6ccaebfbd518573a936e7064dea78ff3f29d92aae7b0421134eb67b",
+        "width": 2107,
+        "height": 3164
+      },
+      "location": {
+        "description": "上方血紅素成分段落，含鐵符號",
+        "rect": {
+          "left": 1372,
+          "top": 477,
+          "width": 65,
+          "height": 68
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/raw.txt",
+        "rawSha256": "9df0b72d1c8b84f852441b3d4fb41e6d617dcc364dd22c95995a478a2bb3f756",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/layout.tsv",
+        "excerpt": "Fe?",
+        "offset": 135
+      },
+      "risk": {
+        "id": "risk-28",
+        "rule": "symbol-or-formula-candidate"
+      },
+      "observation": "原圖有上標電荷，OCR 變成問號；公式規則卻未直接列出 Fe? 的文字 span，顯示局部定位盲點。",
+      "action": "人工確認電荷及上下標，必要時提出局部重辨識；不自動補字。"
+    },
+    {
+      "id": "signal-03",
+      "seq": 325,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 330,
+        "label": "330",
+        "verification": "estimated"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_56_04L.jpg",
+        "sha256": "c82cff36594fdbedc6ed7c92b2dbb9ed77bb2193a546bfb2754423e1a71a03c0",
+        "width": 2034,
+        "height": 3107
+      },
+      "location": {
+        "description": "正文第⑤項，圖6-16上方",
+        "rect": null,
+        "coordinateEvidence": "approximate visual location only",
+        "approximateNormalizedRect": {
+          "left": 0.08,
+          "top": 0.42,
+          "width": 0.89,
+          "height": 0.06
+        }
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/raw.txt",
+        "rawSha256": "df3b7cb2c0c6307521710b73de49dbcc01ebe0b5a20331233563f68d8d405b6f",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/layout.tsv",
+        "excerpt": "蛋白質。",
+        "offset": 506
+      },
+      "risk": {
+        "id": "risk-20",
+        "rule": "figure-labels-and-topology-unverified"
+      },
+      "observation": "原圖第⑤項有完整兩行正文，raw 僅留下末尾短片段；圖片風險警示沒有定位這個漏段。",
+      "action": "新增條列完整性及影像文字覆蓋的候選檢查，再由人工核對。"
+    },
+    {
+      "id": "signal-04",
+      "seq": 317,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 322,
+        "label": "322",
+        "verification": "estimated"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32L.jpg",
+        "sha256": "e55df628b4c9b75e22fbc7e367539c2c6ce24e6b036a04a071cebe3d449f4d07",
+        "width": 2125,
+        "height": 3108
+      },
+      "location": {
+        "description": "中間概念圖 RNA 右側三個節點",
+        "rect": null,
+        "coordinateEvidence": "approximate visual location only",
+        "approximateNormalizedRect": {
+          "left": 0.56,
+          "top": 0.52,
+          "width": 0.14,
+          "height": 0.08
+        }
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/raw.txt",
+        "rawSha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/layout.tsv",
+        "excerpt": "半保留複製",
+        "offset": 282
+      },
+      "risk": {
+        "id": "risk-15",
+        "rule": "figure-labels-and-topology-unverified"
+      },
+      "observation": "原圖可見 mRNA、tRNA、rRNA 節點；raw 未包含這三個字串，僅保留概念圖少量其他文字。圖示風險有助提醒，但未定位缺失節點或分支。",
+      "action": "節點、文字與連線分開核對，不以學科知識重建缺失內容。"
+    },
+    {
+      "id": "signal-05",
+      "seq": 317,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 322,
+        "label": "322",
+        "verification": "estimated"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32L.jpg",
+        "sha256": "e55df628b4c9b75e22fbc7e367539c2c6ce24e6b036a04a071cebe3d449f4d07",
+        "width": 2125,
+        "height": 3108
+      },
+      "location": {
+        "description": "上方主要內容第(1)項的右端",
+        "rect": {
+          "left": 1832,
+          "top": 478,
+          "width": 82,
+          "height": 28
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/raw.txt",
+        "rawSha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/layout.tsv",
+        "excerpt": "2. 主要內容\n影響。",
+        "offset": 117
+      },
+      "risk": {
+        "id": "risk-3",
+        "rule": "partial-OCR-word-box"
+      },
+      "observation": "原圖的句末片段被先輸出在主句前，又有相近重複辨識。頁面沒有觸發 large-within-line-gap；幾何截框警示不等同閱讀順序檢查。",
+      "action": "比對兩個影響 token 的原圖位置；建立跨行順序與重複候選，不直接刪字。"
+    },
+    {
+      "id": "signal-06",
+      "seq": 230,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 235,
+        "label": "235",
+        "verification": "estimated"
+      },
+      "classification": "agent_observed_ocr_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_50_15R.jpg",
+        "sha256": "5fdab54209be5e9278062534013c711e0b546e1167cf30de83474a69cf83a0f2",
+        "width": 2099,
+        "height": 3145
+      },
+      "location": {
+        "description": "降鈣素正文第一行，右側甲狀腺圖左邊",
+        "rect": {
+          "left": 537,
+          "top": 1052,
+          "width": 99,
+          "height": 42
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/raw.txt",
+        "rawSha256": "05739019e77ac3708113843337196cb00cac9b1c01ed15c4826c877360de64ab",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/layout.tsv",
+        "excerpt": "RS fi FES HO Ca FEF EIB BE TR",
+        "offset": 434
+      },
+      "risk": {
+        "id": "risk-35",
+        "rule": "long-latin-run"
+      },
+      "observation": "原圖是中文敘述混合鈣離子符號，對應區域卻輸出一串英文字母；此規則確實指出可見辨識失真，但沒有涵蓋其他全部錯字。",
+      "action": "針對該行圖文環繞及文字區域提出候選檢查，人工確認後才決定局部重辨識。"
+    },
+    {
+      "id": "signal-07",
+      "seq": 2,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 5,
+        "label": "5",
+        "verification": "verified"
+      },
+      "classification": "suspected_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_21_37R.jpg",
+        "sha256": "11823b3e92c3947b7ce061818b5a137b836147f1b562c86329fc74916b9330f6",
+        "width": 2215,
+        "height": 3272
+      },
+      "location": {
+        "description": "目錄5-2列，章名與右側頁碼之間",
+        "rect": {
+          "left": 749,
+          "top": 1355,
+          "width": 179,
+          "height": 46
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/raw.txt",
+        "rawSha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/layout.tsv",
+        "excerpt": "PAGES WEEmEZ Teihe",
+        "offset": 158
+      },
+      "risk": {
+        "id": "risk-41",
+        "rule": "large-within-line-gap"
+      },
+      "observation": "點線導引本來就形成大間距；同列 OCR 另有錯辨，不能僅由大間距判定跨欄錯誤，也不能稱本事件完全誤報。",
+      "action": "人工核對章名—頁碼配對；以目錄型態處理正常導引間距。"
+    },
+    {
+      "id": "signal-08",
+      "seq": 200,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 205,
+        "label": "205",
+        "verification": "verified"
+      },
+      "classification": "suspected_error",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_48_04R.jpg",
+        "sha256": "6e8471c2d6ccaebfbd518573a936e7064dea78ff3f29d92aae7b0421134eb67b",
+        "width": 2107,
+        "height": 3164
+      },
+      "location": {
+        "description": "二氧化碳運輸段落內，藍色候選框邊界",
+        "rect": {
+          "left": 352,
+          "top": 1578,
+          "width": 1755,
+          "height": 280
+        },
+        "coordinateEvidence": "existing candidate region",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/raw.txt",
+        "rawSha256": "9df0b72d1c8b84f852441b3d4fb41e6d617dcc364dd22c95995a478a2bb3f756",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/layout.tsv",
+        "excerpt": "(2)少部分CO,與血紅素結合",
+        "offset": 652
+      },
+      "risk": {
+        "id": "risk-3",
+        "rule": "partial-OCR-word-box"
+      },
+      "observation": "region-010 截到既有文字框，幾何事件成立；該框本身可能是色塊誤判，所以無法據此證明實際裁切輸出漏字。",
+      "action": "先確認區域類型與用途，再檢查真正裁切邊界；不要讓錯誤父框衍生多項獨立工作。"
+    },
+    {
+      "id": "signal-09",
+      "seq": 2,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 5,
+        "label": "5",
+        "verification": "verified"
+      },
+      "classification": "possible_false_positive",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_21_37R.jpg",
+        "sha256": "11823b3e92c3947b7ce061818b5a137b836147f1b562c86329fc74916b9330f6",
+        "width": 2215,
+        "height": 3272
+      },
+      "location": {
+        "description": "頁頂藍色目錄裝飾區",
+        "rect": {
+          "left": 0,
+          "top": 0,
+          "width": 2215,
+          "height": 592
+        },
+        "coordinateEvidence": "existing candidate region",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/raw.txt",
+        "rawSha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/layout.tsv",
+        "excerpt": "",
+        "offset": null
+      },
+      "risk": {
+        "id": "risk-22",
+        "rule": "color-table-without-subregions"
+      },
+      "observation": "region-017 對應目錄裝飾橫幅，不是可見列欄表格。色塊偵測把裝飾列為表格候選；未驗證提示不是已證實表格錯誤。",
+      "action": "色塊僅作候選；加入列欄／文字對齊證據，保留原候選，不自動刪除。"
+    },
+    {
+      "id": "signal-10",
+      "seq": 317,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 322,
+        "label": "322",
+        "verification": "estimated"
+      },
+      "classification": "possible_false_positive",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32L.jpg",
+        "sha256": "e55df628b4c9b75e22fbc7e367539c2c6ce24e6b036a04a071cebe3d449f4d07",
+        "width": 2125,
+        "height": 3108
+      },
+      "location": {
+        "description": "6-2章節標題藍色橫幅",
+        "rect": {
+          "left": 235,
+          "top": 934,
+          "width": 1820,
+          "height": 116
+        },
+        "coordinateEvidence": "existing candidate region",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/raw.txt",
+        "rawSha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/layout.tsv",
+        "excerpt": "",
+        "offset": null
+      },
+      "risk": {
+        "id": "risk-4",
+        "rule": "color-table-without-subregions"
+      },
+      "observation": "region-010 指向章節標題橫幅，未見表格列欄；表格候選可能造成多項重複審核。",
+      "action": "先確認標題橫幅，將其下游表格完整性警示合併回同一個候選類型問題。"
+    },
+    {
+      "id": "signal-11",
+      "seq": 486,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": null,
+        "label": null,
+        "verification": "unnumbered"
+      },
+      "classification": "possible_false_positive",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_05_09R.jpg",
+        "sha256": "ffcd3d9e59982bf16361a0f0202df6e3f4edd1e0f495129de53b99966a77c157",
+        "width": 1999,
+        "height": 3293
+      },
+      "location": {
+        "description": "空白主體右側邊緣候選區",
+        "rect": {
+          "left": 1962,
+          "top": 1090,
+          "width": 37,
+          "height": 946
+        },
+        "coordinateEvidence": "existing candidate region",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/raw.txt",
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/layout.tsv",
+        "excerpt": "",
+        "offset": null
+      },
+      "risk": {
+        "id": "risk-2",
+        "rule": "figure-labels-and-topology-unverified"
+      },
+      "observation": "五個 image 候選都位於右側窄帶，原圖可見頁邊／裝飾。圖示標籤與拓撲的覆核要求可能不適用；不能因此將整頁文字標成 verified。",
+      "action": "提出非教學裝飾隔離候選；保留原圖與區域並經人工確認後限定覆核範圍。"
+    },
+    {
+      "id": "signal-12",
+      "seq": 325,
+      "printedPage": {
+        "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+        "printedPage": 330,
+        "label": "330",
+        "verification": "estimated"
+      },
+      "classification": "possible_false_positive",
+      "reviewerType": "agent",
+      "humanConfirmed": false,
+      "status": "pending_human_review",
+      "groundTruth": null,
+      "source": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_56_04L.jpg",
+        "sha256": "c82cff36594fdbedc6ed7c92b2dbb9ed77bb2193a546bfb2754423e1a71a03c0",
+        "width": 2034,
+        "height": 3107
+      },
+      "location": {
+        "description": "起始階段(b)，正文內括號字串",
+        "rect": {
+          "left": 1082,
+          "top": 639,
+          "width": 107,
+          "height": 68
+        },
+        "coordinateEvidence": "existing OCR TSV token",
+        "approximateNormalizedRect": null
+      },
+      "ocr": {
+        "raw": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/raw.txt",
+        "rawSha256": "df3b7cb2c0c6307521710b73de49dbcc01ebe0b5a20331233563f68d8d405b6f",
+        "tsv": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/layout.tsv",
+        "excerpt": "UAC",
+        "offset": 211
+      },
+      "risk": {
+        "id": "risk-21",
+        "rule": "symbol-or-formula-candidate"
+      },
+      "observation": "規則對大寫字串本身觸發，並非由字形差異觸發；存在風險候選不等同存在辨識錯誤，也不證明本字串已正確。",
+      "action": "將符號候選視為重要性標記；需另外的字形／缺漏證據才能提升為錯誤警示。"
+    }
+  ]
+}

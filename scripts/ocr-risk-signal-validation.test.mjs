@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const script=n=>fileURLToPath(new URL('./'+n,import.meta.url));
+const temp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'studysignal-quality-test-'));
+const run=(name,args,cwd)=>JSON.parse(execFileSync(process.execPath,[script(name),...args],{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
+test('routing CLI works outside repo cwd with public synthetic inputs',()=>{const dir=temp(),r=run('ocr-quality-routing.mjs',['--out',path.join(dir,'routing')],dir);assert.equal(r.inputKind,'synthetic');assert.equal(r.pages,12);assert.equal(r.ocrExecutions,0);assert.equal(r.counts.review,12);assert.equal(r.accuracy,null);});
+test('archived cases integrity is reproducible, not independent human review',()=>{const dir=temp(),r=run('ocr-risk-signal-validation.mjs',['--out',path.join(dir,'signals')],dir);assert.deepEqual(r.counts,{agent_observed_ocr_error:6,suspected_error:2,possible_false_positive:4});assert.equal(r.humanApprovals,0);assert.equal(r.localReplay,null);});
+test('synthetic output cannot be passed off as real textbook replay',()=>{const dir=temp();run('ocr-quality-routing.mjs',['--out',path.join(dir,'routing')],dir);assert.throws(()=>run('ocr-risk-signal-validation.mjs',['--routing',path.join(dir,'routing'),'--out',path.join(dir,'signals')],dir));assert(!fs.existsSync(path.join(dir,'signals')));});
+test('existing output directory is rejected without overwriting',()=>{const dir=temp();fs.writeFileSync(path.join(dir,'sentinel'),'preserve',{flag:'wx'});assert.throws(()=>run('ocr-quality-routing.mjs',['--out',dir],dir));assert.equal(fs.readFileSync(path.join(dir,'sentinel'),'utf8'),'preserve');assert.deepEqual(fs.readdirSync(dir),['sentinel']);});
+test('unapproved cases cannot gain human approval through a packet edit',()=>{const dir=temp(),p=JSON.parse(fs.readFileSync(new URL('./fixtures/ocr-risk-signal-cases.v1.json',import.meta.url),'utf8'));p.cases[0].humanConfirmed=true;const f=path.join(dir,'bad.json');fs.writeFileSync(f,JSON.stringify(p),{flag:'wx'});assert.throws(()=>run('ocr-risk-signal-validation.mjs',['--cases',f,'--out',path.join(dir,'signals')],dir));assert(!fs.existsSync(path.join(dir,'signals')));});
+test('missing local inputs fail explicitly without synthetic fallback',()=>{const dir=temp();assert.throws(()=>run('ocr-quality-routing.mjs',['--config',path.join(dir,'missing.json'),'--out',path.join(dir,'routing')],dir));assert(!fs.existsSync(path.join(dir,'routing')));});
