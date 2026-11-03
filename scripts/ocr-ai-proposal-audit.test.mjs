@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {locateExact,auditProposal} from './lib/ocr-ai-proposal-audit.mjs';
+const image={width:100,height:100},base={start:0,end:1,before:'x',after:'y',bbox:[1,1,10,10]};
+test('unique anchor uses UTF16, not visual character count',()=>assert.equal(locateExact('😀x','x').span.start,2));
+test('duplicate anchor cannot be auto-resolved',()=>assert.equal(locateExact('xx','x').span,null));
+test('empty anchor rejected',()=>assert.equal(locateExact('abc','').status,'empty_anchor'));
+test('missing anchor rejected',()=>assert.equal(locateExact('abc','x').status,'not_found'));
+test('legacy field retained without semantic approval',()=>{const {bbox,...rest}=base;const a=auditProposal({...rest,'original-pixel bbox':bbox},'x',image);assert.equal(a.imageLocator.boundsValid,true);assert.equal(a.imageLocator.visualAlignmentVerified,false);assert.equal(a.autoApplyAllowed,false);});
+test('conflicting bbox aliases blocked',()=>assert.equal(auditProposal({...base,'original-pixel bbox':[2,2,10,10]},'x',image).imageLocator.bbox,null));
+test('out of bounds detected',()=>assert.equal(auditProposal({...base,bbox:[99,1,10,10]},'x',image).imageLocator.boundsValid,false));
+test('wrong original offsets remain wrong after anchor resolution',()=>{const a=auditProposal({...base,start:1,end:2},'x',image);assert.equal(a.originalOffsetsValid,false);assert.equal(a.textLocator.status,'unique_exact_match');});
+test('input object not mutated',()=>{const saved=JSON.stringify(base);auditProposal(base,'x',image);assert.equal(JSON.stringify(base),saved);});
