@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "adapter": "manifest-page-index-v1",
+  "subject": "biology",
+  "materialId": "shinedoc-textbook-20260930-1001",
+  "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+  "pageIndex": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+  "ocrRuns": [{"root": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2"}],
+  "layoutRoot": "tmp-ocr-layout-cross12-oH1jS3",
+  "layoutBaseline": "scripts/fixtures/ocr-quality-baseline.v1.json",
+  "evidenceMap": "content/knowledge-base/derived/biology/exam-topic-map-roc106-115.v5.json",
+  "reviewStores": ["tmp-ocr-ai-review-v22-ee3f1ab3-3c21-4e75-8fb0-90bfef2101b4"]
+}
