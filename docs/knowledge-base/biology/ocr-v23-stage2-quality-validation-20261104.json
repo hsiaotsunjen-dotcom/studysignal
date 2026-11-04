@@ -1,0 +1,1899 @@
+{
+  "schemaVersion": 1,
+  "kind": "ocr-v23-stage2-existing15-quality-validation",
+  "date": "2026-11-04",
+  "assessorType": "agent_visual_observation_not_independent_human",
+  "scope": "existing 15 page results only; no new OCR or text correction",
+  "sourceRefs": [
+    {
+      "path": "tmp-ocr-v23-stage1-20261104/catalog.final.json",
+      "sha256": "3fc5f05c81745cb3d1f735c1e03402853b6ef96235f7dae706d7816f9196007d"
+    },
+    {
+      "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+      "sha256": "14c5ec49a12683f1facc4353e14d4421f46205f5ef12cdd4c8f358ce86689251"
+    },
+    {
+      "path": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/page-index.json",
+      "sha256": "38c4986c8f93e2dcc46ab080bc69ae343f92fb364b575364fba07eeca50638d8"
+    }
+  ],
+  "summary": {
+    "pages": 15,
+    "sourceHashMatches": 15,
+    "requiredOcrLayerHashesMatched": 60,
+    "invalidWordBoxes": 0,
+    "nonemptyRawTsvAligned": 14,
+    "emptyControls": 1,
+    "visiblePageLabelMatches": 12,
+    "pageLabelNeedsReview": [
+      19,
+      21
+    ],
+    "S1": 11,
+    "S2": 3,
+    "controlPending": 1,
+    "formalCER": null,
+    "formalWER": null,
+    "accuracy": null
+  },
+  "categoryCounts": {
+    "chinese": {
+      "affectedPages": 14,
+      "scanSeqs": [
+        2,
+        6,
+        10,
+        19,
+        21,
+        60,
+        200,
+        230,
+        317,
+        318,
+        324,
+        325,
+        465,
+        472
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "latin_terms_labels_units": {
+      "affectedPages": 6,
+      "scanSeqs": [
+        2,
+        21,
+        317,
+        318,
+        324,
+        325
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "scientific_notation_scale": {
+      "affectedPages": 8,
+      "scanSeqs": [
+        19,
+        21,
+        200,
+        230,
+        318,
+        324,
+        325,
+        472
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "table_structure": {
+      "affectedPages": 3,
+      "scanSeqs": [
+        10,
+        19,
+        318
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "figure_caption_labels_topology": {
+      "affectedPages": 11,
+      "scanSeqs": [
+        6,
+        10,
+        21,
+        60,
+        200,
+        230,
+        317,
+        318,
+        324,
+        325,
+        472
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "reading_order_or_duplicate": {
+      "affectedPages": 5,
+      "scanSeqs": [
+        19,
+        60,
+        230,
+        317,
+        472
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    },
+    "substantial_text_or_label_loss": {
+      "affectedPages": 9,
+      "scanSeqs": [
+        10,
+        21,
+        200,
+        317,
+        318,
+        324,
+        325,
+        465,
+        472
+      ],
+      "meaning": "nonexclusive minimum observed page incidences; not character errors or accuracy"
+    }
+  },
+  "pages": [
+    {
+      "scanSeq": 2,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0002",
+      "printedPage": 5,
+      "label": "5",
+      "pageNumberVerification": "verified",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_21_37R.jpg",
+        "sha256": "11823b3e92c3947b7ce061818b5a137b836147f1b562c86329fc74916b9330f6"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/result.json",
+          "sha256": "1165b1338b4083c39b38578d99a081bf83399e675fff0eda9f8d0e279d9e4f71"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/raw.txt",
+            "sha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/normalized.txt",
+            "sha256": "1c164e140198e20e73396b9323351604682249b9fad2fe3c04c66596e9150883"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/layout.tsv",
+            "sha256": "09796a5d9054d90308eecd18a810d0119609ca293fe67425522f2383ad63968b"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0002/attempt-01/blocks.json",
+            "sha256": "3803e51b6cc25615cf0aa2852022389690fbe8d3a12bc17b882b8cd81c09f2df"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 137,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S2",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units"
+      ],
+      "locators": [
+        {
+          "text": "EERIE",
+          "offsetUtf16": 237,
+          "line1Based": 29,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 237,
+              "end": 242
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              746,
+              1816,
+              233,
+              46
+            ],
+            "wordIds": [
+              "word-00069"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 746,
+              "top": 1816,
+              "width": 233,
+              "height": 46
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/6/1/14",
+                "wordIds": [
+                  "word-00069"
+                ],
+                "rect": {
+                  "left": 746,
+                  "top": 1816,
+                  "width": 233,
+                  "height": 46
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 6,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0006",
+      "printedPage": 11,
+      "label": "11",
+      "pageNumberVerification": "verified",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_25_05R.jpg",
+        "sha256": "6e47fbaddc09b00b88fc78db30e9d4396fb5aba630d5f9b836125baef99a1408"
+      },
+      "ocr": {
+        "result": {
+          "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0006/attempt-01/result.json",
+          "sha256": "e7713846ddde85d509f5c943eabda12910a23d3e4a2596cef58a1bd6c1c4491c"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0006/attempt-01/raw.txt",
+            "sha256": "56bdf411faaf0dceca4974097deda9ae6de259391e2696a320335d742adb578f"
+          },
+          "normalized.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0006/attempt-01/normalized.txt",
+            "sha256": "56bdf411faaf0dceca4974097deda9ae6de259391e2696a320335d742adb578f"
+          },
+          "layout.tsv": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0006/attempt-01/layout.tsv",
+            "sha256": "6af95e22ff458c69251ca952ad8bb861b9cac009d2aeec05b09027e1f5abedff"
+          },
+          "blocks.json": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0006/attempt-01/blocks.json",
+            "sha256": "b6cd805caf252d2bbf7cecc19dde79da15753b748bd9a18d319da30f52d0ddac"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 420,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S2",
+      "categories": [
+        "chinese",
+        "figure_caption_labels_topology"
+      ],
+      "locators": [
+        {
+          "text": "細肥",
+          "offsetUtf16": 701,
+          "line1Based": 34,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 701,
+              "end": 703
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              211,
+              2711,
+              85,
+              40
+            ],
+            "wordIds": [
+              "word-00396",
+              "word-00397"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 211,
+              "top": 2711,
+              "width": 85,
+              "height": 40
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/9/3/1",
+                "wordIds": [
+                  "word-00396",
+                  "word-00397"
+                ],
+                "rect": {
+                  "left": 211,
+                  "top": 2711,
+                  "width": 85,
+                  "height": 40
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 10,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0010",
+      "printedPage": 15,
+      "label": "15",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_25_24R.jpg",
+        "sha256": "c0a83b715a6aa3700384c125975b2308cf98317ca7fbe7b0877fcc5b7230c539"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/result.json",
+          "sha256": "ddc0cab89255051ba3e813a1a3cc7c88ffa1f7dd10700f2db5aa2514eb0d3af4"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/raw.txt",
+            "sha256": "9776e56c10ae6ecab788ebe7284fffceeb2cbfbed8cf01c49b2015e2458fea27"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/normalized.txt",
+            "sha256": "9776e56c10ae6ecab788ebe7284fffceeb2cbfbed8cf01c49b2015e2458fea27"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/layout.tsv",
+            "sha256": "d54b8b3cc4df48dfcae5e419288e7b2dbcbfeb05748cdafb02770ed588f2236c"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0010/attempt-01/blocks.json",
+            "sha256": "0a20abdc70b855aa50a5378e7725b1f25cc098b212e7e25337db074453287f11"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 386,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "table_structure",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "多描鏈",
+          "offsetUtf16": 292,
+          "line1Based": 21,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 292,
+              "end": 295
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1012,
+              1475,
+              109,
+              58
+            ],
+            "wordIds": [
+              "word-00170",
+              "word-00171",
+              "word-00172"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 1012,
+              "top": 1475,
+              "width": 109,
+              "height": 58
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/9/3/1",
+                "wordIds": [
+                  "word-00170",
+                  "word-00171",
+                  "word-00172"
+                ],
+                "rect": {
+                  "left": 1012,
+                  "top": 1475,
+                  "width": 109,
+                  "height": 58
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 19,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0019",
+      "printedPage": 24,
+      "label": "24",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "not_read_confidently",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_26_09L.jpg",
+        "sha256": "dc8dadfa135f66839570835d9cd60fde2b92a6753f1983b6cc3304d664961262"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/result.json",
+          "sha256": "a6a9c6686ad0193d318627a95caa6fe27f5aea81706a6be99caf0766fb34231e"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/raw.txt",
+            "sha256": "9833fce532a21acece055401c9e37cdd9c018b52d6ca33b431a62e6d48046e36"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/normalized.txt",
+            "sha256": "9833fce532a21acece055401c9e37cdd9c018b52d6ca33b431a62e6d48046e36"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/layout.tsv",
+            "sha256": "3eb15991ff4dc7b74cc8594c14e44ab210bb6f90f8a45764232d28d3ec5f71e4"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0019/attempt-01/blocks.json",
+            "sha256": "c8477166f48f8f898538114bd30e77736262fbb7f63b5e8c41ff61df9008fe33"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 398,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "scientific_notation_scale",
+        "table_structure",
+        "reading_order_or_duplicate"
+      ],
+      "locators": [
+        {
+          "text": "Bp",
+          "offsetUtf16": 390,
+          "line1Based": 43,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 390,
+              "end": 392
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              198,
+              1646,
+              45,
+              37
+            ],
+            "wordIds": [
+              "word-00196"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 198,
+              "top": 1646,
+              "width": 45,
+              "height": 37
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/21/1/1",
+                "wordIds": [
+                  "word-00196"
+                ],
+                "rect": {
+                  "left": 198,
+                  "top": 1646,
+                  "width": 45,
+                  "height": 37
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 21,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0021",
+      "printedPage": 26,
+      "label": "26",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "not_read_confidently",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_26_19L.jpg",
+        "sha256": "a618172f26ffeb6731f7efc9a0360df644e2b3bf26a94affcfce77a166283ec7"
+      },
+      "ocr": {
+        "result": {
+          "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0021/attempt-01/result.json",
+          "sha256": "64917825e76adcf07e6682342872695620a4b6c51b34e30b2d933ea765bbf7aa"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0021/attempt-01/raw.txt",
+            "sha256": "1a9f380f7bee9a7937e81bc2a23b954e23b8b302f681bc34effec224768feaf5"
+          },
+          "normalized.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0021/attempt-01/normalized.txt",
+            "sha256": "1a9f380f7bee9a7937e81bc2a23b954e23b8b302f681bc34effec224768feaf5"
+          },
+          "layout.tsv": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0021/attempt-01/layout.tsv",
+            "sha256": "a458690f919f7769fb52082b34ce49e944d9aabf6a80fa2984120c458279b9a4"
+          },
+          "blocks.json": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0021/attempt-01/blocks.json",
+            "sha256": "742a62d8571ef9ce400e7eec91df6a40b377af08ea3f07bc05f5fd805a8e8efa"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 368,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "CHO,",
+          "offsetUtf16": 207,
+          "line1Based": 29,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 207,
+              "end": 211
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              335,
+              1608,
+              118,
+              40
+            ],
+            "wordIds": [
+              "word-00080"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 335,
+              "top": 1608,
+              "width": 118,
+              "height": 40
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/14/1/3",
+                "wordIds": [
+                  "word-00080"
+                ],
+                "rect": {
+                  "left": 335,
+                  "top": 1608,
+                  "width": 118,
+                  "height": 40
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 60,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0060",
+      "printedPage": 65,
+      "label": "65",
+      "pageNumberVerification": "verified",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_34_50R.jpg",
+        "sha256": "ae04a3468bacfaa16d95b1e22e3a67b41da3bb96b6d9bf0d13fcbeff6b12030d"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/result.json",
+          "sha256": "e5c56767c259efb76124af60d80fb7b14ab1f59be6f2662ccae724c24ef1ebf9"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/raw.txt",
+            "sha256": "1fe795912f28b53e2c5d838ed12778042908fd811bb13fcc00ef1d8733ea1eda"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/normalized.txt",
+            "sha256": "1fe795912f28b53e2c5d838ed12778042908fd811bb13fcc00ef1d8733ea1eda"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/layout.tsv",
+            "sha256": "efce628020030e3be5b6fc53bf4bbadc9a3cc49ef788cb9cf2de37d059fc94b6"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0060/attempt-01/blocks.json",
+            "sha256": "c21b6b5067e6e5389d86d72bc8d428b15c434b6828635b6d8f59b1845bb9acd6"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 801,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S2",
+      "categories": [
+        "chinese",
+        "figure_caption_labels_topology",
+        "reading_order_or_duplicate"
+      ],
+      "locators": [
+        {
+          "text": "食物不中",
+          "offsetUtf16": 607,
+          "line1Based": 32,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 607,
+              "end": 611
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1122,
+              1455,
+              212,
+              70
+            ],
+            "wordIds": [
+              "word-00447",
+              "word-00448",
+              "word-00449"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 1122,
+              "top": 1455,
+              "width": 212,
+              "height": 70
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/3/9/1",
+                "wordIds": [
+                  "word-00447",
+                  "word-00448",
+                  "word-00449"
+                ],
+                "rect": {
+                  "left": 1122,
+                  "top": 1455,
+                  "width": 212,
+                  "height": 70
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 200,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0200",
+      "printedPage": 205,
+      "label": "205",
+      "pageNumberVerification": "verified",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_48_04R.jpg",
+        "sha256": "6e8471c2d6ccaebfbd518573a936e7064dea78ff3f29d92aae7b0421134eb67b"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/result.json",
+          "sha256": "43e01927f7e90d5f2c02836a1368ab750119e80c6d6138ea2decbc9bc6aa5456"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/raw.txt",
+            "sha256": "9df0b72d1c8b84f852441b3d4fb41e6d617dcc364dd22c95995a478a2bb3f756"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/normalized.txt",
+            "sha256": "9df0b72d1c8b84f852441b3d4fb41e6d617dcc364dd22c95995a478a2bb3f756"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/layout.tsv",
+            "sha256": "4680c2415406c599744370af48a863db48f1bf172fb993a37934a303480cdea4"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0200/attempt-01/blocks.json",
+            "sha256": "7641302308321db74b4e8ad89c293a8fda71cd695ed2b8eb9faef053c6e95809"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 522,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "Fe?",
+          "offsetUtf16": 135,
+          "line1Based": 9,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 135,
+              "end": 138
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1372,
+              477,
+              65,
+              68
+            ],
+            "wordIds": [
+              "word-00078"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 1372,
+              "top": 477,
+              "width": 65,
+              "height": 68
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/2/2",
+                "wordIds": [
+                  "word-00078"
+                ],
+                "rect": {
+                  "left": 1372,
+                  "top": 477,
+                  "width": 65,
+                  "height": 68
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        },
+        {
+          "text": "COa",
+          "offsetUtf16": 254,
+          "line1Based": 15,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 254,
+              "end": 257
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              803,
+              820,
+              267,
+              41
+            ],
+            "wordIds": [
+              "word-00140"
+            ],
+            "partialTokenIds": [
+              "word-00140"
+            ],
+            "sourceEnvelope": {
+              "left": 803,
+              "top": 820,
+              "width": 267,
+              "height": 41
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/3/4",
+                "wordIds": [
+                  "word-00140"
+                ],
+                "rect": {
+                  "left": 803,
+                  "top": 820,
+                  "width": 267,
+                  "height": 41
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        },
+        {
+          "text": "氮氣",
+          "offsetUtf16": 384,
+          "line1Based": 20,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 384,
+              "end": 386
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1216,
+              993,
+              94,
+              68
+            ],
+            "wordIds": [
+              "word-00234"
+            ],
+            "partialTokenIds": [
+              "word-00234"
+            ],
+            "sourceEnvelope": {
+              "left": 1216,
+              "top": 993,
+              "width": 94,
+              "height": 68
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/5/1",
+                "wordIds": [
+                  "word-00234"
+                ],
+                "rect": {
+                  "left": 1216,
+                  "top": 993,
+                  "width": 94,
+                  "height": 68
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 230,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0230",
+      "printedPage": 235,
+      "label": "235",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_50_15R.jpg",
+        "sha256": "5fdab54209be5e9278062534013c711e0b546e1167cf30de83474a69cf83a0f2"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/result.json",
+          "sha256": "490a9b0c631a9268862304b0bec3c79db532d50166b5f47d7e9de1954094ce8c"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/raw.txt",
+            "sha256": "05739019e77ac3708113843337196cb00cac9b1c01ed15c4826c877360de64ab"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/normalized.txt",
+            "sha256": "05739019e77ac3708113843337196cb00cac9b1c01ed15c4826c877360de64ab"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/layout.tsv",
+            "sha256": "4ab02845d04ddfb21001c27642adf2dba5221208a8bf22697c817381585dea21"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0230/attempt-01/blocks.json",
+            "sha256": "0a685728a5e36a6971836c3aa418eefd597a7a98bed99b08949bc1bd431f2eff"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 530,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "reading_order_or_duplicate"
+      ],
+      "locators": [
+        {
+          "text": "RS fi",
+          "offsetUtf16": 434,
+          "line1Based": 18,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 434,
+              "end": 439
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              352,
+              1034,
+              143,
+              74
+            ],
+            "wordIds": [
+              "word-00199",
+              "word-00200"
+            ],
+            "partialTokenIds": [
+              "word-00199"
+            ],
+            "sourceEnvelope": {
+              "left": 352,
+              "top": 1034,
+              "width": 143,
+              "height": 74
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/4/1/7",
+                "wordIds": [
+                  "word-00199",
+                  "word-00200"
+                ],
+                "rect": {
+                  "left": 352,
+                  "top": 1034,
+                  "width": 143,
+                  "height": 74
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 317,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0317",
+      "printedPage": 322,
+      "label": "322",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32L.jpg",
+        "sha256": "e55df628b4c9b75e22fbc7e367539c2c6ce24e6b036a04a071cebe3d449f4d07"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/result.json",
+          "sha256": "08128401fc2d13968fb880172232310d2f9df775d38624d500543d60a3c67581"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/raw.txt",
+            "sha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/normalized.txt",
+            "sha256": "559b8fb709baba480a4dc22f755ba8e3bb7544cd9fab05e6556bfb0721d0d405"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/layout.tsv",
+            "sha256": "9182c97a52cafb021d9fc17818b8e9746ae7cf42f221c0081b3cd807e7df4d5a"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0317/attempt-01/blocks.json",
+            "sha256": "c4b00e83b557619aa58660011fadaddc59f4bb417e8d2b9b95ffbbe9f16b0b5b"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 329,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units",
+        "figure_caption_labels_topology",
+        "reading_order_or_duplicate",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "影響。",
+          "offsetUtf16": 125,
+          "line1Based": 9,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 125,
+              "end": 128
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1832,
+              478,
+              110,
+              28
+            ],
+            "wordIds": [
+              "word-00065",
+              "word-00066"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 1832,
+              "top": 478,
+              "width": 110,
+              "height": 28
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/4/1/2",
+                "wordIds": [
+                  "word-00065",
+                  "word-00066"
+                ],
+                "rect": {
+                  "left": 1832,
+                  "top": 478,
+                  "width": 110,
+                  "height": 28
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 318,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0318",
+      "printedPage": 323,
+      "label": "323",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_32R.jpg",
+        "sha256": "76d3ada2b98ad24dddfc736c74fe3ed142a784e395829b076e76db83dc6c31b6"
+      },
+      "ocr": {
+        "result": {
+          "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0318/attempt-01/result.json",
+          "sha256": "05f96e1bc69b4d7fe7c8df8e7cb1aa2f711d24473eb99063b5e418f779d98ab0"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0318/attempt-01/raw.txt",
+            "sha256": "4540f0932f32ff831342b041068d7dee27326b3a90b6961cc9afd639e26c7bd8"
+          },
+          "normalized.txt": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0318/attempt-01/normalized.txt",
+            "sha256": "4540f0932f32ff831342b041068d7dee27326b3a90b6961cc9afd639e26c7bd8"
+          },
+          "layout.tsv": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0318/attempt-01/layout.tsv",
+            "sha256": "b74637f15c4dd20b10eacd8aa92af133e85b64bedf59559db55f2c262ae8995c"
+          },
+          "blocks.json": {
+            "path": "tmp-ocr-v23-stage1-20261104/pilot-3/pages/0318/attempt-01/blocks.json",
+            "sha256": "8bede7381a7af0dff50b5e05445d03aeba97b125082f81ae78e2e8a649a5c47f"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 713,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units",
+        "scientific_notation_scale",
+        "table_structure",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "300m",
+          "offsetUtf16": 449,
+          "line1Based": 28,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 449,
+              "end": 453
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              1120,
+              1366,
+              70,
+              22
+            ],
+            "wordIds": [
+              "word-00227"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 1120,
+              "top": 1366,
+              "width": 70,
+              "height": 22
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/16/1/2",
+                "wordIds": [
+                  "word-00227"
+                ],
+                "rect": {
+                  "left": 1120,
+                  "top": 1366,
+                  "width": 70,
+                  "height": 22
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 324,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0324",
+      "printedPage": 329,
+      "label": "329",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_55_57R.jpg",
+        "sha256": "46d7fadd926f2c70354fa3f87fa3064d6790bb344adc887a8e07717347f49ee1"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/result.json",
+          "sha256": "5cc42bc442d85a593c2b0d950d8c59f855ae27ee48e4349c96e202341a3b661b"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/raw.txt",
+            "sha256": "984439784bd650db448ca5920ce53a809afba5b045348e23fa2bb9e326b63391"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/normalized.txt",
+            "sha256": "984439784bd650db448ca5920ce53a809afba5b045348e23fa2bb9e326b63391"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/layout.tsv",
+            "sha256": "bebc3ae1ea581ec54037fb7c1e034571c228e5ed72392050a5cab3dddaf67bba"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0324/attempt-01/blocks.json",
+            "sha256": "ffb70b73e50378e65f6e257b70ae5f8f2b6187dccf8e5761ef1577e31f793e80"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 507,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "Transeription",
+          "offsetUtf16": 835,
+          "line1Based": 31,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 835,
+              "end": 848
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              254,
+              1508,
+              271,
+              69
+            ],
+            "wordIds": [
+              "word-00244"
+            ],
+            "partialTokenIds": [
+              "word-00244"
+            ],
+            "sourceEnvelope": {
+              "left": 254,
+              "top": 1508,
+              "width": 271,
+              "height": 69
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/15/1/3",
+                "wordIds": [
+                  "word-00244"
+                ],
+                "rect": {
+                  "left": 254,
+                  "top": 1508,
+                  "width": 271,
+                  "height": 69
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 325,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0325",
+      "printedPage": 330,
+      "label": "330",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_09_30_23_56_04L.jpg",
+        "sha256": "c82cff36594fdbedc6ed7c92b2dbb9ed77bb2193a546bfb2754423e1a71a03c0"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/result.json",
+          "sha256": "87dd2de2ffbb4792495ffc11906a64b456c96fb95fa1127503fff98d868d61f5"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/raw.txt",
+            "sha256": "df3b7cb2c0c6307521710b73de49dbcc01ebe0b5a20331233563f68d8d405b6f"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/normalized.txt",
+            "sha256": "bf52b548e19186504de009435810731822fd30f8b0825807bcb0063b4924e4b7"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/layout.tsv",
+            "sha256": "c409e76d4b1d66d92ee85314f4315685bd0c7d2452cfc9b105f8272b3be8d00e"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0325/attempt-01/blocks.json",
+            "sha256": "1b2bf33d4ded8e4ca80000d26a94da4ac488cc967a3eeb8caf45300faa13e99c"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 340,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "latin_terms_labels_units",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "mnRNA",
+          "offsetUtf16": 38,
+          "line1Based": 5,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 38,
+              "end": 43
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              499,
+              261,
+              91,
+              59
+            ],
+            "wordIds": [
+              "word-00014"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 499,
+              "top": 261,
+              "width": 91,
+              "height": 59
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/1/3",
+                "wordIds": [
+                  "word-00014"
+                ],
+                "rect": {
+                  "left": 499,
+                  "top": 261,
+                  "width": 91,
+                  "height": 59
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 465,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0465",
+      "printedPage": null,
+      "label": "附-12",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_03_54L.jpg",
+        "sha256": "0fd8de39662fda27c6945d85e41cb67b1baa3934f37ef5c2d238cc6ffa558daf"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/result.json",
+          "sha256": "56b99fe58ba9dae8d50fabf83459114017452bd0c56d02c1c52815dcda5bfd16"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/raw.txt",
+            "sha256": "034e87a2ee152bf7efd46971b511a5b23545dbd0ab8eadab2cb6fdc9a80c9023"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/normalized.txt",
+            "sha256": "034e87a2ee152bf7efd46971b511a5b23545dbd0ab8eadab2cb6fdc9a80c9023"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/layout.tsv",
+            "sha256": "698f6c4c2cb4d2ea414f6f0816fb3749ecc1c2ad536f094a37b0bd68c4259ee6"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0465/attempt-01/blocks.json",
+            "sha256": "f0ae6f5b91d90b53e6f4d2f395476909ba61c49929384ea9b358bdac7eed5e12"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 656,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": "ABST",
+          "offsetUtf16": 16,
+          "line1Based": 3,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 16,
+              "end": 20
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              261,
+              361,
+              224,
+              51
+            ],
+            "wordIds": [
+              "word-00010"
+            ],
+            "partialTokenIds": [
+              "word-00010"
+            ],
+            "sourceEnvelope": {
+              "left": 261,
+              "top": 361,
+              "width": 224,
+              "height": 51
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/1/1",
+                "wordIds": [
+                  "word-00010"
+                ],
+                "rect": {
+                  "left": 261,
+                  "top": 361,
+                  "width": 224,
+                  "height": 51
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 472,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0472",
+      "printedPage": null,
+      "label": "附-19",
+      "pageNumberVerification": "estimated",
+      "pageNumberVisualObservation": "matches_index_label; no status upgrade",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_04_17R.jpg",
+        "sha256": "9d8146cb2d09605b48674f54e0f1c8b31b93eb9beb359369e2dfae3ab263acac"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/result.json",
+          "sha256": "85c8567b940da68acaf7692658b7207372d9e15126e71a341b733eee2c5a1ace"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/raw.txt",
+            "sha256": "cd699e3f52caa2ad7cffdf1bc7b64c96279bcd62b6132e6ec085ba72149ff54b"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/normalized.txt",
+            "sha256": "9fd43e3cc7aa4f7c3d180df335eb697091bc69b03f94e14a8aefa2791d9387af"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/layout.tsv",
+            "sha256": "a69669a3bae9b5d4b0ba16380c4eb2e3f45314512b686d206902ee45803819b3"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0472/attempt-01/blocks.json",
+            "sha256": "eac53dfb5444e0c319853f245e5a1633d3edd99794b2d130ed6baf451c1b22db"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "exact_nonwhitespace_sequence",
+        "words": 410,
+        "invalidBoxes": 0,
+        "empty": false,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "S1",
+      "categories": [
+        "chinese",
+        "scientific_notation_scale",
+        "figure_caption_labels_topology",
+        "reading_order_or_duplicate",
+        "substantial_text_or_label_loss"
+      ],
+      "locators": [
+        {
+          "text": ") 10.",
+          "offsetUtf16": 3,
+          "line1Based": 3,
+          "unique": true,
+          "sourceGeometry": {
+            "status": "linked_to_existing_ocr",
+            "scope": "source word boxes; not confirmed image glyph boundaries",
+            "span": {
+              "start": 3,
+              "end": 8
+            },
+            "coordinateSpace": "original_image_pixels",
+            "bboxFormat": "xywh",
+            "sourceBBox": [
+              157,
+              321,
+              77,
+              41
+            ],
+            "wordIds": [
+              "word-00002",
+              "word-00003"
+            ],
+            "partialTokenIds": [],
+            "sourceEnvelope": {
+              "left": 157,
+              "top": 321,
+              "width": 77,
+              "height": 41
+            },
+            "sourceLineBoxes": [
+              {
+                "line": "1/2/1/1",
+                "wordIds": [
+                  "word-00002",
+                  "word-00003"
+                ],
+                "rect": {
+                  "left": 157,
+                  "top": 321,
+                  "width": 77,
+                  "height": 41
+                }
+              }
+            ],
+            "aiBoxRelationship": "invalid_or_missing",
+            "aiTokenAreaCoverage": null,
+            "coverageMeaning": "sum of token-box intersections / summed token-box areas; not OCR accuracy",
+            "imageContentVerified": false,
+            "autoApplyAllowed": false
+          },
+          "scope": "original OCR anchor only; not corrected text or human ground truth"
+        }
+      ],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    },
+    {
+      "scanSeq": 486,
+      "pageId": "shinedoc-textbook-20260930-1001/scan-0486",
+      "printedPage": null,
+      "label": null,
+      "pageNumberVerification": "unnumbered",
+      "pageNumberVisualObservation": "no_printed_number_observed",
+      "image": {
+        "manifest": "content/knowledge-base/sources/biology/shinedoc-textbook-20260930-1001/scans/manifest.json",
+        "file": "IMG_2026_10_01_00_05_09R.jpg",
+        "sha256": "ffcd3d9e59982bf16361a0f0202df6e3f4edd1e0f495129de53b99966a77c157"
+      },
+      "ocr": {
+        "result": {
+          "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/result.json",
+          "sha256": "f044db792358cfee455ef1ff984625e0910abc9ef055112bc9647baf3d8c7966"
+        },
+        "layers": {
+          "raw.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/raw.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "normalized.txt": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/normalized.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "layout.tsv": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/layout.tsv",
+            "sha256": "0f8c85bbfde0327bdc998bf8575b4c4bf1a34675d8ed129e777c8232e28d96aa"
+          },
+          "blocks.json": {
+            "path": "content/knowledge-base/ocr-pilot/biology-12pages-20261101-v2/pages/0486/attempt-01/blocks.json",
+            "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+          }
+        }
+      },
+      "machineIntegrity": {
+        "status": "PASS",
+        "alignment": "unresolved",
+        "words": 0,
+        "invalidBoxes": 0,
+        "empty": true,
+        "scope": "same-source consistency; not image accuracy"
+      },
+      "severity": "CONTROL_PENDING",
+      "categories": [],
+      "locators": [],
+      "status": "pending_human_review",
+      "independentHumanApproval": false,
+      "isGroundTruth": false,
+      "formalCER": null,
+      "formalWER": null
+    }
+  ],
+  "unresolved": [
+    "Independent human reference absent",
+    "Not a complete character-by-character annotation",
+    "Small glyphs, graph edges, cells and full order still need human confirmation",
+    "Estimated page numbers unchanged",
+    "No extrapolation of observed error incidence to 471 pages"
+  ],
+  "recommendation": {
+    "batch471": false,
+    "reason": "Content quality not sufficient for unattended teaching-material extraction",
+    "engineeringCheckpointReadiness": "Previously tested; does not validate recognition correctness"
+  },
+  "actions": {
+    "ocrCalls": 0,
+    "paidCalls": 0,
+    "originalChanges": 0,
+    "groundTruthCreated": false,
+    "algorithmChanges": 0,
+    "gitWrites": 0
+  }
+}
