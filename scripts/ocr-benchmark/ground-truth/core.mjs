@@ -1,0 +1,39 @@
+// Pending annotation inventory, not a new approval mechanism or OCR engine.
+import assert from 'node:assert/strict';
+import {validateDataset,stableStringify} from '../core.mjs';
+import {sha} from '../../lib/ocr-quality-io.mjs';
+export const FORMAT='studysignal-ground-truth-inventory-v1';
+const clone=x=>structuredClone(x);
+const pending=s=>({...clone(s),reference_text:null,reference_structure:null,reference_origin:null,annotation_status:'pending_human_review',reviewer:null,reviewed_at:null,approval:null,annotation_version:'1'});
+const refValid=r=>r&&typeof r.path==='string'&&r.path.length>0&&/^[a-f0-9]{64}$/.test(r.sha256)&&Object.keys(r).every(k=>['path','sha256','engine','layer','version'].includes(k));
+const types=s=>[...new Set([...(s.coverage_tags??[]),s.region_type])];
+export function inventoryDigest(value){const {inventory_digest,...body}=value;return sha(Buffer.from(stableStringify(body)));}
+export function buildInventory(dataset,roiInputs,comparisons){
+ validateDataset(dataset);assert(Array.isArray(roiInputs)&&Array.isArray(comparisons));
+ const samples=dataset.samples.map(pending),entries=[],queue=[];
+ const add=(sample,{history=[],candidateRefs=[],sourceFingerprint=null,legacyHistory=[]}={})=>{
+  const comparison=comparisons.find(r=>r.region_id===sample.region_id&&r.page_id===sample.page_id);
+  if(comparison){assert.equal(comparison.source.image_sha256,sample.image_sha256,'Comparison SHA mismatch');assert.deepEqual(comparison.roi,sample.bounding_box,'Comparison ROI mismatch');assert.equal(comparison.status,'pending_human_review');}
+  const prior=history.at(-1)??null,entry={sample_id:sample.sample_id,source_image_id:sample.image_path,source_image_sha256:sample.image_sha256,page_id:sample.page_id,scan_seq:sample.scan_seq,printed_page:sample.printed_page_label??sample.printed_page??null,page_number_verification:sample.page_number_verification??'unverified',region_id:sample.region_id,crop_coordinates:sample.bounding_box,coordinate_space:sample.coordinate_space,scope:sample.region_type==='page'?'full_page':'roi_only',content_types:types(sample),dataset_split:sample.dataset_split,annotation_status:'pending_human_review',reference_text:null,reference_structure:null,reviewer:null,reviewed_at:null,annotation_version:'1',source_fingerprint:sourceFingerprint,candidate_refs:clone(candidateRefs),existing_review:prior?{status:prior.status,revision:prior.revision,previous_revision:prior.previous_revision,uncertain_cells:prior.uncertain_cells,saved_at:prior.saved_at,reviewed_at:prior.reviewed_at}:null,history_refs:clone(history),legacy_history_refs:clone(legacyHistory),source_license_status:sample.source_license_status,training_consent:sample.training_consent,is_ground_truth:false};
+  entries.push(entry);
+  const groups=comparison?.groups.filter(g=>g.types.length)??[];
+  queue.push({task_id:sample.sample_id+':review',sample_id:sample.sample_id,page_id:sample.page_id,scan_seq:sample.scan_seq,region_id:sample.region_id,roi:sample.bounding_box,scope:entry.scope,status:'pending_human_review',priority:comparison?'high':'normal',candidate_refs:clone(candidateRefs),existing_revision:prior?.revision??null,focus_groups:groups.map(g=>({group_id:g.id,bbox:g.bbox,alignment_status:g.alignment_status,categories:g.types,source_block_ids:{left:g.left.spans.map(s=>s.block_id),right:g.right.spans.map(s=>s.block_id)}})),risk_checks:(comparison?.review_items??[]).map(i=>({issue_id:i.id??i.issue_id,type:i.type,bbox:i.bbox??i.original_bbox??sample.bounding_box,severity:i.severity??'undetermined'})),checklist:['Confirm image SHA and ROI before reviewing.','Review localized differences, scientific symbols, table cells and captions first.','Check the entire declared scope for common omissions and reading order before confirmation.','Save uncertain content as draft/pending; never infer missing source text.'],source_evidence:sample.sources??null,auto_verify_allowed:false});
+ };
+ for(const s of samples)add(s,{candidateRefs:Object.entries(s.sources?.ocr_layers??{}).map(([layer,ref])=>({engine:'tesseract',layer,...ref}))});
+ for(const input of roiInputs){const s=pending(input.sample),page=dataset.samples.find(p=>p.page_id===s.page_id);assert(page,'ROI outside supplied dataset');assert.equal(s.image_sha256,page.image_sha256,'ROI image SHA mismatch');assert.equal(s.dataset_split,page.dataset_split,'ROI split mismatch');assert.equal(s.source_id,page.source_id);assert.equal(s.material_id,page.material_id);assert.equal(s.image_width,page.image_width);assert.equal(s.image_height,page.image_height);
+  for(let i=0;i<input.history.length;i++){const r=input.history[i];assert.equal(r.revision,i+1);assert.equal(r.previous_revision,i||null);assert(refValid(r.record_ref),'Missing review file hash');}
+  samples.push(s);add(s,input);
+ }
+ const benchmark={...clone(dataset),dataset_id:dataset.dataset_id+'-pending-inventory-v1',samples};validateDataset(benchmark);
+ const result={format:FORMAT,inventory_revision:1,previous_inventory:null,benchmark_dataset:benchmark,entries,review_queue:queue,policies:{ocr_and_drafts_are_references_only:true,full_scope_review_required:true,no_training_authorization_created:true,approval_workflow:'Use existing human review store and validated Benchmark export; inventory cannot approve text.'},summary:{page_samples:dataset.samples.length,roi_samples:roiInputs.length,pending_annotation_units:samples.length,verified_ground_truth:0,localized_difference_groups:queue.reduce((n,q)=>n+q.focus_groups.length,0),missing_image_sources:entries.filter(e=>!e.source_image_id||!e.source_image_sha256).map(e=>e.sample_id),missing_printed_page_labels:entries.filter(e=>e.printed_page===null||e.printed_page==='').map(e=>e.sample_id),formal_CER:null,formal_WER:null}};
+ result.inventory_digest=inventoryDigest(result);validateInventory(result);return result;
+}
+export function validateInventory(value){
+ assert.equal(value.format,FORMAT);assert.equal(value.inventory_revision,1);assert.equal(value.inventory_digest,inventoryDigest(value),'Inventory digest mismatch');validateDataset(value.benchmark_dataset);
+ const samples=new Map(value.benchmark_dataset.samples.map(s=>[s.sample_id,s]));assert.equal(value.entries.length,samples.size);assert.equal(value.review_queue.length,samples.size);
+ assert.equal(new Set(value.entries.map(e=>e.sample_id)).size,samples.size);assert.equal(new Set(value.review_queue.map(e=>e.sample_id)).size,samples.size);
+ for(const s of samples.values()){assert.equal(s.annotation_status,'pending_human_review');for(const k of ['reference_text','reference_structure','reference_origin','reviewer','reviewed_at','approval'])assert.equal(s[k],null,'Pending inventory must not contain a formal answer');}
+ for(const entry of value.entries){const s=samples.get(entry.sample_id);assert(s);assert.equal(entry.source_image_sha256,s.image_sha256);assert.equal(entry.source_image_id,s.image_path);assert.equal(entry.page_id,s.page_id);assert.equal(entry.region_id,s.region_id);assert.equal(entry.dataset_split,s.dataset_split);assert.deepEqual(entry.crop_coordinates,s.bounding_box);assert.equal(entry.is_ground_truth,false);assert.equal(entry.annotation_status,'pending_human_review');assert.equal(entry.reference_text,null);assert.equal(entry.reference_structure,null);assert.equal(entry.reviewer,null);assert.equal(entry.reviewed_at,null);assert(entry.candidate_refs.every(refValid));}
+ for(const task of value.review_queue){const s=samples.get(task.sample_id);assert(s);assert.equal(task.page_id,s.page_id);assert.equal(task.region_id,s.region_id);assert.deepEqual(task.roi,s.bounding_box);assert.equal(task.status,'pending_human_review');assert.equal(task.auto_verify_allowed,false);for(const g of task.focus_groups){const [x,y,w,h]=g.bbox,[a,b,c,d]=s.bounding_box;assert([x,y,w,h].every(Number.isFinite)&&w>0&&h>0&&x>=a&&y>=b&&x+w<=a+c+1e-6&&y+h<=b+d+1e-6,'Focus outside ROI');}}
+ return {status:'PASS',samples:samples.size,ground_truth_created:0};
+}
