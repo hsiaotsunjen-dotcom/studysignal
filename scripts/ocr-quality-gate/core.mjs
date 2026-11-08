@@ -4,7 +4,8 @@ import {textEdits} from '../lib/ocr-ai-source-evidence.mjs';
 import {scienceGuards} from '../lib/ocr-ai-science-guards.mjs';
 import {formulaTokens,compareScientificText} from '../lib/ocr-ai-formula-evidence.mjs';
 import {intersection,area} from '../lib/ocr-layout-prototype.mjs';
-export const VERSION='quality-gate-prototype-1';
+import {matchBlocks,MATCHING_VERSION} from '../lib/ocr-block-matching.mjs';
+export const VERSION='quality-gate-prototype-2-p0';
 const rect=b=>({left:b[0],top:b[1],width:b[2],height:b[3]});
 const compact=s=>s.replace(/\s/gu,'');
 const hanCount=s=>[...s].filter(c=>/\p{Script=Han}/u.test(c)).length;
@@ -42,7 +43,8 @@ export function tableGeometry(blocks){
  return {rows:groups,candidate_reading_order:candidate,inversions,spanning_candidates:spanning,status:'geometric_hypothesis_only',cells_verified:false};
 }
 
-export function assessRegion(input){
+export function assessRegion(input,{matchingVersion=MATCHING_VERSION}={}){
+ assert([MATCHING_VERSION,'legacy-directed-v0'].includes(matchingVersion),'Unsupported matching version');const legacy=matchingVersion==='legacy-directed-v0';
  assert(input&&typeof input.region_id==='string'&&valid(input.roi));
  assert(Array.isArray(input.engines)&&input.engines.length===2);
  assert(new Set(input.engines.map(e=>e.id)).size===2,'Duplicate engine IDs');
@@ -92,11 +94,11 @@ export function assessRegion(input){
    add('science_guard:'+risk.code,risk.severity==='potential_error'?'high':'medium',risk.evidence,'Review engine disagreement against source; preserve case and script structure.');
   }
  }
- const spatial=[];
- for(const e of input.engines){
+ const spatial=[],shared=legacy?null:matchBlocks(good.get(a.id),good.get(b.id));
+ for(const [ei,e] of input.engines.entries()){
   const other=input.engines.find(x=>x.id!==e.id),candidates=[];
   for(const block of good.get(e.id)){
-   const matches=good.get(other.id).map(peer=>({block_id:peer.id,overlap_fraction:intersection(rect(block.bbox),rect(peer.bbox))/area(rect(block.bbox))})).filter(m=>m.overlap_fraction>.1);
+   const matches=legacy?good.get(other.id).map(peer=>({block_id:peer.id,overlap_fraction:intersection(rect(block.bbox),rect(peer.bbox))/area(rect(block.bbox))})).filter(m=>m.overlap_fraction>.1):shared.candidates[ei].find(c=>c.block_id===block.id).peer_candidates;
    candidates.push({block_id:block.id,peer_candidates:matches});
    if(!matches.length)add('unmatched_ocr_block','medium',{peer_engine:other.id,scope:'overlap candidate only; word and line granularities differ'},'Inspect unmatched original pixels; may be omission or false detection.',{engine:e.id,blocks:[block.id]});
   }spatial.push({engine_id:e.id,peer_engine:other.id,candidates,scope:'bounding-box overlap, not glyph or semantic alignment'});
@@ -105,7 +107,7 @@ export function assessRegion(input){
  add('image_content_completeness_undetermined','medium',{engines_agree:a.text===b.text,pixel_text_reference_available:false},'Use independently human-checked samples to evaluate common omissions and true correctness.',{certainty:'undetermined'});
  checks.push(...['image_text_completeness','terminology_correctness','unit_value_correctness','formula_image_fidelity','table_semantic_structure'].map(check=>({check,status:'NOT_EVALUATED',reason:'No independent human-confirmed reference'})));
  const critical=issues.some(i=>i.severity==='critical');
- return {version:VERSION,region_id:input.region_id,source:input.source,roi:input.roi,region_type:input.region_type,
+ return {version:legacy?'quality-gate-prototype-1':VERSION,...(legacy?{}:{matching_policy:MATCHING_VERSION}),region_id:input.region_id,source:input.source,roi:input.roi,region_type:input.region_type,
   source_gate:critical?'FAIL':'PASS',content_gate:critical?'FAIL':'NEEDS_REVIEW',annotation_status:'pending_human_review',
   quality_score:null,CER:null,WER:null,false_positive_rate:null,miss_rate:null,auto_apply_allowed:false,
   engine_inputs:input.engines,checks,issues,dual_engine_difference:diff,scientific_comparison:science,spatial_candidates:spatial,table_candidates:tables,

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {assessRegion,tableGeometry} from '../ocr-quality-gate/core.mjs';
 import {textEdits} from '../lib/ocr-ai-source-evidence.mjs';
 import {scienceGuards} from '../lib/ocr-ai-science-guards.mjs';
-export const VERSION='multi-engine-difference-1';
+import {matchBlocks,sourceOrderedMembers,MATCHING_VERSION} from '../lib/ocr-block-matching.mjs';
+export const VERSION='multi-engine-difference-2-p0';
 const compact=s=>s.replace(/\s/gu,'');
 const valid=b=>Array.isArray(b)&&b.length===4&&b.every(Number.isFinite)&&b[2]>0&&b[3]>0;
 const area=b=>b[2]*b[3];
@@ -12,19 +13,23 @@ const envelope=bs=>{const x=Math.min(...bs.map(b=>b.bbox[0])),y=Math.min(...bs.m
 function ordered(bs){const ids=tableGeometry(bs).candidate_reading_order;return ids.map(id=>bs.find(b=>b.id===id));}
 function sequence(bs){let offset=0;const spans=bs.map(b=>{const s={block_id:b.id,start:offset,end:offset+b.text.length,bbox:b.bbox,polygon:b.polygon??null};offset=s.end;return s;});return {text:bs.map(b=>b.text).join(''),spans};}
 function locate(s,start,end){let bs=s.spans.filter(b=>b.start<end&&b.end>start);const boundary=start===end;if(boundary)bs=s.spans.filter(b=>b.start<=start&&b.end>=start);return {offset_unit:'UTF-16',start,end,blocks:bs,scope:boundary?'adjacent_block_anchor_not_missing_glyph_position':'overlapping_source_blocks_not_glyph_coordinates'};}
-export function alignDifferences(input){
- const gate=assessRegion(input); // reuse existing validation, science, table/order and shared-error guards
- const base={version:VERSION,region_id:input.region_id,page_id:input.source.page_id,roi:input.roi,source:input.source,engine_refs:input.engines.map(e=>({id:e.id,version:e.version,config:e.config,raw_ref:e.raw_ref,result_ref:e.result_ref,layout_ref:e.layout_ref})),status:'pending_human_review',auto_apply_allowed:false,CER:null,WER:null,quality_gate:gate};
+export function alignDifferences(input,{version=VERSION}={}){
+ assert([VERSION,'multi-engine-difference-1'].includes(version),'Unsupported comparison version');const legacy=version==='multi-engine-difference-1';
+ const gate=assessRegion(input,{matchingVersion:legacy?'legacy-directed-v0':MATCHING_VERSION}); // preserve historical reproduction without rewriting saved artifacts
+ const base={version,region_id:input.region_id,page_id:input.source.page_id,roi:input.roi,source:input.source,engine_refs:input.engines.map(e=>({id:e.id,version:e.version,config:e.config,raw_ref:e.raw_ref,result_ref:e.result_ref,layout_ref:e.layout_ref})),status:'pending_human_review',auto_apply_allowed:false,CER:null,WER:null,quality_gate:gate};
+ if(!legacy){base.matching_policy=MATCHING_VERSION;base.sequence_policy='preserve_engine_source_order';}
  if(gate.source_gate!=='PASS')return {...base,alignment_status:'BLOCKED',groups:[],review_items:[{id:input.region_id+':blocked',type:'source_or_coordinates_invalid',status:'pending_human_review',auto_apply_allowed:false}]};
  const [a,b]=input.engines,n=a.blocks.length,all=[...a.blocks,...b.blocks],edges=all.map(()=>[]);
- for(let i=0;i<n;i++)for(let j=0;j<b.blocks.length;j++){
+ if(legacy)for(let i=0;i<n;i++)for(let j=0;j<b.blocks.length;j++){
   // No text-similarity matching: repeated terms must not link disjoint image locations.
   const x=a.blocks[i].bbox,y=b.blocks[j].bbox;
   if(intersection(x,y)/Math.min(area(x),area(y))>=.15){edges[i].push(n+j);edges[n+j].push(i);}
  }
- const seen=new Set(),groups=[];
- for(let i=0;i<all.length;i++){if(seen.has(i))continue;const todo=[i],members=[];seen.add(i);while(todo.length){const k=todo.pop();members.push(k);for(const p of edges[k])if(!seen.has(p)){seen.add(p);todo.push(p);}}
-  const left=ordered(members.filter(k=>k<n).map(k=>all[k])),right=ordered(members.filter(k=>k>=n).map(k=>all[k]));
+ const seen=new Set(),groups=[],components=[];
+ if(legacy){for(let i=0;i<all.length;i++){if(seen.has(i))continue;const todo=[i],members=[];seen.add(i);while(todo.length){const k=todo.pop();members.push(k);for(const p of edges[k])if(!seen.has(p)){seen.add(p);todo.push(p);}}components.push(members);}}
+ else components.push(...matchBlocks(a.blocks,b.blocks).components);
+ for(const members of components){
+  const left=legacy?ordered(members.filter(k=>k<n).map(k=>all[k])):sourceOrderedMembers(a.blocks,members.filter(k=>k<n)),right=legacy?ordered(members.filter(k=>k>=n).map(k=>all[k])):sourceOrderedMembers(b.blocks,members.filter(k=>k>=n).map(k=>k-n));
   const l=sequence(left),r=sequence(right),ambiguous=left.length>1&&right.length>1;
   const difference=textEdits(l.text,r.text),types=[];
   if(!left.length||!right.length)types.push('unmatched_region');
