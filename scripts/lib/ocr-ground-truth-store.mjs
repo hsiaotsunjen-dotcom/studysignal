@@ -18,9 +18,10 @@ export function wordRate(reference,hypothesis){
   tokenizer:'Intl.Segmenter zh-Hant word; isWordLike; NFC; case preserved; mixed Chinese/Latin/numbers',icu_version:process.versions.icu};
 }
 export function openGroundTruthStore(root,cases,verifySources,{profile='two-region',readOnly=false}={}){
- assert(['two-region','existing15-pages','scan200-differences'].includes(profile),'Unknown source profile');
+ assert(['two-region','existing15-pages','scan200-differences','benchmark-regions'].includes(profile),'Unknown source profile');
  assert(!readOnly||profile==='existing15-pages','Read-only subset is restricted to historical page sources');
- root=path.resolve(root);assert((readOnly?cases.length>=1&&cases.length<=15:cases.length===(profile==='two-region'?2:profile==='existing15-pages'?15:1))&&new Set(cases.map(c=>c.id)).size===cases.length);
+ root=path.resolve(root);assert((readOnly?cases.length>=1&&cases.length<=15:profile==='benchmark-regions'?cases.length>=1&&cases.length<=100:cases.length===(profile==='two-region'?2:profile==='existing15-pages'?15:1))&&new Set(cases.map(c=>c.id)).size===cases.length);
+ if(profile==='benchmark-regions')for(const c of cases){assert(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(c.id),'Unsafe ROI ID');assert(c.id===c.sample.region_id,'ROI identity mismatch');validateSample(c.sample);assert(c.sample.bounding_box,'ROI coordinates required');}
  if(profile==='existing15-pages'){
   assert(cases.every(c=>/^scan-\d{4}-full-page$/.test(c.id)&&c.sample.region_type==='page'&&c.sample.region_id===c.id),'Page profile requires full-page sources');
   assert.equal(new Set(cases.map(c=>c.sample.page_id)).size,cases.length,'Duplicate page identity');
@@ -99,12 +100,13 @@ export function openGroundTruthStore(root,cases,verifySources,{profile='two-regi
   for(const x of audit.labels)assert(ids.has(x.issue_id)&&['confirmed_problem','false_alarm','uncertain'].includes(x.decision));
   for(const x of audit.misses)assert(typeof x.id==='string'&&typeof x.notes==='string'&&x.notes.trim()&&Array.isArray(x.bbox)&&x.bbox.length===4&&x.bbox.every(Number.isFinite)&&x.bbox[2]>0&&x.bbox[3]>0&&x.bbox[0]>=c.sample.bounding_box[0]&&x.bbox[1]>=c.sample.bounding_box[1]&&x.bbox[0]+x.bbox[2]<=c.sample.bounding_box[0]+c.sample.bounding_box[2]&&x.bbox[1]+x.bbox[3]<=c.sample.bounding_box[1]+c.sample.bounding_box[3]);
   if(audit.scope_complete)assert(audit.labels.length===ids.size&&audit.labels.every(x=>x.decision!=='uncertain'),'Incomplete risk audit');
-  if(profile==='scan200-differences'&&r.review_status!=='draft'){
+  if(['scan200-differences','benchmark-regions'].includes(profile)&&r.review_status!=='draft'){
    assert(previous,'Save draft before changing review status');
    assert.equal(r.ground_truth_text,previous.ground_truth_text,'Modified text must first be saved as draft');
    assert.deepEqual(r.ground_truth_structure,previous.ground_truth_structure,'Modified structure must first be saved as draft');
   }
   if(r.review_status==='verified'){
+   if(profile==='benchmark-regions'){assert(previous&&['draft','pending_human_review'].includes(previous.review_status),'Save draft before human verification');assert(r.checks?.roi_only===true,'Explicit ROI scope confirmation required');}
    if(profile==='scan200-differences'){assert(previous&&['draft','pending_human_review'].includes(previous.review_status),'Save draft before human verification');assert.equal(r.ground_truth_text,previous.ground_truth_text,'Modified text must first be saved as draft');assert.deepEqual(r.ground_truth_structure,previous.ground_truth_structure,'Modified structure must first be saved as draft');}
    assert(r.reviewer_id?.trim()&&Number.isFinite(Date.parse(r.reviewed_at))&&r.ground_truth_text.trim(),'Explicit human identity/time/text required');
    assert(r.uncertainties.length===0,'Unresolved text/scientific symbols cannot be verified');

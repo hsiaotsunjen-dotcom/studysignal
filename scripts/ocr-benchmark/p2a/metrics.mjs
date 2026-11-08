@@ -1,0 +1,28 @@
+// Frozen P2-A supplement to existing Benchmark. No reference generation.
+import assert from 'node:assert/strict';
+import {textMetrics,hasHumanReference,evaluate,validateSample} from '../core.mjs';
+import {editDistance} from '../../lib/ocr-quality-metrics.mjs';
+export const PROTOCOL='p2a-metrics-1';
+export const NORMALIZATION=Object.freeze({full_cer:'NFC Unicode code points; remove whitespace; preserve case and scientific symbols; no NFKC',chinese_cer:'Han-only projection after NFC; supplementary, not mixed-language correctness',english_cer:'ASCII English word-token characters, internal apostrophe/hyphen retained; case-sensitive; whitespace/numbers excluded',english_wer:'ASCII English word tokens with internal apostrophe/hyphen; NFC, case-sensitive; not Chinese space tokenization',structure:'Explicit canonical IDs required; formula/script values preserved; table topology excludes text'});
+const absent=reason=>({status:'NOT_EVALUATED',value:null,reason});
+const rate=(r,h)=>({status:r.length?'EVALUATED':'NOT_EVALUATED',value:r.length?editDistance(r,h)/r.length:null,errors:editDistance(r,h),reference_units:r.length,hypothesis_units:h.length});
+export function englishCER(reference,hypothesis){const units=s=>Array.from((s.normalize('NFC').match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)??[]).join(''));return {...rate(units(reference),units(hypothesis)),policy:'ASCII English word-token characters including internal apostrophe/hyphen; NFC; case-sensitive; no numbers or whitespace'};}
+export function tableTopology(reference,hypothesis){
+ const keys=t=>new Set(t.flatMap(table=>table.cells.map(c=>JSON.stringify([table.id,c.row,c.column,c.row_span,c.column_span]))));const r=keys(reference),h=keys(hypothesis),tp=[...r].filter(x=>h.has(x)).length,fp=h.size-tp,fn=r.size-tp;
+ return {status:r.size?'EVALUATED':'NOT_EVALUATED',value:r.size?2*tp/(2*tp+fp+fn):null,true_positives:tp,false_positives:fp,false_negatives:fn,reference_units:r.size,precision:h.size?tp/h.size:null,recall:r.size?tp/r.size:null,scope:'canonical table IDs and cell topology only; text is evaluated separately'};
+}
+export function evaluateP2Model(sample,model,{realHumanVerified=false}={}){
+ validateSample(sample);const empty={protocol:PROTOCOL,normalization:NORMALIZATION,status:'insufficient_verified_samples',full_cer:absent('Verified real human reference required'),chinese_cer:absent('Verified real human reference required'),english_cer:absent('Verified real human reference required'),english_wer:absent('Verified real human reference required'),chemical_formula:absent('Verified critical fields and aligned model fields required'),scripts:absent('Verified script representation and aligned model fields required'),table_topology:absent('Verified table and canonical model structure required'),captions_labels:absent('Verified figure associations and canonical model structure required'),reading_order:absent('Verified order and canonical model structure required'),script_pixel_geometry:{status:'NOT_IMPLEMENTED',value:null,reason:'No glyph-baseline extraction; explicit human/model script representation required'},concept_graph:{status:'NOT_IMPLEMENTED',value:null,reason:'Graph node and edge alignment not implemented'}};
+ if(!realHumanVerified||!hasHumanReference(sample)||typeof sample.reference_text!=='string')return empty;
+ const old=evaluate(sample,model),ref=sample.reference_structure,hyp=model.OCR_output.structure,aligned=model.OCR_output.structure_alignment==='benchmark_canonical_ids';
+ const result={...empty,status:'EVALUATED_ROI_ONLY',full_cer:old.metrics.cer,chinese_cer:old.metrics.chinese_cer,english_cer:englishCER(sample.reference_text,model.OCR_output.text),english_wer:old.metrics.english_wer,
+  chemical_formula:old.metrics.critical_fields?.by_type?.chemical_formula??empty.chemical_formula,scripts:old.metrics.critical_fields?.by_type?.script??empty.scripts,captions_labels:old.metrics.captions,reading_order:old.metrics.reading_order,
+  benchmark:old};
+ if(ref&&Object.hasOwn(ref,'tables')&&hyp&&Object.hasOwn(hyp,'tables')&&aligned)result.table_topology=tableTopology(ref.tables,hyp.tables);
+ // Existing keyed structure values are error rates, never relabel them accuracy.
+ result.structure_rate_policy='chemical_formula/scripts/captions_labels are existing keyed error rates (missing+substitution+insertion)/reference units; table_topology is F1; reading_order is correct-pair fraction';
+ for(const field of ['chemical_formula','scripts','captions_labels']){const m=result[field];if(m.reference_units>0){m.exact_match_fraction=m.correct/m.reference_units;m.presence_fraction=(m.reference_units-m.missing)/m.reference_units;}}
+ return result;
+}
+export function aggregateVerified(rows,minimum=3){assert(Number.isSafeInteger(minimum)&&minimum>=3,'Minimum three independently reviewed ROI records; not a statistical guarantee');const valid=rows.filter(r=>r.status==='EVALUATED_ROI_ONLY');const metrics={};for(const name of ['full_cer','chinese_cer','english_cer','english_wer']){const scored=valid.filter(r=>r[name]?.status==='EVALUATED'),units=scored.reduce((n,r)=>n+r[name].reference_units,0),errors=scored.reduce((n,r)=>n+r[name].errors,0);metrics[name]={status:scored.length>=minimum&&units?'EVALUATED_DEVELOPMENT_SUBSET':'insufficient_verified_samples',value:scored.length>=minimum&&units?errors/units:null,verified_roi_count:scored.length,reference_units:units,errors};}return {minimum_verified_rois:minimum,metrics,general_quality_claim_allowed:false,scope:'Development samples from one source; overlapping ROIs and engines must not be counted as independent samples'};}
+export {textMetrics};
